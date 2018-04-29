@@ -1,0 +1,22 @@
+<form action="/movies" method="POST" encType="multipart/form-data">
+    <div class="row">
+        <div class="col-lg-6">
+            <select disabled id="search_genre" class="form-control show-menu-arrow">
+                <option selected disabled>Genre's</option>
+                <option value="0">All genre's</option>
+                <option value="1">Action</option>
+                <option value="2">Horror</option>
+                <option value="3">Romance</option>
+            </select>
+        </div>
+        <div class="col-lg-6">
+            <div class="input-group">
+                <input id="search_input" name="search_input" type="text" class="form-control"  placeholder="Search for...">
+                <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="submit" onclick="searchMovies();">Search</button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="dropdown-divider"></div>
+</form>
