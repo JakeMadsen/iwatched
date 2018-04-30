@@ -9,7 +9,7 @@ const   express         = require('express'),
         server          = express(),
         bodyParser      = require("body-parser"),
         host_settings   = require('./helpers/tools/oop_server_host'),
-        db_connection   = require('./helpers/db/db_config.js').connect_local(),
+        db_connection   = require('./config/db/db_config.js'),
         createError     = require('http-errors');
         
 /* Modules used for development */ 
@@ -19,7 +19,8 @@ const   logger          = require('morgan');
 const   passport        = require('passport'),
         cookieParser    = require('cookie-parser'),
         flash           = require('connect-flash'),
-        session         = require('express-session');
+        session         = require('express-session'),
+        mongoose        = require('mongoose');
 
 /* Host contains usefull server configurations */
 var host = new host_settings;
@@ -28,7 +29,7 @@ var host = new host_settings;
 
 //=================== Configuration ===================//
 /* Server development modules */
-server.use(logger('dev'));
+// server.use(logger('dev'));
 
 
 /* Server view engine setup */
@@ -46,6 +47,7 @@ server.use(cookieParser())
 
 
 /* Server passport setup */
+// mongoose.connect(configDB.url)
 // require('./config/passport/passport')(server)
 server.use(session({ 
     secret: 'thisIsMySecretCat',

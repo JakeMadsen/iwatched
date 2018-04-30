@@ -1,16 +1,18 @@
 /* Fetch the movie database api*/
 let tmdLink = "https://api.themoviedb.org/3/search/movie?api_key=",
     tmdApiKey = "ab4e974d12c288535f869686bd72e1da",
-    tmdAdult = "false";
+    tmdAdult = "false",
+    movie_name = '',
+    release_date = 'Unknown';
 
 
 /* Movie search functions */
-function searchMovies() {
+function searchMovies(type) {
     let search_input = document.getElementById('search_input').value;
     let movie_placeholder = document.getElementById('movie_holder');
         movie_placeholder.innerHTML = null;
 
-    fetch(`https://api.themoviedb.org/3/search/movie?api_key=ab4e974d12c288535f869686bd72e1da&language=en-US&query=${search_input}&page=1&include_adult=false`)
+    fetch(`https://api.themoviedb.org/3/search/${type}?api_key=ab4e974d12c288535f869686bd72e1da&language=en-US&query=${search_input}&page=1&include_adult=false`)
         .then(response => {
             return response.json()
         })
@@ -54,8 +56,13 @@ function searchMovies() {
                 movie_option_row_left.appendChild(movie_image);
 
                 /*  movie_title appends movie title to movie_option_row_right*/
+                if(type == 'movie')
+                    movie_name = movie.original_title;
+                else
+                    movie_name = movie.original_name;
+
                 var movie_title = document.createElement('H4'),
-                    movie_title_text = document.createTextNode(movie.original_title);
+                    movie_title_text = document.createTextNode(movie_name);
                     movie_title.appendChild(movie_title_text);
                 movie_option_row_right.appendChild(movie_title);
 
@@ -70,6 +77,16 @@ function searchMovies() {
                     movie_rating_text = document.createTextNode("Movie rating: " + movie.vote_average + "/10" + " Total votes: " + movie.vote_count);
                     movie_rating.appendChild(movie_rating_text);
                 movie_option_row_right.appendChild(movie_rating);
+
+                /*  movie_release appends movie rating to movie_option_row_right*/
+                if(type == 'movie')
+                release_date = movie.release_date;
+                else
+                release_date = movie.first_air_date;
+                var movie_release = document.createElement('P'),
+                    movie_release_text = document.createTextNode("Release date: " + release_date);
+                    movie_release.appendChild(movie_release_text);
+                movie_option_row_right.appendChild(movie_release);
 
                 /*  movie_add_watched appends movie rating to movie_option_row_right*/
                 var movie_add_watched = document.createElement('BUTTON'),

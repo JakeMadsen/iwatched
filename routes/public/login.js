@@ -1,8 +1,10 @@
 module.exports = function (server) {
-    server.post('/login', 
+    console.log('* Login Routes Loaded Into Server');
+    
+    server.get('/login', 
         function(req, res) {
-            res.render('public assets/pages/index', {
-                title: "Home"
+            res.render('public assets/pages/login', {
+                title: "Login"
             });
         }
     );
