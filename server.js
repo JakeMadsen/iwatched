@@ -47,7 +47,12 @@ server.use(cookieParser())
 
 
 /* Server passport setup */
-// mongoose.connect(configDB.url)
+mongoose.connect('mongodb://localhost:27017/iWatched', (err, res) => {
+    // if(err)
+    //     console.log(err)
+    // else
+    //     console.log(res)
+})
 // require('./config/passport/passport')(server)
 server.use(session({ 
     secret: 'thisIsMySecretCat',

@@ -1,4 +1,5 @@
 module.exports = (server) => {
+    console.log('======== Loading Public Routes ========')
     /* PUBLIC ROUTES */
     require("./public/index")(server);
     require("./public/movies")(server);
