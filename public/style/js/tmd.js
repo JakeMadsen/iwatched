@@ -73,8 +73,14 @@ function searchMovies(type) {
                 movie_option_row_right.appendChild(movie_overview);
 
                 /*  movie_rating appends movie rating to movie_option_row_right*/
+                let rating;
+                if(movie.vote_count != 0)
+                    rating = "Movie rating: " + movie.vote_average + "/10" + " Total votes: " + movie.vote_count;
+                else
+                    rating = "This movie has not been rated yet.";
+                
                 var movie_rating = document.createElement('P'),
-                    movie_rating_text = document.createTextNode("Movie rating: " + movie.vote_average + "/10" + " Total votes: " + movie.vote_count);
+                    movie_rating_text = document.createTextNode(rating);
                     movie_rating.appendChild(movie_rating_text);
                 movie_option_row_right.appendChild(movie_rating);
 
@@ -99,11 +105,8 @@ function searchMovies(type) {
                     movie_add_watch_later_text = document.createTextNode("Save this for later");
                     movie_add_watch_later.appendChild(movie_add_watch_later_text);
                 movie_option_row_right.appendChild(movie_add_watch_later);
-              
-                
 
                 movie_holder.appendChild(movie_option)
-
             });
             return movie_holder
         })
