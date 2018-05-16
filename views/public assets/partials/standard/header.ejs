@@ -21,15 +21,15 @@
             </ul>
 
             <ul class="nav navbar-nav navbar-right">
-                <% if(false){ %>
+                <% if(user != null){ %>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Profil
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="#">My Profile</a>
+                            <a class="dropdown-item" href="/profile">My Profile</a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Log out</a>
+                            <a class="dropdown-item" href="/logout">Log out</a>
                         </div>
                     </li>
 

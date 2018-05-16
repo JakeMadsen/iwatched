@@ -5,7 +5,8 @@ module.exports = function (server) {
 
         res.render('public assets/pages/movies', {
             title: "Movies",
-            searchType: "movie"
+            searchType: "movie",
+            user : req.user // get the user out of session and pass to template
         });
     });
 

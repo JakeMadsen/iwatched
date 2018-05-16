@@ -8,7 +8,8 @@ module.exports = function (server) {
             res.render('public assets/pages/login', {
                 title: "Login",
                 message_login: req.flash('loginMessage'),
-                message_signup : req.flash('signupMessage')
+                message_signup : req.flash('signupMessage'),
+                user : req.user // get the user out of session and pass to template
             });
         }
     );
