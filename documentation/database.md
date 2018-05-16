@@ -6,6 +6,37 @@
  - user_pass    - varchar(50)   - Must be encrypted
  - fk_user_info - int           - Info table Relation
 
+
+user = {
+    _id         : "",
+    username    : "",
+    password    : "",
+    email       : "",
+    profile     : {
+                    cover_image     : "",
+                    profile_image   : "",
+                    description     : "",
+                    birtday         : "",
+                    gender          : ""
+    },
+    watched_movies : [
+        "id",
+        "id"
+    ],
+    watched_series : [
+        "id",
+        "id"
+    ],
+    saved_movies : [
+        "id",
+        "id"
+    ]
+    saved_series : [
+        "id",
+        "id"
+    ]
+}
+
 ## User Info table (tb_user_info)
  - info_id      - int           - Auto Increment
  - info_email   - varchar(255)  -

@@ -13,7 +13,7 @@
             <div class="input-group">
                 <input id="search_input" name="search_input" type="text" class="form-control"  placeholder="Search for...">
                 <span class="input-group-btn">
-                        <button class="btn btn-secondary" type="submit" onclick="searchMovies('<%= searchType %>');">Search</button>
+                        <button class="btn btn-secondary" type="submit" onclick="return searchMovies('<%= searchType %>');">Search</button>
                 </span>
             </div>
         </div>
@@ -21,24 +21,3 @@
     <div class="dropdown-divider"></div>
 </form>
 
-
-<form action="/movies" method="post">
-
-    <button id="btn_test" name="button 1" type="submit">Search</button>
-    <input type="submit" name="button 2" value="Submit"/>
-</form>
-<script>
-
-    // document.querySelector('#btn_test').addEventListener('click', function(event){
-    //     event.preventDefault();
-    //     console.log("btn click");
-    //     fetch('http://localhost:3100/movies', {'method':'post'})
-    //     .then((res)=> {
-    //         console.log('res', res)
-    //     })
-    //     .catch((err)=> {
-    //         console.log('err', err)
-    //     })
-
-    // })
-</script>

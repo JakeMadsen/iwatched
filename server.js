@@ -34,7 +34,7 @@ var host = new host_settings;
 
 /* Server view engine setup */
 server.set('view engine','ejs');
-server.set('views', path.join(__dirname, '/public/views'));
+server.set('views', path.join(__dirname, '/views'));
 server.use(express.static(__dirname + '/public'))
 server.use('/static', express.static('public'));
 server.use(express.static(path.join(__dirname + 'public')));
@@ -53,7 +53,7 @@ mongoose.connect('mongodb://localhost:27017/iWatched', (err, res) => {
     // else
     //     console.log(res)
 })
-// require('./config/passport/passport')(server)
+require('./config/passport/passport')(passport)
 server.use(session({ 
     secret: 'thisIsMySecretCat',
     resave: true,

@@ -113,4 +113,5 @@ function searchMovies(type) {
         .then(movies_div => {
             movie_placeholder.appendChild(movies_div)
         })
+        return false;
 }
