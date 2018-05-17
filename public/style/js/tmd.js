@@ -97,12 +97,17 @@ function searchMovies(type) {
                 /*  movie_add_watched appends movie rating to movie_option_row_right*/
                 var movie_add_watched = document.createElement('BUTTON'),
                     movie_add_watched_text = document.createTextNode("I watched this");
+                    movie_add_watched.id = "watched_"+movie.id;
+                    movie_add_watchedAtt = document.createAttribute('onclick');
+                    movie_add_watchedAtt.value = `addToWatched(${movie.id}, "${type}");`;
+                    movie_add_watched.setAttributeNode(movie_add_watchedAtt)
                     movie_add_watched.appendChild(movie_add_watched_text);
                 movie_option_row_right.appendChild(movie_add_watched);
 
                 /*  movie_add_watch_later appends movie rating to movie_option_row_right*/
                 var movie_add_watch_later = document.createElement('BUTTON'),
                     movie_add_watch_later_text = document.createTextNode("Save this for later");
+                    movie_add_watch_later.id = "later_"+movie.id
                     movie_add_watch_later.appendChild(movie_add_watch_later_text);
                 movie_option_row_right.appendChild(movie_add_watch_later);
 
@@ -114,4 +119,27 @@ function searchMovies(type) {
             movie_placeholder.appendChild(movies_div)
         })
         return false;
+}
+function addToWatched(id, type){
+    event.preventDefault();
+
+    let headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+
+    let init = {
+        method: 'POST',
+        headers: headers,
+        credentials: "same-origin",
+        body: `{
+            "add_watched_id":"${id}",
+            "add_watched_type":"${type}"}`,
+        cache: 'no-cache',
+        mode: ''
+    };
+    let route = (type == "tv") ? "shows" : "movies"
+
+    let request = new Request(`http://localhost:3300/add`, init);
+    console.log(request)    
+        fetch(request)
+            .then(response => { console.log(response) }).catch(err => { console.log(err) });
 }

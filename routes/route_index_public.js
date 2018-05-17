@@ -5,6 +5,5 @@ module.exports = (server) => {
     require("./public/movies")(server);
     require("./public/shows")(server);
     require("./public/about")(server);
-    require("./public/login")(server);
-    require("./public/profile")(server);
+    require("./public/user")(server);
 }

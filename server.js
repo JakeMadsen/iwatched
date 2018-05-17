@@ -78,7 +78,8 @@ server.use(function(err, req, res, next) {
     res.locals.error = req.app.get('env') === 'development' ? err : {};
     res.status(err.status || 500);
     res.render('public assets/pages/error', {
-        title: err.status
+        title: err.status,
+        user: req.user
     });
 });
 
