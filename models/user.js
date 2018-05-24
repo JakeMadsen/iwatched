@@ -7,11 +7,12 @@ var userSchema = mongoose.Schema({
         username: String,
         email: String,
         password: String,
+        newsletter: Boolean,
         profile: {
             cover_image: String,
             profile_image: String,
             description: String,
-            birtday: String,
+            birthday: String,
             gender: String
         },
         watched_movies: [],

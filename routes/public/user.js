@@ -1,4 +1,11 @@
 var passport = require('passport')
+var mongoose = require('../../config/db/mongdb').connect();
+var User = require('../../models/user');
+
+mongoose.on('error', console.error.bind(console, 'connection error:'));
+mongoose.once('open', function() {
+//   console.log("connection successfull")
+});
 
 module.exports = function (server) {
     // =========================================================================
@@ -53,13 +60,53 @@ module.exports = function (server) {
             });
         }
     );
+
+    // =========================================================================
+    // USER NEWSLETTER =========================================================
+    // =========================================================================
+
+    server.post('/newsletter/subscribe',
+        function(req, res) {
+            let user_id = req.user._id;
+            console.log(`User (${user_id}) subcribed to newsletter`)
+
+            User.findById(user_id, function(err, user){
+                if (err) return handleError(err);
+
+                user.local.newsletter = true;
+
+                user.save(function (err, userUpdated) {
+                    if (err) return handleError(err);
+                    res.redirect('/profile');
+                });
+            })
+        }
+    );
+
+    server.post('/newsletter/unsubscribe',
+        function(req, res) {
+            let user_id = req.user._id;
+            console.log(`User (${user_id}) unsubcribed from newsletter`)
+
+            User.findById(user_id, function(err, user){
+                if (err) return handleError(err);
+
+                user.local.newsletter = false;
+
+                user.save(function (err, userUpdated) {
+                    if (err) return handleError(err);
+                    res.redirect('/profile');
+                });
+            })
+        }
+    );
     
     // =========================================================================
     // USER ADD WATCHED ========================================================
     // =========================================================================
 
     server.post('/add',
-        function (req, res) {
+        function(req, res) {
             console.log("Add Watched")
             let id = req.body.add_watched_id
             let type = req.body.add_watched_type

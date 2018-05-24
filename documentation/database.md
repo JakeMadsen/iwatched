@@ -34,7 +34,8 @@ user = {
     saved_series : [
         "id",
         "id"
-    ]
+    ],
+    newsletter  : "0/1"
 }
 
 ## User Info table (tb_user_info)
