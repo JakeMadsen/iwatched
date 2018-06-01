@@ -116,7 +116,35 @@ module.exports = function (server) {
             console.log("Watched Type: " + type);
             console.log("Current User: " + user_id)
 
-            
+            User.findById(user_id, function(err, user){
+                if (err) return handleError(err);
+                let check = false;
+                if(type == "series"){
+                    let series = user.local.watched_series;
+
+                    for(i=0; i <= series.length; i++){
+                        if(series[i] == id)
+                            check = true
+                    }
+                    if(check == false)
+                        user.local.watched_series.push(id)
+                }
+                else if(type == "movies"){
+                    let movies = user.local.watched_movies;
+
+                    for(i=0; i <= movies.length; i++){
+                        if(movies[i] == id)
+                            check = true
+                    }
+                    if(check == false)
+                        user.local.watched_movies.push(id)
+                }
+                user.save(function (err, userUpdated) {
+                    console.log(userUpdated)
+                    if (err) return handleError(err);
+                    res.redirect('/profile');
+                });
+            })
         }
     );
 }

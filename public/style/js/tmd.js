@@ -7,12 +7,12 @@ let tmdLink = "https://api.themoviedb.org/3/search/movie?api_key=",
 
 
 /* Movie search functions */
-function searchMovies(type) {
+function searchAll(type) {
     let search_input = document.getElementById('search_input').value;
     let movie_placeholder = document.getElementById('movie_holder');
         movie_placeholder.innerHTML = null;
 
-    fetch(`https://api.themoviedb.org/3/search/${type}?api_key=ab4e974d12c288535f869686bd72e1da&language=en-US&query=${search_input}&page=1&include_adult=false`)
+    fetch(`https://api.themoviedb.org/3/search/${type}?api_key=${tmdApiKey}&language=en-US&query=${search_input}&page=1&include_adult=${tmdAdult}`)
         .then(response => {
             return response.json()
         })
@@ -122,10 +122,11 @@ function searchMovies(type) {
 }
 function addToWatched(id, type){
     event.preventDefault();
-
+    type = (type == "tv") ? "series" : "movies"
+    
     let headers = new Headers();
     headers.append('Content-Type', 'application/json');
-
+    
     let init = {
         method: 'POST',
         headers: headers,
@@ -136,7 +137,7 @@ function addToWatched(id, type){
         cache: 'no-cache',
         mode: ''
     };
-    let route = (type == "tv") ? "shows" : "movies"
+    
 
     let request = new Request(`http://localhost:3300/add`, init);
     console.log(request)    

@@ -15,10 +15,10 @@ var userSchema = mongoose.Schema({
             birthday: String,
             gender: String
         },
-        watched_movies: [],
-        watched_series: [],
-        saved_movies: [],
-        saved_series: []
+        watched_movies: Array,
+        watched_series: Array,
+        saved_movies: Array,
+        saved_series: Array
     },
     social: {
         facebook: {
