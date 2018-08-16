@@ -16,9 +16,7 @@
         <div class="profile_wrap">
             <h1 class="text-center"><%= title %></h1>
             <div class="container">
-                <% if(page != "settings"){ %>
-                    <% include .././partials/profile/watched_navbar %>
-                <% } %>
+                <% include .././partials/profile/watched_navbar %>
             
                 <% if(page == "main"){ %>
                     <% include .././partials/profile/main %>
