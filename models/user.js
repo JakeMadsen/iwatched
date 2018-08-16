@@ -9,6 +9,7 @@ var userSchema = mongoose.Schema({
         phone: String,
         password: String,
         newsletter: Boolean,
+        registration_date: { type: Date, default: Date.now },
         profile: {
             cover_image: String,
             profile_image: String,
