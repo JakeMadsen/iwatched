@@ -5,12 +5,12 @@ var twilio = require('twilio');
 var client = new twilio(accountSid, authToken);
 
 let twilioPhoneNumber = "(973) 755-0839 "
-let userPhoneNumber = "+4528888192"
+let userPhoneNumber = "+4560666015"
 
 
 client.messages
   .create({
-     body: 'Du sutter',
+     body: 'Hello there',
      from: twilioPhoneNumber,
      to: userPhoneNumber
    })

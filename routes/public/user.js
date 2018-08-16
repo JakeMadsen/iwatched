@@ -55,12 +55,86 @@ module.exports = function (server) {
     server.get('/profile', isLoggedIn, 
         function(req, res) {
             res.render('public assets/pages/profile', {
-                title: "Profile",
+                title: "Profile Page",
+                page: "main",
                 user : req.user // get the user out of session and pass to template
             });
         }
     );
 
+    server.get('/profile', isLoggedIn, 
+        function(req, res) {
+            res.render('public assets/pages/profile', {
+                title: "Profile Page",
+                page: "main",
+                user : req.user // get the user out of session and pass to template
+            });
+        }
+    );
+
+    server.get('/profile/:option', isLoggedIn,
+        function(req, res){
+            res.render('public assets/pages/profile', {
+                title: "Profile Page",
+                page: req.params.option,
+                user : req.user // get the user out of session and pass to template
+            });
+        }
+    );
+
+
+    // =========================================================================
+    // USER PROFILE SETTINGS ===================================================
+    // =========================================================================
+
+    server.get('/profile/settings', isLoggedIn, 
+        function(req, res) {
+            res.render('public assets/pages/profile', {
+                title: "Profile Settings Page",
+                page: "settings",
+                user : req.user // get the user out of session and pass to template
+            });
+        }
+    );
+
+    server.post('/profile/settings',
+        function(req, res) {
+            let user_id = req.user._id;
+            console.log(`User (${user_id}) updated his profile`)
+
+            User.findById(user_id, function(err, user){
+                if (err) return handleError(err);
+
+                if(req.body.password != null)
+                    user.local.username = req.body.username;
+                if(req.body.password != null)
+                    user.local.email = req.body.email
+                if(req.body.phone != null)
+                    user.local.phone = req.body.phone
+                if(req.body.password != "")
+                    user.local.password = user.generateHash(req.body.password);
+
+                user.save(function (err, userUpdated) {
+                    if (err) return handleError(err);
+                    res.redirect('/profile');
+                });
+            })
+        }
+    );
+
+    server.post('/profile/delete',
+        function(req, res) {
+            let user_id = req.user._id;
+            console.log(`User (${user_id}) deleted his profile`)
+
+            User.findById(user_id, function(err, user){
+                user.remove(function (err, userUpdated) {
+                    if (err) return handleError(err);
+                    res.redirect('/');
+                });
+            })
+        }
+    );
     // =========================================================================
     // USER NEWSLETTER =========================================================
     // =========================================================================
@@ -102,10 +176,10 @@ module.exports = function (server) {
     );
     
     // =========================================================================
-    // USER ADD WATCHED ========================================================
+    // USER WATCHED ============================================================
     // =========================================================================
 
-    server.post('/add',
+    server.post('/profile/watched/add',
         function(req, res) {
             console.log("Add Watched")
             let id = req.body.add_watched_id

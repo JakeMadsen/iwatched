@@ -13,47 +13,34 @@
     </header>
 
     <main class="container">
-        <h1 class="text-center">Profile Page</h1>
+        <div class="profile_wrap">
+            <h1 class="text-center"><%= title %></h1>
+            <div class="container">
+                <% if(page != "settings"){ %>
+                    <% include .././partials/profile/watched_navbar %>
+                <% } %>
+            
+                <% if(page == "main"){ %>
+                    <% include .././partials/profile/main %>
+                
+                <% } else if (page == "favourites"){ %>  
+                    <% include .././partials/profile/favourites %>
+                
+                <% } else if (page == "movies"){ %>  
+                    <% include .././partials/profile/movies %>
 
-        <div class="dropdown-divider"></div>
+                <% } else if (page == "shows"){ %>  
+                    <% include .././partials/profile/shows %>
 
-        <div id="profile_section">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="well">
-                        <h3>Local</h3>
-                        <p>
-                            <strong>id</strong>:<%= user._id %>
-                        <br>
-                            <strong>username</strong>:<%= user.local.username %>
-                        <br>
-                            <strong>email</strong>:<%= user.local.email %>
-                        </p>
-                    </div>
-                </div>
+                <% } else if (page == "reviews"){ %>  
+                    <% include .././partials/profile/reviews %>
 
-                <div class="col-md-6">
-
-                    <% if(user.local.newsletter == false){ %>
-                        
-                        <form method="POST" action="/newsletter/subscribe">
-                            <h2>Newsletter</h2>
-                            <p>Subscribe to our monthly newsletter where we will talk about new features and updates on the site.</p>
-                            <input type="submit" value="Subscribe">
-                        </form>
-                    <% } else if (user.local.newsletter == true){ %>  
-                        <form method="POST" action="/newsletter/unsubscribe">
-                            <h2>Newsletter</h2>
-                            <p>Cancel your subscription to our monthly newsletter</p>
-                            <input type="submit" value="Unsubscribe">
-                        </form>
-                    <% } %>
-                </div>
+                <% } else if (page == "settings"){ %>  
+                    <% include .././partials/profile/settings %>
+                
+                <% } %>
             </div>
         </div>
-
-        <div class="dropdown-divider"></div>
-
     </main>
 
     <footer class="container">

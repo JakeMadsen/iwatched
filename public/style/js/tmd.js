@@ -135,11 +135,10 @@ function addToWatched(id, type){
             "add_watched_id":"${id}",
             "add_watched_type":"${type}"}`,
         cache: 'no-cache',
-        mode: ''
     };
     
 
-    let request = new Request(`http://localhost:3300/add`, init);
+    let request = new Request(`http://localhost:3300/profile/watched/add`, init);
     console.log(request)    
         fetch(request)
             .then(response => { console.log(response) }).catch(err => { console.log(err) });

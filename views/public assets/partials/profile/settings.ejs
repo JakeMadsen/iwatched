@@ -1,0 +1,51 @@
+<div id="profile_section">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="well">
+                <h3>Edit Profile Parameters</h3>
+                <form method="POST" action="/profile/settings">
+                    <div class="form-group row">
+                        <label for="username" class="col-md-3"><h4>Username</h4></label>
+                        <div class="col-md-9">
+                            <input name="username" class="form-control" placeholder="User Name" type="text" value="<%= user.local.username %>" autocomplete="false">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="email" class="col-md-3"><h4>Email</h4></label>
+                        <div class="col-md-9">
+                            <input name="email" class="form-control" placeholder="Email" type="email" value="<%= user.local.email %>" autocomplete="false">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="phone" class="col-md-3"><h4>Phone</h4></label>
+                        <div class="col-md-9">
+                            <input name="phone" class="form-control" placeholder="phone" type="phone" value="<%= user.local.phone %>" autocomplete="false">
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="password" class="col-md-3"><h4>Password</h4></label>
+                        <div class="col-md-9">
+                            <input name="password" class="form-control" placeholder="new password" type="password"  autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary btn-block">Update Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6">
+                <div class="well">
+                    <h3>Delete Profile</h3>
+                    <form method="POST" action="/profile/delete">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger btn-block">Delete User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    </div>
+</div>
