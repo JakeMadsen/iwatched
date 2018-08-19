@@ -29,6 +29,7 @@
     "passport-google-oauth": "^1.0.0",
     "passport-local": "^1.0.0",
     "passport-twitter": "^1.0.4",
+    "password-generator": "^2.2.0",
     "twilio": "^3.17.1"
   },
   "devDependencies": {

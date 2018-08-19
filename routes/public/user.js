@@ -47,6 +47,12 @@ module.exports = function (server) {
         }
     );
 
+    server.get('/login/forgot', 
+        function (req, res) {
+            
+        }
+    );
+
     // =========================================================================
     // USER PROFILE ============================================================
     // =========================================================================
@@ -104,15 +110,8 @@ module.exports = function (server) {
 
             User.findById(user_id, function(err, user){
                 if (err) return handleError(err);
-
-                if(req.body.password != null)
-                    user.local.username = req.body.username;
-                if(req.body.password != null)
-                    user.local.email = req.body.email
-                if(req.body.phone != null)
-                    user.local.phone = req.body.phone
-                if(req.body.password != "")
-                    user.local.password = user.generateHash(req.body.password);
+                
+                user.updateUser(req.body.username, req.body.email, req.body.phone, req.body.password);
 
                 user.save(function (err, userUpdated) {
                     if (err) return handleError(err);
@@ -181,40 +180,15 @@ module.exports = function (server) {
 
     server.post('/profile/watched/add',
         function(req, res) {
-            console.log("Add Watched")
-            let id = req.body.add_watched_id
-            let type = req.body.add_watched_type
             let user_id = req.user._id;
-
-            console.log("Watched ID: " + id);
-            console.log("Watched Type: " + type);
-            console.log("Current User: " + user_id)
 
             User.findById(user_id, function(err, user){
                 if (err) return handleError(err);
-                let check = false;
-                if(type == "series"){
-                    let series = user.local.watched_series;
+                
+                user.addWatched(req.body.add_watched_id, req.body.add_watched_type);
 
-                    for(i=0; i <= series.length; i++){
-                        if(series[i] == id)
-                            check = true
-                    }
-                    if(check == false)
-                        user.local.watched_series.push(id)
-                }
-                else if(type == "movies"){
-                    let movies = user.local.watched_movies;
-
-                    for(i=0; i <= movies.length; i++){
-                        if(movies[i] == id)
-                            check = true
-                    }
-                    if(check == false)
-                        user.local.watched_movies.push(id)
-                }
                 user.save(function (err, userUpdated) {
-                    console.log(userUpdated)
+
                     if (err) return handleError(err);
                     res.redirect('/profile');
                 });
