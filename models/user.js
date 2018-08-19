@@ -11,6 +11,8 @@ var userSchema = mongoose.Schema({
         password: String,
         newsletter: Boolean,
         registration_date: { type: Date, default: Date.now },
+        private: { type: Boolean, default: false },
+        inactive:{ type: Boolean, default: false },  
         profile: {
             cover_image: String,
             profile_image: String,
@@ -21,7 +23,9 @@ var userSchema = mongoose.Schema({
         watched_movies: Array,
         watched_series: Array,
         saved_movies: Array,
-        saved_series: Array
+        saved_series: Array,
+        friends: Array,
+        blocked: Array
     },
     social: {
         facebook: {

@@ -1,1 +1,21 @@
-All your saved movies heree
+All your saved movies here
+
+
+
+
+    <% user.local.watched_movies.forEach(function(element){ %>
+        <div class="row">
+            <div class="movie_option col-md-12">
+                <div class="row">
+                    <div class="col-md-4"><img class="img-fluid" src="https://image.tmdb.org/t/p/w500/39WsfbB5BshvdbPAYRFXdsjC481.jpg"></div>
+                    <div class="col-md-8">
+                        <h4>Stargate</h4>
+                        <p>An interstellar teleportation device, found in Egypt, leads to a planet with humans resembling ancient
+                            Egyptians who worship the god Ra.</p>
+                        <p>Movie rating: 6.9/10 Total votes: 1334</p>
+                        <p>Release date: 1994-10-27</p><button id="watched_2164" onclick="">I
+                            watched this</button><button id="later_2164">Save this for later</button></div>
+                </div>
+                <div class="dropdown-divider"></div>
+            </div>
+    <% }); %>

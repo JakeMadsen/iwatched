@@ -1,6 +1,9 @@
 var passport = require('passport')
 var mongoose = require('../../config/db/mongdb').connect();
 var User = require('../../models/user');
+// var tmd = require('../../config/tmd_scripts/search_tmd');
+var fetch = require('node-fetch');  
+var tmdKeys = require('../../config/tmd_scripts/oop_tmd');
 
 mongoose.on('error', console.error.bind(console, 'connection error:'));
 mongoose.once('open', function() {
@@ -79,7 +82,8 @@ module.exports = function (server) {
     );
 
     server.get('/profile/:option', isLoggedIn,
-        function(req, res){
+        async function(req, res){
+
             res.render('public assets/pages/profile', {
                 title: "Profile Page",
                 page: req.params.option,
@@ -205,3 +209,22 @@ function isLoggedIn(req, res, next) {
     // if they aren't redirect them to the home page
     res.redirect('/');
 }
+
+function profileOptionCheck(option, movies, shows){
+    var results = null;
+
+    return new Promise(function(resolve, reject){
+        switch(option){
+            case "movies":
+                results = await getWatchedItems(option, movies, shows)
+    
+                
+            break
+        }
+    });    
+}
+
+async function getWatchedItems(){
+    fetch()
+}
+

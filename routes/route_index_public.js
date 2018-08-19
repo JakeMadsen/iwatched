@@ -6,4 +6,5 @@ module.exports = (server) => {
     require("./public/shows")(server);
     require("./public/about")(server);
     require("./public/user")(server);
+    require("./public/visit")(server);
 }
