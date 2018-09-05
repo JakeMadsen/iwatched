@@ -7,7 +7,7 @@ var userSchema = mongoose.Schema({
     local: {
         username: String,
         email: String,
-        phone: String,
+        phone: String,  
         password: String,
         newsletter: Boolean,
         registration_date: { type: Date, default: Date.now },

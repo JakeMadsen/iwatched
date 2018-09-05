@@ -216,7 +216,7 @@ function profileOptionCheck(option, movies, shows){
     return new Promise(function(resolve, reject){
         switch(option){
             case "movies":
-                results = await getWatchedItems(option, movies, shows)
+                // results = await getWatchedItems(option, movies, shows)
     
                 
             break
@@ -225,6 +225,6 @@ function profileOptionCheck(option, movies, shows){
 }
 
 async function getWatchedItems(){
-    fetch()
+    // fetch()
 }
 

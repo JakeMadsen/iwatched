@@ -4,7 +4,8 @@ All your saved movies here
 
 
     <% user.local.watched_movies.forEach(function(element){ %>
-        <div class="row">
+        <p>Movie ID: <%= element %></p>
+        <!-- <div class="row">
             <div class="movie_option col-md-12">
                 <div class="row">
                     <div class="col-md-4"><img class="img-fluid" src="https://image.tmdb.org/t/p/w500/39WsfbB5BshvdbPAYRFXdsjC481.jpg"></div>
@@ -17,5 +18,5 @@ All your saved movies here
                             watched this</button><button id="later_2164">Save this for later</button></div>
                 </div>
                 <div class="dropdown-divider"></div>
-            </div>
+            </div> -->
     <% }); %>
