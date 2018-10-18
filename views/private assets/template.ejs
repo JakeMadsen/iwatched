@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<!-- Include Scripts -->
+<% include partials/standard/head.ejs %>
+
+<body>
+
+    <div class="wrapper">
+        <!-- Include Sidebar Navigation -->
+        <% include partials/standard/sidebar_nav.ejs %>
+
+        <!-- Page Content  -->
+        <div id="content">
+
+            <!-- Include Header Navigation -->
+            <% include partials/standard/header_nav.ejs %>
+
+            <%- include(`pages/${page_file}.ejs`) %>
+        </div>
+    </div>
+    
+    <!-- Include Scripts -->
+    <% include partials/standard/scripts.ejs %>
+</body>
+
+</html>

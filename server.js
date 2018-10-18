@@ -1,4 +1,4 @@
-/*=================== iWatched.xyz Server configuration ===================//
+/*=================== iWatched Server configuration ===================//
 #
 #
 #
@@ -8,9 +8,8 @@ const   express         = require('express'),
         path            = require('path'),
         server          = express(),
         bodyParser      = require("body-parser"),
-        host_settings   = require('./helpers/tools/oop_server_host'),
-        db_connection   = require('./config/db/db_config.js'),
-        createError     = require('http-errors');
+        createError     = require('http-errors'),
+        fileUpload      = require('express-fileupload')
         
 /* Modules used for development */ 
 const   logger          = require('morgan');
@@ -22,9 +21,8 @@ const   passport        = require('passport'),
         session         = require('express-session'),
         mongoose        = require('mongoose');
 
-/* Host contains usefull server configurations */
-var host = new host_settings;
-    host.server_name = "iWatched.xyz";
+/* Host contains server settings */
+
 
 
 //=================== Configuration ===================//
@@ -41,18 +39,21 @@ server.use(express.static(path.join(__dirname + 'public')));
 
 
 /* Server module setup*/
+server.use(fileUpload());
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(bodyParser.json());
 server.use(cookieParser())
 
 
-/* Server passport setup */
-mongoose.connect('mongodb://localhost:27017/iWatched', (err, res) => {
-    // if(err)
-    //     console.log(err)
-    // else
-    //     console.log(res)
+/* Server Database Connection  */
+mongoose.connect('mongodb+srv://JakeTheDane:Acq59hhc.@maincluster-r0dde.mongodb.net/iwatched', { useNewUrlParser: true }).then(connection => {
+    console.log("Database connection succesful")
+
+}).catch(err => {
+    console.log("Database connection failure: " + err)
 })
+
+/* Server User Passport Setup  */
 require('./config/passport/passport')(passport)
 server.use(session({ 
     secret: 'thisIsMySecretCat',
@@ -65,29 +66,28 @@ server.use(flash());
 
 //=================== Routes ===================//
 /* Requires public and private WEB routes. */
-require('./routes/route_index_public')(server);
-
+require('./routes/controllers/index')(server)
 
 /* Server 404/ERROR handler*/
 server.use(function(req, res, next) {
     next(createError(404));
 });
-server.use(function(err, req, res, next) {
+server.use(async function(err, req, res, next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
     res.status(err.status || 500);
-    res.render('public assets/pages/error', {
-        title: err.status,
-        user: req.user
+    res.render('public assets/template.ejs', {
+        page_title: `iWatched - ${err.status}` ,
+        page_file: "error",
+        page_data: {
+            error: {
+                status: err.status,
+                message: err.message,
+                stack: err.stack
+            }
+        }
     });
 });
 
-
-//=================== Server initialisation ===================//
-/* Executes listening function for WEB server. */
-server.listen(host.port, () => {
-    console.log('======== SERVER - RUNNING ========' +  '\n' + 
-                'Server name: ' + host.server_name   +  '\n' + 
-                'Server listening at: ' + 'http://'+host.ip_localhost+':'+host.port);
-});
+module.exports = server

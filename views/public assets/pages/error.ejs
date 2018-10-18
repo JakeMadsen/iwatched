@@ -1,28 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <!-- Includees head and styles -->
-    <% include .././partials/standard/head %>
-</head>
-
-<body>
-    <header class="container">
-        <!-- Includes Header and Nav bar -->
-        <% include .././partials/standard/header %>
-    </header>
-    
-    <main class="container">
-        <h2><%= message %></h1>
-        <h3><%= error.status %></h2>
-        <pre><%= error.stack %></pre>
-    </main>
-
-    <footer class="container">
-        <!-- Includes Footer -->
-        <% include .././partials/standard/footer %>
-    </footer>
-</body>
-    <!-- Includees all scripts -->
-    <% include .././partials/standard/scripts %>
-</html>
+<h1 class="text-center">Whoops Something went wrong</h1>
+<h2 class="text-center"><%= error.status %></h1>
+<h3 class="text-center"><%= error.message %></h2>
+<pre><%= error.stack %></pre>

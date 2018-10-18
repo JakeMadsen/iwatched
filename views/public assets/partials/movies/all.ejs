@@ -1,0 +1,71 @@
+<h1 class="text-center">Browse movies</h1>
+<div class="container">
+    <form>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="input-group">
+                    <input id="search_input" name="search_input" type="text" class="form-control" placeholder="Search for...">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary" type="button" onclick="searchMovies();">Search</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="dropdown-divider"></div>
+
+<div class="container">
+    <div class="row">
+        <% page_data.genres.forEach(function (genre){ %>
+        <div class="col-md-2">
+            <a href="?genre=<%= genre.name.toLowerCase() %>">
+                <%= genre.name %></a>
+
+        </div>
+
+        <% }); %>
+    </div>
+</div>
+
+<div class="dropdown-divider"></div>
+
+<div class="">
+    <div id="movies_holder" class="row">
+
+    </div>
+
+    <div id="view_more" style="display: none;">
+        <div class="page-load-status">
+            <div class="loader-ellips infinite-scroll-request">
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+                <span class="loader-ellips__dot"></span>
+            </div>
+            <p class="infinite-scroll-last">End of content</p>
+            <p class="infinite-scroll-error">No more pages to load</p>
+        </div>
+
+        <p><button class="view-more-button">View more</button></p>
+    </div>
+</div>
+
+
+<!-- .photo-item template HTML -->
+<script type="text/html" id="movie-template">
+
+    <div class="col-md-2 image-box">
+        <a href="/movies/{{id}}">
+            <img    class="img-fluid image-box-hover" 
+                    style="margin-bottom: 20px;" 
+                    src="https://image.tmdb.org/t/p/w500/{{poster_path}}" 
+                    alt="">
+            <div class="movie-hover">
+                See more
+            </div>
+        </a>
+    </div>
+</script>
+

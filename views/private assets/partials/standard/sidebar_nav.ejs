@@ -1,0 +1,193 @@
+<nav id="sidebar">
+    <div class="sidebar-header">
+        <h3>BBB - Admin</h3>
+        <strong>BBB AP</strong>
+        <p><%= user.local.name %></p>
+        <% if ( user.master == true) { %>
+            <p>Rolle: Super Admin</p>
+        <% } else { %>
+            <p>Rolle: Redaktør</p>
+        <% } %>
+    </div>
+
+    <ul class="list-unstyled components">
+        <!-- Go to index -->
+        <li class="active">
+            <a href="/admin">
+                <i class="fas fa-home"></i>
+                Forside
+            </a>
+        </li>
+
+        <!-- article menu -->
+
+        <% if ( user.master == true) { %>
+            <li class="">
+                <a href="#article_submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-copy"></i>
+                        Artikler
+                </a>
+                <ul class="collapse list-unstyled" id="article_submenu">
+                    <!-- create new article link -->
+                    <% page_data.categories.forEach(function(category){ %>
+    
+                        <% if (category._id.toString() == user.editor.main_category.toString()) { %>
+                            
+                        <% } %>
+                        <li class="">
+                            <a href="#article_submenu_<%= category.name%>" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                                <i class="fas fa-users"></i>
+                                    <%= category.name %>
+                            </a>
+                            <ul class="collapse list-unstyled" id="article_submenu_<%= category.name %>">                
+                                <a href="/admin/artikler/<%= category.name %>/opret" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                    <i class="fas fa-file"></i>
+                                    Opret ny artikel
+                                </a>
+    
+                                <a href="/admin/artikler/<%= category.name %>/" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                    <i class="fas fa-file"></i>
+                                    Se alle artikler
+                                </a>
+                            </ul>
+                        </li>
+                    <% }); %>
+                </ul>
+            </li>
+        <% } else { %>
+            <li class="">
+                    <a href="#article_submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-copy"></i>
+                            Artikler
+                    </a>
+                    <ul class="collapse list-unstyled" id="article_submenu">
+                        <!-- create new article link -->
+                        <% page_data.categories.forEach(function(category){ %>
+                            <% if (category._id.toString() == user.editor.main_category.toString()) { %>
+                                <li class="">
+                                    <a href="#article_submenu_<%= category.name%>" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                                        <i class="fas fa-users"></i>
+                                            <%= category.name %>
+                                    </a>
+                                    <ul class="collapse list-unstyled" id="article_submenu_<%= category.name %>">                
+                                        <a href="/admin/artikler/<%= category.name %>/opret" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                            <i class="fas fa-file"></i>
+                                            Opret ny artikel
+                                        </a>
+            
+                                        <a href="/admin/artikler/<%= category.name %>/" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                            <i class="fas fa-file"></i>
+                                            Se alle artikler
+                                        </a>
+                                    </ul>
+                                </li>
+                            <% } %>
+                        <% }); %>
+                    </ul>
+                </li>
+        <% } %>
+
+
+        
+        <!-- User menu -->
+
+        <% if ( user.master == true) { %>
+            <li class="">
+                <a href="#editor_submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-users"></i>
+                        Redaktører
+                </a>
+                <ul class="collapse list-unstyled" id="editor_submenu">
+                    <!-- create new article link -->
+                    <a href="/admin/redaktoere/opret" data-toggle="" aria-expanded="" class="d">
+                        <i class="fas fa-file"></i>
+                        Opret Ny Bruger
+                    </a>
+                    
+                    <% page_data.categories.forEach(function(category){ %>
+                        <li class="">
+                            <a href="#category_submenu_<%= category.name%>" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                                <i class="fas fa-users"></i>
+                                    <%= category.name %>
+                            </a>
+                            <ul class="collapse list-unstyled" id="category_submenu_<%= category.name %>">                
+                                <% page_data.users.forEach(function(user){ %>
+                                    <% if (category._id.toString() == user.editor.main_category.toString()) { %>
+                                        <a href="/admin/redaktoere/<%= user._id %>" data-toggle="" aria-expanded="" class="d" style="margin-left:10px">
+                                            <i class="fas fa-user-tie"></i>
+                                            <%= user.local.name %>
+                                        </a>
+                                    <% } %>
+                                <% }); %>
+                            </ul>
+                        </li>
+                    <% }); %>
+                </ul>
+            </li>
+        <% } else { %>
+            <li class="active">
+                <a href="/admin/redaktoere/<%= user._id %>">
+                    <i class="fas fa-user-tie"></i>
+                    Min profil
+                </a>
+            </li>
+        <% } %>
+
+
+        <!-- Sponsor menu -->
+        <% if ( user.master == true) { %>
+            <li class="">
+                <a href="#sponsor_submenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                    <i class="fas fa-audio-description"></i>
+                    Sponsore
+                </a>
+                <ul class="collapse list-unstyled" id="sponsor_submenu">
+                    <!-- create new sponsor link -->
+                    <% page_data.categories.forEach(function(category){ %>
+                        <li class="">
+                            <a href="#sponsor_submenu_<%= category.name%>" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                                <i class="fas fa-audio-description"></i>
+                                <%= category.name %>
+                            </a>
+                            <ul class="collapse list-unstyled" id="sponsor_submenu_<%= category.name %>">                
+                                <a href="/admin/artikler/<%= category.name %>/opret" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                    Opret ny sponsor
+                                </a>
+
+                                <a href="/admin/artikler/<%= category.name %>/" data-toggle="" aria-expanded="" class="d"style="margin-left:10px">
+                                    Se alle sponsore
+                                </a>
+                            </ul>
+                        </li>
+                    <% }); %>
+                </ul>
+            </li>
+        <% } %>
+
+        <!-- Newsletter Subscribers -->
+        <% if ( user.master == true) { %>
+            <li >
+                <a href="/admin/newsletter">
+                    <i class="fas fa-envelope"></i>
+                    Nyhedsbrev Modtagere
+                </a>
+            </li>
+        <% } %>
+
+        <!-- return to website -->
+        <li >
+            <a href="/">
+                <i class="fas fa-home"></i>
+                Retuner til siden
+            </a>
+        </li>
+
+        <!-- log out -->
+        <li >
+            <a href="/logout">
+                <i class="fas fa-sign-out-alt"></i>
+                Log  ud
+            </a>
+        </li>
+    </ul>
+</nav>

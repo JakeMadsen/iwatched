@@ -1,0 +1,7 @@
+home:
+
+show most popular movies
+
+show premier movies
+
+show most popular series

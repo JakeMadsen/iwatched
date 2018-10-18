@@ -1,27 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
+<div class="container">
+    <h1>Home</h1>
 
-<head>
-    <!-- Includees head and styles -->
-    <% include .././partials/standard/head %>
-</head>
+    <p>
+        Create an account to start keeping track of how many hours you have wasted
+        on watching great movies and series
+    </p>
 
-<body>
-    <header class="container">
-        <!-- Includes Header and Nav bar -->
-        <% include .././partials/standard/header %>
-    </header>
-    
-    <main class="container">
-        <h1>Home</h1>
-        <h3>Welcome to iWatched.xyz</h3>
-    </main>
+    <h2>Popular movies</h2>
+    <hr>
+    <div class="row">
+        <% page_data.popular.movies.forEach(function (movie, index){ %>
+        <% if(index + 1 <= 12) { %>
+        <div class="col-md-2 image-box">
+            <a href="/movies/<%= movie.id %>">
+                <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
+                    alt="">
+                <div class="movie-hover">
+                    See more
+                </div>
+            </a>
+        </div>
+        <% } %>
 
-    <footer class="container">
-        <!-- Includes Footer -->
-        <% include .././partials/standard/footer %>
-    </footer>
-</body>
-    <!-- Includees all scripts -->
-    <% include .././partials/standard/scripts %>
-</html>
+        <% }); %>
+    </div>
+
+    <h2>Popular shows</h2>
+    <hr>
+    <div class="row">
+        <% page_data.popular.shows.forEach(function (show, index){ %>
+        <% if(index + 1 <= 12) { %>
+        <div class="col-md-2 image-box">
+            <a href="/shows/<%= show.id %>">
+                <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= show.poster_path %>"
+                    alt="">
+                <div class="movie-hover">
+                    See more
+                </div>
+            </a>
+        </div>
+        <% } %>
+
+        <% }); %>
+    </div>
+
+</div>

@@ -1,93 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.8/css/all.css">
+<div class="container darken">
+    <div class="row" style="padding: 20px 0px 20px 0px;">
+        <div class="col-md-6">
+            <div class="card">
+                <article class="card-body">
+                    <h4 class="card-title mb-4 mt-1">Sign in</h4>
+                    <p>
+                        <a href="" class="btn btn-block btn-outline-info">
+                            <i class="fab fa-twitter"></i>   Login via Twitter</a>
+                        <a href="" class="btn btn-block btn-outline-primary">
+                            <i class="fab fa-facebook-f"></i>   Login via Facebook</a>
+                        <a href="" class="btn btn-block btn-outline-danger">
+                            <i class="fab fa-google"></i>   Login via Gmail</a>
+                    </p>
+                    <hr>
 
-<head>
-    <!-- Includees head and styles -->
-    <% include .././partials/standard/head %>
-</head>
-
-<body>
-    <header class="container">
-        <!-- Includes Header and Nav bar -->
-        <% include .././partials/standard/header %>
-    </header>
-
-    <main class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <article class="card-body">
-                        <h4 class="card-title mb-4 mt-1">Sign in</h4>
-                        <p>
-                            <a href="" class="btn btn-block btn-outline-info">
-                                <i class="fab fa-twitter"></i>   Login via Twitter</a>
-                            <a href="" class="btn btn-block btn-outline-primary">
-                                <i class="fab fa-facebook-f"></i>   Login via Facebook</a>
-                            <a href="" class="btn btn-block btn-outline-danger">
-                                <i class="fab fa-google"></i>   Login via Gmail</a>
-                        </p>
-                        <hr>
-                        <% if ( message_login.length > 0) { %>
-                            <div class="alert alert-danger">
-                                <%= message_login %>
-                            </div>
-                            <% } %>
-                                <form method="POST" action="/login">
-                                    <div class="form-group">
-                                        <input name="email" class="form-control" placeholder="Email" type="Text">
-                                    </div>
-                                    <div class="form-group">
-                                        <input name="password" class="form-control" placeholder="Password" type="password">
-                                    </div>
-                                    <div class="form-group">
-                                        <button type="submit" class="btn btn-primary btn-block"> Login </button>
-                                    </div>
-                                    <a class="small" href="#">Forgot password?</a>
-                                </form>
-                    </article>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card">
-                    <article class="card-body">
-                        <h4 class="card-title mb-4 mt-1">Sign Up</h4>
-                        <!-- show any messages that come back with authentication -->
-                        <% if (message_signup.length > 0) { %>
-                            <div class="alert alert-danger">
-                                <%= message_signup %>
-                            </div>
-                            <% } %>
-                                <form method="POST" action="/signup">
-                                    <div class="form-group">
-                                        <input name="username" class="form-control" placeholder="User Name" type="text">
-                                    </div>
-                                    <div class="form-group">
-                                        <input name="email" class="form-control" placeholder="Email" type="email">
-                                    </div>
-                                    <div class="form-group">
-                                        <input name="password" class="form-control" placeholder="Password" type="password">
-                                    </div>
-                                    <div class="form-group">
-                                        <input name="confirm_password" class="form-control" placeholder="Confirm Password" type="password">
-                                    </div>
-                                    <div class="form-group">
-                                        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
-                                    </div>
-                                </form>
-                    </article>
-                </div>
+                    <% if (page_data.message_login.length != 0) { %>
+                    <div class="alert alert-danger">
+                        <%= page_data.message_login %>
+                    </div>
+                    <% } %>
+                    <form method="POST" action="/login">
+                        <div class="form-group">
+                            <input name="email" class="form-control" placeholder="Email or Username" type="text">
+                        </div>
+                        <div class="form-group">
+                            <input name="password" class="form-control" placeholder="Password" type="password">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block"> Login </button>
+                        </div>
+                        <a class="small" href="#">Forgot password?</a>
+                    </form>
+                </article>
             </div>
         </div>
-    </main>
 
-    <footer class="container">
-        <!-- Includes Footer -->
-        <% include .././partials/standard/footer %>
-    </footer>
-</body>
-<!-- Includees all scripts -->
-<% include .././partials/standard/scripts %>
-
-</html>
+        <div class="col-md-6">
+            <div class="card">
+                <article class="card-body">
+                    <h4 class="card-title mb-4 mt-1">Sign Up</h4>
+                    <!-- show any messages that come back with authentication -->
+                    <% if (page_data.message_signup.length != 0) { %>
+                    <div class="alert alert-danger">
+                        <%= page_data.message_signup %>
+                    </div>
+                    <% } %>
+                    <form method="POST" action="/signup">
+                        <div class="form-group">
+                            <input required name="username" class="form-control" placeholder="User Name" type="text">
+                        </div>
+                        <div class="form-group">
+                            <input required name="email" class="form-control" placeholder="Email" type="email">
+                        </div>
+                        <div class="form-group">
+                            <input required name="password" class="form-control" placeholder="Password" type="password">
+                        </div>
+                        <div class="form-group">
+                            <input required name="confirm" class="form-control" placeholder="Confirm Password" type="password">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                        </div>
+                    </form>
+                </article>
+            </div>
+        </div>
+    </div>
+</div>

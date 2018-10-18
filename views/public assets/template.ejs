@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Includees head and styles -->
+    <% include ./partials/standard/head.ejs %>
+</head>
+
+<body>
+    <!-- Includes Header -->
+    <% include partials/standard/header.ejs %>
+
+    <main id="content-wrapper" class="">
+        <%- include(`pages/${page_file}.ejs`) %>
+    </main>
+    
+    
+</body>
+
+   
+</html> 
+
+<!-- Includees all scripts -->
+<% include partials/standard/scripts.ejs %>

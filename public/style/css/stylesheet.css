@@ -1,14 +1,67 @@
-* {
-
-    font-family: Verdana, Geneva, sans-serif;
-
-}
 body {
-
-    background-color: rgb(227, 227, 227)
-
+    background-color: #CBCDCF;
 }
 
-.profile_wrap {
-    background-color: rgba(255, 255, 255, 0.5)
+/* 
+**  Generel Stylings
+******************************/
+.darken{
+  background: #494949;
+}
+
+.form-control {
+  border-radius: 0px;
+}
+
+
+
+/* 
+**  Text styling
+******************************/
+p {
+    color:#222222;
+}
+
+
+
+/* 
+**  Main Content Wrapper
+******************************/
+
+#content-wrapper {
+    background-color: #EFF4F7;
+    /* box-shadow: inset 100px 0px 100px -50px #CBCDCF, 
+                inset -100px 0px 100px -50px #CBCDCF; */
+}
+
+
+/* 
+**  Movie Hover Effects
+******************************/
+.image-box-hover {
+  opacity: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: .5s ease;
+  backface-visibility: hidden;
+}
+
+.movie-hover {
+  transition: .5s ease;
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.image-box:hover .image-box-hover {
+  opacity: 0.3;
+}
+
+.image-box:hover .movie-hover {
+  opacity: 1;
 }
