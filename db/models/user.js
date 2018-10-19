@@ -4,8 +4,8 @@ var bcrypt = require('bcrypt-nodejs');
 // define the schema for our user model
 var userSchema = mongoose.Schema({
     local: {
-        username: String,
-        email: String,
+        username:   { type: String },
+        email:      { type: String },
         password: String,
     },
     social: {
@@ -23,18 +23,25 @@ var userSchema = mongoose.Schema({
         }
     },
     profile: {
-        phone: String,  
-        newsletter: Boolean,
-        registration_date: { type: Date, default: Date.now },
-        private: { type: Boolean, default: false },
-        inactive:{ type: Boolean, default: false },  
-        cover_image: String,
-        profile_image: String,
-        description: String,
-        birthday: String,
-        gender: String,
-        watched_movies: Array,
-        watched_series: Array,
+        registration_date:  { type: Date, default: Date.now },
+        private:            { type: Boolean, default: false },
+        inactive:           { type: Boolean, default: false },  
+        banner_image:       { type: String, default: 'banner-missing.png' },
+        profile_image:      { type: String, default: 'profile-picture-missing.png' },
+        description:        { type: String, default: null },
+        birthday:           { type: String, default: null },
+        gender:             { type: String, default: null },
+        phone:              { type: String, default: null }
+    },
+    movies: {
+        watched:    { type: Array, default: [] },
+        saved:      { type: Array, default: [] },
+        favourite:  { type: Array, default: [] }
+    },
+    series: {
+        watched:    { type: Array, default: [] },
+        saved:      { type: Array, default: [] },
+        favourite:  { type: Array, default: [] }
     }
 });
 
@@ -99,4 +106,4 @@ userSchema.methods.addWatched = function (id, type){
 }
 
 // create the model for users and expose it to our app
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', userSchema, 'users');

@@ -53,19 +53,24 @@
 </div>
 
 
-<!-- .photo-item template HTML -->
+<!-- movie template HTML -->
 <script type="text/html" id="movie-template">
 
-    <div class="col-md-2 image-box">
-        <a href="/movies/{{id}}">
-            <img    class="img-fluid image-box-hover" 
-                    style="margin-bottom: 20px;" 
-                    src="https://image.tmdb.org/t/p/w500/{{poster_path}}" 
-                    alt="">
-            <div class="movie-hover">
-                See more
-            </div>
-        </a>
+    <div class="col-md-2" style="margin-bottom:25px;">
+        <div class="image-box">
+            <a name="{{id}}" href="/movies/{{id}}">
+                <img    class="img-fluid image-box-hover" 
+                        style='' 
+                        src="https://image.tmdb.org/t/p/w500/{{poster_path}}" 
+                        alt="">
+                
+            </a>
+            <% if(typeof user != 'undefined') { %> 
+                <div class="movie-hover">
+                    <button id="add_watched_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}')" >I Watched This</button>
+                    <button id="add_later_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}')">I Want To Watch This</button>
+                </div>
+            <% } %>
+        </div>
     </div>
 </script>
-

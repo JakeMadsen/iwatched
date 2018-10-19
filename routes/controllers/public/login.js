@@ -1,5 +1,4 @@
 const passport = require('passport')
-const User = require('../../../db/models/user')
 
 module.exports = (server) => {
     console.log('* Login Routes Loaded Into Server');

@@ -26,9 +26,7 @@ module.exports = (passport) => {
                 { $or: [
                     { 'local.email': req.body.email },
                     { 'local.username': username }
-                ]}), 
-            function (err, user) {
-                console.log("user: " , user)
+                ]}, function (err, user) {
                 if (err)
                     return done(err);
 
@@ -55,7 +53,7 @@ module.exports = (passport) => {
                         return done(null, newUser);
                     });
                 }
-            }
+            })
         });
     }));
 

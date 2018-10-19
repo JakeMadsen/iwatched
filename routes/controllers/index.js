@@ -1,7 +1,11 @@
 module.exports = (server) => {
-    console.log('======== Loading API V1 Routes ========')
-    /* API ROUTES */
+    console.log('======== Loading API Routes ========')
+    require("./api/index")(server);
+
+    console.log('API V1 Routes')
+    /* API V1 ROUTES */
     require("./api/v1/movies")(server);
+    require("./api/v1/users")(server);
 
 
     console.log('======== Loading Public Routes ========')
