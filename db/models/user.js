@@ -8,6 +8,24 @@ var userSchema = mongoose.Schema({
         email:      { type: String },
         password: String,
     },
+    security : {
+        phone: { type: String, default: null },
+        security_question: {
+            question_id: { type: mongoose.Schema.Types.ObjectId, ref: 'SecurityQuestion' },
+            answer: { type: String, default: null}
+        }
+    },
+    permissions: {
+        level: {
+            admin: { type: Boolean, default: false },
+            moderator: { type: Boolean, default: false }
+        }, 
+        apiKey: {
+            key: { type: String, default: "" },
+            received_date: Date,
+            received_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }
+    },
     social: {
         facebook: {
             id: String,
@@ -30,8 +48,7 @@ var userSchema = mongoose.Schema({
         profile_image:      { type: String, default: 'profile-picture-missing.png' },
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
-        gender:             { type: String, default: null },
-        phone:              { type: String, default: null }
+        gender:             { type: String, default: null }
     },
     movies: {
         watched:    { type: Array, default: [] },

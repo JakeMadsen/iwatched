@@ -2,7 +2,7 @@ var server = require('../../server'),
     host_settings   = require('./settings')
 
 var portfinder = require('portfinder');
-    portfinder.basePort = 3000;
+    portfinder.basePort = 4500;
     
 portfinder.getPort((err, port) => {
     if(err){
