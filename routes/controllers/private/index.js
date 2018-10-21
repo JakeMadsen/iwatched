@@ -1,13 +1,18 @@
 const isLoggedIn = require('../../middleware/isLoggedIn')
-const userService = require('../../services/users')
+const templatePath = 'private assets/template.ejs';
 
-module.exports = function (server) {
+module.exports = (server) => {
     console.log('* Index Routes Loaded Into Server');
 
 
-    server.get('/admin', isLoggedIn, 
-        async (req, res) =>{
-            console.log("admin")
-        }
-    );
+    server.get('/admin', isLoggedIn, (req, res) => {
+        res.render(templatePath, {
+            page_title: "iWatched - Admin",
+            page_file: "index",
+            page_data: {
+    
+            },
+            user: req.user
+        })
+    });
 }

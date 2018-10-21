@@ -17,7 +17,7 @@ module.exports = (server) => {
 
     server.post('/login',
         passport.authenticate('local-login', {
-            successRedirect: '/profile', 
+            successRedirect: '/loginRedirect', 
             failureRedirect: '/login', 
             failureFlash: true 
         })
@@ -25,16 +25,22 @@ module.exports = (server) => {
 
     server.post('/signup',
         passport.authenticate('local-signup', {
-            successRedirect: '/profile', 
+            successRedirect: '/loginRedirect', 
             failureRedirect: '/login', 
             failureFlash: true 
-        })
+        }),
     );
 
-    server.get('/logout',
-        function (req, res) {
+    server.get('/logout', (req, res) => {
             req.logout();
             res.redirect('/login');
-        }
-    );
+    });
+
+    server.get('/loginRedirect', (req, res) => {
+        if(typeof req.user != 'undefined')
+            res.redirect(`/${req.user._id}`)
+
+        else
+            res.redirect('/login')
+    })
 }

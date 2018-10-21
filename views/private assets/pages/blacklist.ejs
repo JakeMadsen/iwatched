@@ -1,0 +1,66 @@
+<div id="urlHeader">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>URL Blacklist</h2>
+            <p>
+                Add pages here to protect them against
+                conflicting with other routes
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h2>Blacklist new page URL</h2>
+            <form action="/admin/blacklist" method="POST">
+                <!-- name -->
+                <div class="form-group">
+                    <label for="page_name" >Page Name</label>
+                    <input name="name" type="text" class="form-control" id="page_name" placeholder="urlname(ex. about)">
+                </div>
+
+                <!-- text -->
+                <div class="form-group">
+                    <label for="page_text">Description</label>
+                    <textarea name="text" rows="5" class="form-control" id="page_text" placeholder="Short text about why its been listed"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-dark">BLACKLIST</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="listUrls" style="margin-top:20px;">
+    <h3>LIST</h3>
+    <div class="row">
+        <div class="col-md-3">
+            <h4>URL ID</h4>
+        </div>
+        <div class="col-md-3">
+            <h4>URL Name</h4>
+        </div>
+        <div class="col-md-3">
+            <h4>URL Owner ID</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>Owner Type</h4>
+        </div>
+    </div>
+    <hr>
+    
+    <% page_data.blacklistedUrls.forEach(function(blacklistedUrl){ %>
+        <div class="row">
+            <div class="col-md-3">
+                <p><%= blacklistedUrl._id %></p>
+            </div>
+            <div class="col-md-3">
+                <p><%= blacklistedUrl.url_name %></p>
+            </div>
+            <div class="col-md-3">
+                <p><%= blacklistedUrl.owner_id %></p>
+            </div>
+            <div class="col-md-3">
+                <p><%= blacklistedUrl.owner_type %></p>
+            </div>
+        </div>
+        <hr>
+    <% }); %>
+</div>

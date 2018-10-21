@@ -29,6 +29,8 @@ const   passport        = require('passport'),
 /* Server development modules */
 // server.use(logger('dev'));
 
+process.env['SERVER_DEV'] = true;
+
 
 /* Server view engine setup */
 server.set('view engine','ejs');
@@ -86,7 +88,8 @@ server.use(async function(err, req, res, next) {
                 message: err.message,
                 stack: err.stack
             }
-        }
+        }, 
+        user: req.user
     });
 });
 

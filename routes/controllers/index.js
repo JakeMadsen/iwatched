@@ -7,6 +7,10 @@ module.exports = (server) => {
     require("./api/v1/movies")(server);
     require("./api/v1/users")(server);
 
+    console.log('======== Loading Private Routes ========')
+    /* PRIVATE ROUTES */
+    require("./private/index")(server);
+    require("./private/blacklist")(server);
 
     console.log('======== Loading Public Routes ========')
     /* PUBLIC ROUTES */
@@ -15,8 +19,7 @@ module.exports = (server) => {
     require("./public/shows")(server);
     require("./public/about")(server);
     require("./public/login")(server);
+    require("./public/profile")(server);
 
-    console.log('======== Loading Private Routes ========')
-    /* PRIVATE ROUTES */
-    require("./private/index")(server);
+    
 }

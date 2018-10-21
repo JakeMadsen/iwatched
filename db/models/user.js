@@ -44,11 +44,12 @@ var userSchema = mongoose.Schema({
         registration_date:  { type: Date, default: Date.now },
         private:            { type: Boolean, default: false },
         inactive:           { type: Boolean, default: false },  
-        banner_image:       { type: String, default: 'banner-missing.png' },
+        banner_image:       { type: String, default: null },
         profile_image:      { type: String, default: 'profile-picture-missing.png' },
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
-        gender:             { type: String, default: null }
+        gender:             { type: String, default: null },
+        custom_url:         { type: String, default: null }
     },
     movies: {
         watched:    { type: Array, default: [] },

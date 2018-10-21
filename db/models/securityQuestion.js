@@ -1,3 +1,5 @@
+var mongoose = require('mongoose');
+
 var securityQuestionSchema = mongoose.Schema({
     question: { type: String, unique: true }
 });
