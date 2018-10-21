@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
+var hat = require('hat');
 
 // define the schema for our user model
 var userSchema = mongoose.Schema({
@@ -24,7 +25,8 @@ var userSchema = mongoose.Schema({
             key: { type: String, default: "" },
             received_date: Date,
             received_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-        }
+        },
+        myKey: { type: String, default: hat()}
     },
     social: {
         facebook: {
@@ -49,7 +51,10 @@ var userSchema = mongoose.Schema({
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
-        custom_url:         { type: String, default: null }
+        custom_url:         { type: String, default: null },
+        total_watch_time:   { type: Number, default: 0 },
+        movie_watch_time:   { type: Number, default: 0 },
+        show_watch_time:    { type: Number, default: 0 }
     },
     movies: {
         watched:    { type: Array, default: [] },
@@ -95,32 +100,18 @@ userSchema.methods.updateUser = function (username, email, phone, password){
         this.local.password = this.generateHash(password);
 };
 
-userSchema.methods.addWatched = function (id, type){
-    let newWatched = {
-        "id" : null,
-        "times" : 1,
-    }
-    let check = false;
-    if(type == "series"){
-        let series = this.local.watched_series;
+userSchema.methods.addMovieRuntime = function (time){
+    this.profile.total_watch_time += time;
+    this.profile.movie_watch_time +=  time;
+}
 
-        for(i=0; i <= series.length; i++){
-            if(series[i] == id)
-                check = true
-        }
-        if(check != true)
-            this.local.watched_series.push(id)
+userSchema.methods.addMovieWatched = function (id){
+    let movie = {
+        movie_id: id,
+        times_watched: 1
     }
-    else if(type == "movies"){
-        let movies = this.local.watched_movies;
 
-        for(i=0; i <= movies.length; i++){
-            if(movies[i] == id)
-                check = true
-        }
-        if(check != true)
-            this.local.watched_movies.push(id)
-    }
+    this.movies.watched.push(movie);
 }
 
 // create the model for users and expose it to our app

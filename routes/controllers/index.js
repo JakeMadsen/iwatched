@@ -6,6 +6,7 @@ module.exports = (server) => {
     /* API V1 ROUTES */
     require("./api/v1/movies")(server);
     require("./api/v1/users")(server);
+    require("./api/v1/profile")(server);
 
     console.log('======== Loading Private Routes ========')
     /* PRIVATE ROUTES */

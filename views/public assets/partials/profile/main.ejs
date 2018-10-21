@@ -1,0 +1,79 @@
+<div id="profile_header" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>'); background-repeat: no-repeat; background-size: cover ">
+    <div class="container">
+        <div style="padding: 20px 0px 20px 0px;">
+            <img class="img-fluid rounded" style="height: 160px" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>"
+                alt="">
+        </div>
+    </div>
+</div>
+
+
+<div id="profile_section">
+    <div class="container">
+        <div class="row">
+            <!-- USER INFO -->
+            <div class="col-md-4">
+                <h3>
+                    <%= page_data.user.local.username %>
+                </h3>
+                <p>
+                    <strong>Total watch time:</strong>
+
+                    <br>
+                    <strong>Total movie time:</strong>
+
+                    <br>
+                    <strong>Total show time:</strong>
+
+                    <br>
+                </p>
+            </div>
+
+            <!-- TOP 10 MOVIES -->
+            <div class="col-md-4">
+                <div id="topMoviesHeader">
+                    <h3 class="text-center">
+                        TOP 10 MOVIES
+                    </h3>
+                    <a class="text-center" href="#allMovies">
+                        <p style="color: blue">All movies</p>
+                    </a>
+                </div>
+                <div id="topMovieslist">
+
+                </div>
+            </div>
+
+            <!-- TOP 10 SHOWS -->
+            <div class="col-md-4">
+                <div id="topShowsHeader">
+                    <h3 class="text-center">
+                        TOP 10 SHOWS
+                    </h3>
+                    <a class="text-center" href="#allShows">
+                        <p style="color: blue">All shows</p>
+                    </a>
+                </div>
+                <div id="topMovieslist">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="profile_lists" class="container">
+    <div id="profile_movie_list">
+        <a name="allMovies">
+            <h3>All movies</h3>
+        </a>
+        <!-- List all movies -->
+    </div>
+
+    <div id="profile_show_list">
+        <a name="allShows">
+            <h3>All shows</h3>
+        </a>
+        <!-- List all shows -->
+    </div>
+</div>

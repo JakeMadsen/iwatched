@@ -17,7 +17,9 @@ module.exports = {
             User.findOne({$or: [{'_id': value},{'profile.custom_url': value}]},(error, user) => {
                 if (error) 
                     createError(503, "Could not find user in database")
-                else 
+                if(!user)
+                    resolve(null)
+                if(user)
                     resolve(user)
             });
         })
