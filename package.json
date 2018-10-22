@@ -2,7 +2,7 @@
   "name": "iwatched.xyz",
   "version": "0.1.1",
   "description": "",
-  "main": "/server/launch.js",
+  "main": "config/server/launch.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon config/server/launch.js"
