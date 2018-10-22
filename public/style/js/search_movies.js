@@ -30,9 +30,9 @@ function searchMovies(genre) {
          link = `/api/v1/movies/search_genre/`
     } else {
         searchParam = $('#search_input').val();
-        link = `'/api/v1/movies/search/`
+        link = `/api/v1/movies/search/`
     }
-    
+    console.log("search: " + searchParam)
 
     var $container = $('#movies_holder').infiniteScroll({
         path: function () {

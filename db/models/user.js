@@ -101,8 +101,10 @@ userSchema.methods.updateUser = function (username, email, phone, password){
 };
 
 userSchema.methods.addMovieRuntime = function (time){
-    this.profile.total_watch_time += time;
-    this.profile.movie_watch_time +=  time;
+    let totalTime = +this.profile.total_watch_time + +time;
+    let totalMovieTime = +this.profile.movie_watch_time + +time;
+    this.profile.total_watch_time = totalTime;
+    this.profile.movie_watch_time = totalMovieTime;
 }
 
 userSchema.methods.addMovieWatched = function (id){

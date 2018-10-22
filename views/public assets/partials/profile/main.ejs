@@ -18,13 +18,13 @@
                 </h3>
                 <p>
                     <strong>Total watch time:</strong>
-
+                    <%= page_data.total_watch_time %>
                     <br>
                     <strong>Total movie time:</strong>
-
+                    <%= page_data.movie_watch_time %>
                     <br>
                     <strong>Total show time:</strong>
-
+                    will be added later
                     <br>
                 </p>
             </div>
@@ -36,8 +36,9 @@
                         TOP 10 MOVIES
                     </h3>
                     <a class="text-center" href="#allMovies">
-                        <p style="color: blue">All movies</p>
+                        <p style="color: blue">All movies </p>
                     </a>
+                    <p class="text-center">Will be added later</p>
                 </div>
                 <div id="topMovieslist">
 
@@ -53,6 +54,7 @@
                     <a class="text-center" href="#allShows">
                         <p style="color: blue">All shows</p>
                     </a>
+                    <p class="text-center" >Will be added later</p>
                 </div>
                 <div id="topMovieslist">
 
@@ -66,6 +68,7 @@
     <div id="profile_movie_list">
         <a name="allMovies">
             <h3>All movies</h3>
+            <p>Amount of movies: <%= page_data.user.movies.watched.length %></p>
         </a>
         <!-- List all movies -->
     </div>
@@ -73,6 +76,7 @@
     <div id="profile_show_list">
         <a name="allShows">
             <h3>All shows</h3>
+            <p>Will be added later</p>
         </a>
         <!-- List all shows -->
     </div>

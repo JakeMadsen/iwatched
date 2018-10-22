@@ -1,131 +1,187 @@
-<div class="container">
-    <h1 class="text-center">iWatched.xyz API information</h1>
+<div class="">
+    <!-- Route info -->
+    <div class="route_info">
+        <h1 class="text-center">iWatched.xyz API information</h1>
 
-    <hr>
+        <hr>
 
-    <h2>Quick link's</h2>
+        <h2>Quick link's</h2>
 
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="#user_routes">User Routes</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#movie_routes">Movie Routes</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Return to iWatched</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#user_routes">User Routes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#movie_routes">Movie Routes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#profile_routes">Profile Routes</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
 
-    <hr>
+        <hr>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Short text about the API</h2>
-            <p>
-                This is a basic API mainly meant for things happening behind
-                the curtains. However i created a small interface to interact
-                with it and and test purposes. <br>
-                <br>
-                As a normal user you will not be able to use this for any
-                meaningful purpose. <br>
-                <br>
-                If you are logged in as an admin and have the correct API
-                keys. They will be assigned to the links for easy use.
-            </p>
-        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h2>Short text about the API</h2>
+                <p>
+                    This is a basic API mainly meant for things happening behind
+                    the curtains. However i created a small interface to interact
+                    with it and and test purposes. <br>
+                    <br>
+                    As a normal user you will not be able to use this for any
+                    meaningful purpose. <br>
+                    <br>
+                    If you are logged in as an admin and have the correct API
+                    keys. They will be assigned to the links for easy use.
+                </p>
+            </div>
 
-        <div class="col-md-6">
-            <h2>Status codes for API routes</h2>
-            <table class="table" style="background-color: #e3f2fd;">
-                <thead>
-                    <tr>
-                        <th scope="col">Status code</th>
-                        <th scope="col">Meaning</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row">200</th>
-                        <td>Everything okay</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">400</th>
-                        <td>Something went wrong, try again or later</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">401</th>
-                        <td>Unauthorized Access</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">404</th>
-                        <td>Data not found</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="col-md-6">
+                <h2>Status codes for API routes</h2>
+                <table class="table" style="background-color: #e3f2fd;">
+                    <thead>
+                        <tr>
+                            <th scope="col">Status code</th>
+                            <th scope="col">Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">200</th>
+                            <td>Everything okay</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">400</th>
+                            <td>Something went wrong, try again or later</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">401</th>
+                            <td>Unauthorized Access</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">404</th>
+                            <td>Data not found</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <a name="user_routes">
-        <h2>User API Routes</h2>
-    </a>
-    <table class="table"  style="background-color: #e3f2fd;">
-        <thead>
-            <tr>
-                <th scope="col">API Version</th>
-                <th scope="col">Type</th>
-                <th scope="col">Link</th>
-                <th scope="col">Info</th>
-                <th scope="col">Key required?</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <th scope="row">/v1/</th>
-                <td>GET</td>
-                <td><a href="/api/v1/users/all/?apikey=">users/all/:page</a></td>
-                <td>Get all users. ":page" is where you put the page number</td>
-                <td>true</td>
-            </tr>
-            <tr>
-                <th scope="row">/v1/</th>
-                <td>GET</td>
-                <td><a href="/api/v1/users/one/?apikey=">users/one/:user_id</a></td>
-                <td>Get one user. ":user_id" is where you put the user id</td>
-                <td>true</td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- User Routes -->
+    <div class="route_list">
+        <a name="user_routes">
+            <h2>User API Routes</h2>
+        </a>
+        <table class="table" style="background-color: #e3f2fd;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/users/all/?apikey=">users/all/:page</a></td>
+                    <td>Get all users. ":page" is where you put the page number</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/users/one/?apikey=">users/one/:user_id</a></td>
+                    <td>Get one user. ":user_id" is where you put the user id</td>
+                    <td>true</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div class="dropdown-divider"></div>
 
-    <a name="movie_routes">
-        <h2>Movie API Routes</h2>
-    </a>
-    <table class="table"  style="background-color: #e3f2fd;">
-        <thead>
-            <tr>
-                <th scope="col">API Version</th>
-                <th scope="col">Type</th>
-                <th scope="col">Link</th>
-                <th scope="col">Info</th>
-                <th scope="col">Key required?</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <th scope="row">/v1/</th>
-                <td>GET</td>
-                <td><a href="/api/v1/users/all/?apikey=">users/all/:page</a></td>
-                <td>Get all users. ":page" is where you put the page number</td>
-                <td>true</td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Movie Routes -->
+    <div class="route_list">
+        <a name="movie_routes">
+            <h2>Movie API Routes</h2>
+        </a>
+        <table class="table" style="background-color: #e3f2fd;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/movies/search/:search_param?/:page?">movies/search/:search_param/:page</a></td>
+                    <td>Search movies.":search" is the search statement ":page" is where you put the page number</td>
+                    <td>false</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/movies/search_genre/:genre/:page?">movies/search_genre/:genre/:page</a></td>
+                    <td>Search movies.":search_genre" is the genre name ":page" is where you put the page number</td>
+                    <td>false</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Profile Routes -->
+    <div class="route_list">
+        <a name="profile_routes">
+            <h2>Profile API Routes</h2>
+        </a>
+        <table class="table" style="background-color: #e3f2fd;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td><a href="/api/v1/profile/movies/add/">profile/movies/add/</a></td>
+                    <td>Accepts body with movie_id and movie_runtime (minutes)</td>
+                    <td>Personal profile key</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/profile/movies/get/:page?">profile/movies/get/:page?</a></td>
+                    <td>Gets all movies that a profile has watched. ":page" is the page number</td>
+                    <td>false</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

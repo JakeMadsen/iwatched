@@ -65,12 +65,12 @@
                         alt="">
                 
             </a>
-            <% if(typeof user != 'undefined') { %> 
+            <!-- <% if(typeof user != 'undefined') { %> 
                 <div class="movie-hover">
                     <button id="add_watched_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}')" >I Watched This</button>
-                    <button id="add_later_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}')">I Want To Watch This</button>
+                    <button id="add_later_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}', '{{runtime}}')">I Want To Watch This</button>
                 </div>
-            <% } %>
+            <% } %> -->
         </div>
     </div>
 </script>

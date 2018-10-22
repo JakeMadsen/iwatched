@@ -23,6 +23,11 @@ module.exports = (server) => {
         let videos = await tmdService.movieVideos(req.params.id)
         let similar = await tmdService.movieSimilar(req.params.id)
         let runtime = getRunTime(movie.runtime);
+        let userWatched = false;
+        let userSaved = false;
+
+        if(typeof req.user != 'undefined')
+        userWatched = checkIfWatched(req.params.id, req.user.movies.watched)
     
         res.render('public assets/template.ejs', {
             page_title: `iWatched - ${movie.title}`,
@@ -34,12 +39,21 @@ module.exports = (server) => {
                 runtime:  runtime,
                 similar: similar.results
             },
-            user: req.user
+            user: req.user,
+            user_watched: userWatched,
+            user_saved: userSaved
         });
     });
 
 }
-
+function checkIfWatched(movie_id, movies){
+    let check = false;
+    movies.forEach(movie => {
+        if(movie.movie_id == movie_id)
+            check = true;
+    });
+    return check;
+}
 
 function getRunTime(runtime){
     var hours = Math.floor( runtime / 60);          

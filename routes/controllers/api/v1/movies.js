@@ -15,7 +15,6 @@ module.exports = function (server) {
             .searchMovie(parameters)
             .then(results => {
                 res.send(results)
-
             })
             .catch(error => {
                 res.send(error)

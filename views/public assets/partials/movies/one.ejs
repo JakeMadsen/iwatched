@@ -18,13 +18,14 @@
         </div>
         <div class="col-md-10">
             <p class="text-center">
-                <b><%= page_data.movie.tagline %></b>
+                <b>
+                    <%= page_data.movie.tagline %></b>
             </p>
         </div>
         <div class="col-md-1">
             <a style="float:right;" href="https://www.themoviedb.org/movie/<%= page_data.movie.id %>">Report</a>
         </div>
-        
+
     </div>
 
     <!-- Movie Information -->
@@ -37,11 +38,17 @@
                         <%= page_data.movie.title %>
                     </h1>
                     <hr>
+                    <% if(typeof user != 'undefined') { %>
+                        <% if(user_watched != true) { %> 
+                            <button id="add_watched_movie" onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">IWatched This</button>
+                            <!-- <button id="add_later_movie" onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>')">I Want To Watch This</button> -->
+                        <% } %>
+                    <% } %>
                     <p>
                         <b>Runtime: </b>
-                            <%= page_data.runtime %> <br>
+                        <%= page_data.runtime %> <br>
                         <b>Release Date: </b>
-                            <%= page_data.movie.release_date %>
+                        <%= page_data.movie.release_date %>
                     </p>
                 </div>
                 <div class="col-md-3">
@@ -63,7 +70,8 @@
                     <hr>
                     <p>
                         <% page_data.movie.genres.forEach(function (genre, index){ %>
-                            <a href="/movies?genre=<%= genre.name.toLowerCase() %>"><%= genre.name %></a> <br>
+                        <a href="/movies?genre=<%= genre.name.toLowerCase() %>">
+                            <%= genre.name %></a> <br>
                         <% }); %>
                     </p>
                 </div>
@@ -95,34 +103,21 @@
     <div>
         <h1>Similar Movies</h1>
         <hr>
-    
+
         <div class="row">
             <% page_data.similar.forEach(function (movie, index){ %>
-                <% if(index + 1 <= 12) { %>
-                    <div class="col-md-2 image-box">
-                        <a href="/movies/<%= movie.id %>">
-                            <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
-                                alt="">
-                            <div class="movie-hover">
-                                See more
-                            </div>
-                        </a>
+            <% if(index + 1 <= 12) { %>
+            <div class="col-md-2 image-box">
+                <a href="/movies/<%= movie.id %>">
+                    <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
+                        alt="">
+                    <div class="movie-hover">
+                        See more
                     </div>
-                <% } %>
+                </a>
+            </div>
+            <% } %>
             <% }); %>
         </div>
     </div>
-    
-    <!-- Movie add watched       -->
-    <% if (typeof user != 'undefined') { %> 
-        <div class="row">
-            <div class="col-md-6">
-                <form id="watched">
-                    <input type="hidden" name="user_id" value="<%= user._id %>">
-                    <input type="hidden" name="movie_id" value="<%= page_data.movie.id %>">
-                    <button type="button" class="btn btn-large" >I watched this</button>
-                </form>
-            </div>
-        </div>
-    <% } %>
 </div>
