@@ -86,18 +86,31 @@ userSchema.methods.validPassword = function (password) {
 };
 
 // updates main user details
-userSchema.methods.updateUser = function (username, email, phone, password){
-    if(username != null && username != this.local.username)
-        this.local.username = username;
+userSchema.methods.updateSettings = function (body, profilePicture, profileBanner){
+    if(this.local.username != body.username && body.username != "")
+        this.local.username = body.username;
 
-    if(email != null && email != this.local.email)
-        this.local.email = email
+    if(this.local.email != body.email && body.email != "")
+        this.local.email = body.email;
 
-    if(phone != null && phone != this.local.phone)
-        this.local.phone = phone
+    if(body.password != "" && body.password != this.validPassword(body.password))
+        this.local.password = this.generateHash(body.password);
 
-    if(password != "" && password != this.validPassword(password))
-        this.local.password = this.generateHash(password);
+    if(this.profile.custom_url != body.custom_url && body.custom_url != "")
+        this.profile.custom_url = body.custom_url;
+
+    if(this.profile.birthday != body.birthday && body.birthday != "")
+        this.profile.birthday = body.birthday;
+
+    if(this.profile.description != body.description && body.description != "")
+        this.profile.description = body.description;
+
+    if(this.profile.profile_image != profilePicture && profilePicture != "" && profilePicture != null)
+        this.profile.profile_image = profilePicture;
+
+    if(this.profile.banner_image != profileBanner && profileBanner != "" && profileBanner != null)
+        this.profile.banner_image = profileBanner;
+
 };
 
 userSchema.methods.addMovieRuntime = function (time){
@@ -115,6 +128,11 @@ userSchema.methods.addMovieWatched = function (id){
 
     this.movies.watched.push(movie);
 }
+
+userSchema.methods.checkMovieWatched = function (id){
+    
+}
+
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema, 'users');

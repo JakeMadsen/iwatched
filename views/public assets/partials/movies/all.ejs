@@ -31,7 +31,7 @@
 
 <div class="dropdown-divider"></div>
 
-<div class="">
+<div class="container">
     <div id="movies_holder" class="row">
 
     </div>
@@ -48,7 +48,7 @@
             <p class="infinite-scroll-error">No more pages to load</p>
         </div>
 
-        <p><button class="view-more-button">View more</button></p>
+        <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
     </div>
 </div>
 
@@ -65,12 +65,6 @@
                         alt="">
                 
             </a>
-            <!-- <% if(typeof user != 'undefined') { %> 
-                <div class="movie-hover">
-                    <button id="add_watched_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}')" >I Watched This</button>
-                    <button id="add_later_movie_{{id}}" onclick="movieAddWatched('<%= user._id %>', '{{id}}', '{{runtime}}')">I Want To Watch This</button>
-                </div>
-            <% } %> -->
         </div>
     </div>
 </script>

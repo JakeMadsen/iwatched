@@ -54,7 +54,7 @@
                     <a class="text-center" href="#allShows">
                         <p style="color: blue">All shows</p>
                     </a>
-                    <p class="text-center" >Will be added later</p>
+                    <p class="text-center">Will be added later</p>
                 </div>
                 <div id="topMovieslist">
 
@@ -68,8 +68,27 @@
     <div id="profile_movie_list">
         <a name="allMovies">
             <h3>All movies</h3>
-            <p>Amount of movies: <%= page_data.user.movies.watched.length %></p>
+            <p>Amount of movies:
+                <%= page_data.user.movies.watched.length %>
+            </p>
         </a>
+        <div id="movies_holder" class="row">
+
+        </div>
+        <div id="view_more" style="display: none;">
+            <div class="page-load-status">
+                <div class="loader-ellips infinite-scroll-request">
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                    <span class="loader-ellips__dot"></span>
+                </div>
+                <p class="infinite-scroll-last">End of content</p>
+                <p class="infinite-scroll-error">No more pages to load</p>
+            </div>
+
+            <p><button type="button" class="btn btn-primary  view-more-button">View more</button></p>
+        </div>
         <!-- List all movies -->
     </div>
 
@@ -81,3 +100,26 @@
         <!-- List all shows -->
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(event) {
+    profileMovies('<%= page_data.user._id%>')
+  });
+</script>
+
+<!-- movie template HTML -->
+<script type="text/html" id="movie-template">
+
+    <div class="col-md-3" style="margin-bottom:25px;">
+        <div class="image-box">
+            <a name="{{id}}" href="/movies/{{tmd_id}}">
+                <img    class="img-fluid image-box-hover" 
+                        style='' 
+                        src="https://image.tmdb.org/t/p/w500/{{backdrop_path}}" 
+                        alt="">
+                
+            </a>
+            <p>{{title}}</p>
+        </div>
+    </div>
+</script>

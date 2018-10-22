@@ -64,8 +64,8 @@ module.exports = (passport) => {
     },
         function (req, login, password, done) { 
             User.findOne({$or: [
-                {'local.email': login},
-                {'local.username': login}
+                {'local.email':new RegExp('^'+login+'$', "i") },
+                {'local.username': new RegExp('^'+login+'$', "i")}
             ]}, function (err, user) {
                 if (err)
                     return done(err);

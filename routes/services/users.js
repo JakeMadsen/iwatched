@@ -1,5 +1,6 @@
 const User = require('../../db/models/user')
 const createError = require('http-errors');
+const fs = require('fs')
 
 module.exports = {
     getAll: () => {
@@ -23,5 +24,57 @@ module.exports = {
                     resolve(user)
             });
         })
+    },
+    saveUser: async (id, content, files) => {
+        return new Promise((resolve, reject) => {
+            var newProfilePicture = files.profilePictureFile;
+            var newProfileBanner = files.profileBannerFile;
+
+            console.log(newProfileBanner)
+
+            User
+            .findById(id)
+            .exec((error, user) => {
+                var imagePB = null;
+                var imageBA = null;
+
+                if (error)
+                    throw new Error({error: error, custom_error: "Something went wrong with saving settings"})
+
+                if(JSON.stringify(files) == "{}"){
+                    user.updateSettings(content)
+                }else {
+                    if(newProfilePicture){
+                        saveProfileImages(user._id, newProfilePicture, user.profile.profile_image)
+                        imagePB = newProfilePicture.name
+                    }
+                        
+                    if(newProfileBanner){
+                        saveProfileImages(user._id, newProfileBanner, user.profile.banner_image)
+                        imageBA = newProfileBanner.name
+                    }
+                    console.log("pb: " + imagePB, "     ba: "+ imageBA)
+                    user.updateSettings(content, imagePB, imageBA)
+                }
+
+                user.save((error, userUpdated) => {
+                    if(error)
+                        throw new Error({error: error, custom_error: "Something went wrong with saving settings"})
+                
+                    else
+                        resolve(userUpdated)
+                });
+                
+            })
+        })
     }
+}
+
+function saveProfileImages(user_id, new_image, old_image){
+    fs.unlink(`public/style/img/profile_images/users/${user_id}/${old_image}`, (err) => {
+        new_image.mv(`public/style/img/profile_images/users/${user_id}/${new_image.name}`, (error) => {
+            if (error)
+                throw new Error({error: error, custom_error: "Something went wrong with saving image"})
+        });
+    });
 }

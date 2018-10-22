@@ -1,0 +1,72 @@
+<div class="card equalize">
+    <div class="card-header">
+        <h3 class="container">Contact</h3>
+    </div>
+    <div class="card-block">
+        <% if(page_data.message == false) { %>
+        <div class="container">
+            <form action="/contact" method="POST" encType="multipart/form-data">
+                <div class="form-group">
+                    <label for="message_title">Title</label>
+                    <input name="title" type="text" class="form-control" id="message_title" aria-describedby="message_titleHelp" value="" aria-required="true">
+                    <small id="message_titlelHelp" class="form-text text-muted">Message subject</small>
+                </div>
+            
+                <div class="form-group">
+                    <label for="message_email">Email</label>
+                    <input name="email" type="email" class="form-control" id="message_email" aria-describedby="message_emailHelp" value="<%= user.local.email %>" readonly aria-required="true">
+                    <small id="message_emailHelp" class="form-text text-muted">Your email (automatically filled in from your user) </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="message_type">Department</label>
+                    <select name="type" id="message_type" class="form-control" aria-required="true">
+                        <option selected>Choose...</option>
+                        <option>Account</option>
+                        <option>Suggestions</option>
+                        <option>Bugs</option>
+                        <option>Help</option>
+                    </select>
+                    <small id="emaillHelp" class="form-text text-muted">Choose what you need</small>
+                </div>
+    
+                <div class="form-group">
+                    <label for="message_text">Message</label>
+                    <textarea name="text" rows="10" class="form-control" id="message_text" aria-describedby="message_textHelp" aria-required="true"></textarea>
+                    <small id="message_textHelp" class="form-text text-muted">Write your message here</small>
+                </div>
+
+                <input type="hidden" name="from" value="<%= user._id %>">
+            
+                <button type="submit" class="btn btn-primary btn-lg btn-block">Send</button>
+            </form>
+        </div>      
+    </div>
+    <% } else { %>
+        <div class="container">
+            <h4>Thanks for your message <%= user.local.username %></h4>
+
+            <h5>Message received:</h5>
+            <p>
+                <strong>Title:</strong>
+                <%= page_data.message.title %>
+                <br>
+                <strong>Type:</strong>
+                <%= page_data.message.type %>
+                <br>
+                <strong>Text:</strong>
+                <%= page_data.message.text %>
+                <br>
+                <strong>Email:</strong>
+                <%= page_data.message.email %>
+                <br>
+            </p>
+
+        </div>
+        
+    <% } %>
+    <div class="card-footer">
+        
+    </div>
+</div>
+</div>

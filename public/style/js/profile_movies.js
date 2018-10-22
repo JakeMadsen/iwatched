@@ -1,41 +1,11 @@
-(function () {
-    var urlParams = parseQueryString(location.search);
-
-    if(urlParams.genre != null){
-        searchMovies(urlParams.genre)
-    }
-
-})();
-
-function parseQueryString(url) {
-    var urlParams = {};
-    url.replace(
-        new RegExp("([^?=&]+)(=([^&]*))?", "g"),
-        function ($0, $1, $2, $3) {
-            urlParams[$1] = $3;
-        }
-    );
-    return urlParams;
-}
-
-function searchMovies(genre) {
-    $('#movies_holder').empty()
+function profileMovies(user_id) {
     $('#view_more').show()
 
-    var searchParam;
-    var link;
-
-    if (genre != null){
-         searchParam = genre;
-         link = `/api/v1/movies/search_genre/`
-    } else {
-        searchParam = $('#search_input').val();
-        link = `/api/v1/movies/search/`
-    }
+    var link = `/api/v1/profile/movies/watched/${user_id}/`
 
     var $container = $('#movies_holder').infiniteScroll({
         path: function () {
-            return link + searchParam + '/' + this.pageIndex;
+            return link + this.pageIndex;
         },
         // load response as flat text
         responseType: 'text',

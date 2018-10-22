@@ -17,14 +17,10 @@ module.exports = (server) => {
             .exec((error, found) => {
                 if (error)
                     res.send({ status: 400, message: "Something went wrong when adding movie" })
-                console.log("found: ", found)
                 if (!found) {
                     let newEntry = new Movie()
                     newEntry.initial(movieInfo)
-
                     newEntry.save()
-
-                    console.log("new : ", newEntry)
                 }
 
                 user.addMovieWatched(req.body.movie_id)
@@ -42,7 +38,7 @@ module.exports = (server) => {
     });
 
     server.get('/api/v1/profile/movies/watched/:profile_id/:page?', async (req, res) => {
-        var perPage = 10,
+        var perPage = 20,
             page = Math.max(0, req.params.page || 1);
 
         User
@@ -89,7 +85,6 @@ module.exports = (server) => {
 function paginateArray(array, page_size, page_number) {
     --page_number; // because pages logically start with 1, but technically with 0
     array = array.slice(page_number * page_size, (page_number + 1) * page_size);
-    console.log(array.length)
     return array
 }
 

@@ -19,6 +19,7 @@ module.exports = (server) => {
     require("./public/movies")(server);
     require("./public/shows")(server);
     require("./public/about")(server);
+    require("./public/contact")(server);
     require("./public/login")(server);
     require("./public/profile")(server);
 

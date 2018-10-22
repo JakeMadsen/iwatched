@@ -42,6 +42,8 @@
                         <% if(user_watched != true) { %> 
                             <button id="add_watched_movie" onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">IWatched This</button>
                             <!-- <button id="add_later_movie" onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>')">I Want To Watch This</button> -->
+                        <% } else  { %>
+                            <p style="color:forestgreen">I already saved this</p>
                         <% } %>
                     <% } %>
                     <p>
