@@ -56,7 +56,7 @@ mongoose.connect('mongodb+srv://JakeTheDane:Acq59hhc.@maincluster-r0dde.mongodb.
 })
 
 /* Server User Passport Setup  */
-require('./config/passport/passport')(passport)
+require('../passport/passport')(passport)
 server.use(session({ 
     secret: 'thisIsMySecretCat',
     resave: true,
@@ -68,7 +68,7 @@ server.use(flash());
 
 //=================== Routes ===================//
 /* Requires public and private WEB routes. */
-require('./routes/controllers/index')(server)
+require('../../routes/controllers/index')(server)
 
 /* Server 404/ERROR handler*/
 server.use(function(req, res, next) {

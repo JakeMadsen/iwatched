@@ -1,5 +1,5 @@
 const port = process.env.PORT || 1337;
-const server = require('../../server');
+const server = require('./server');
 const host_settings   = require('./settings');
 const host = new host_settings("iWatched.xyz", port);
 
