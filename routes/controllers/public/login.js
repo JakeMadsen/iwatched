@@ -28,7 +28,7 @@ module.exports = (server) => {
             successRedirect: '/loginRedirect', 
             failureRedirect: '/login', 
             failureFlash: true 
-        }),
+        })
     );
 
     server.get('/logout', (req, res) => {
