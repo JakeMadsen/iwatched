@@ -1,2 +1,7 @@
 {
+    "appService.zipIgnorePattern": [
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/29f04dc9-b614-4c2e-881a-23c766bfadcf/resourceGroups/appsvc_rg_linux_centralus/providers/Microsoft.Web/sites/iwatched",
+    "appService.deploySubpath": ""
 }

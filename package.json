@@ -2,11 +2,10 @@
   "name": "iwatched.xyz",
   "version": "0.1.1",
   "description": "",
-  "main": "config/server/launch.js",
+  "main": "./bin/server/launch.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev-start": "nodemon config/server/launch.js",
-    "start": "node config/server/launch.js"
+    "start": "nodemon ./bin/server/launch.js",
+    "start-live": "node ./bin/server/launch.js"
   },
   "author": "",
   "license": "ISC",

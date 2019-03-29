@@ -1,0 +1,6 @@
+{
+    "serverName": "iWatched-server",
+    "serverPort": 3000,
+    "websiteName": "iWatched",
+    "mongoDB": "mongodb+srv://JakeTheDane:Acq59hhc.@maincluster-r0dde.mongodb.net/iwatched"
+}
