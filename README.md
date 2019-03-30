@@ -1,8 +1,11 @@
-# iwatched
+# iWatched
 
-(A proper readme to be written later on)
+iWatched is a website which allows it's users to save a list of all the movies and shows they have watched and have a top 10 movies and shows list that they can share with their friends.
 
-This project is build on Node.js using Express as my server handler. 
-My database is a MongoDB hosted at cloud.mongodb.com but i use Mongoose to speak with it. 
-My login system is running Passport.js and i am currently implementing oAuth to master that. 
+The project is build on Node.js using Express as my server handler.   
+I am using MongoDB to store all data and communicate with it using the mongoose module.  
+The login system is build with passport.js and i have future plans of implementing oAuth so users can login with facebook and google. 
 
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
