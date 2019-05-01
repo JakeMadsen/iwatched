@@ -1,4 +1,4 @@
-const axios = require('axios')
+const axios = require('axios');
 const url = "https://api.themoviedb.org/3";
 const key = "ab4e974d12c288535f869686bd72e1da"
 

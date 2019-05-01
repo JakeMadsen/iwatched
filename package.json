@@ -4,8 +4,8 @@
   "description": "",
   "main": "./bin/server/launch.js",
   "scripts": {
-    "start": "nodemon ./bin/server/launch.js",
-    "start-live": "node ./bin/server/launch.js"
+    "start-live": "nodemon ./bin/server/launch.js",
+    "start": "node ./bin/server/launch.js"
   },
   "author": "",
   "license": "ISC",

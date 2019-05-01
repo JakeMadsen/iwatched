@@ -62,8 +62,7 @@ module.exports = (server) => {
                 res.redirect('/');
             });
         })
-        }
-    );
+    });
 
     server.post('/:id/delete', getUser, isCorrectUser, async (req, res) => {
         let user_id = req.user._id;
@@ -75,8 +74,7 @@ module.exports = (server) => {
                 res.redirect('/');
             });
         })
-    }
-    );
+    });
 }
 
 async function isCorrectUser(req, res, next) {
