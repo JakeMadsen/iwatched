@@ -20,7 +20,7 @@ var userSchema = mongoose.Schema({
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
-        custom_url:         { type: String, default: null, index: {unique : true} }
+        custom_url:         { type: String, default: hat(), index: {unique : true} }
     },
     permissions: {
         user_private_key: { type: String, default: hat()},
