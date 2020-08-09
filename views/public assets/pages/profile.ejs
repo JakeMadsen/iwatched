@@ -1,1 +1,19 @@
-<%- include(`../partials/profile/${page_subFile}.ejs`) %>
+
+
+<div id="profile_header" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>'); background-repeat: no-repeat; background-size: cover ">
+    <div class="container">
+        <div style="padding: 20px 0px 20px 0px;">
+            <img class="img-fluid rounded" style="height: 160px" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>"
+                alt="">
+        </div>
+    </div>
+</div>
+
+
+<div id="profile_section" style="padding-top:px;">
+        <% include ../partials/profile/profile_navigation.ejs %>
+    <div class="container">
+        <%- include(`../partials/profile/${page_subFile}.ejs`) %>
+    </div>
+</div>
+

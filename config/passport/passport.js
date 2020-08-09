@@ -1,5 +1,9 @@
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../../db/models/user');
+var UserWatchedMovies = require('../../db/models/userWatchedMovies');
+var UserFavouritedMovies = require('../../db/models/userFavouritedMovies');
+var UserSavedMovies = require('../../db/models/userSavedMovies');
+
 
 module.exports = (passport) => {
 
@@ -48,6 +52,19 @@ module.exports = (passport) => {
                         newUser.initialSignup(username, req.body.email, password)
 
                     newUser.save((err) => {
+
+                        let newWatched = new UserWatchedMovies()
+                            newWatched.initial(newUser._id)
+                            newWatched.save();
+
+                        let newFavourited = new UserFavouritedMovies()
+                            newFavourited.initial(newUser._id)
+                            newFavourited.save();
+
+                        let newSaved = new UserSavedMovies()
+                            newSaved.initial(newUser._id)
+                            newSaved.save();
+
                         if (err)
                             throw err;
                         return done(null, newUser);
@@ -66,17 +83,19 @@ module.exports = (passport) => {
             User.findOne({$or: [
                 {'local.email':new RegExp('^'+login+'$', "i") },
                 {'local.username': new RegExp('^'+login+'$', "i")}
-            ]}, function (err, user) {
-                if (err)
-                    return done(err);
+            ]}, function (error, user) {
+
+                if (error)
+                    return done(null, false, req.flash('flash', {'error': error, 'login' : login})); 
 
                 if (!user)
-                    return done(null, false, req.flash('loginMessage', 'No user found.')); 
+                    return done(null, false, req.flash('flash', {'error': 'No user found', 'login' : login})); 
 
                 if (!user.validPassword(password))
-                    return done(null, false, req.flash('loginMessage', 'Oops! Wrong password.'));
+                    return done(null, false, req.flash('flash', {'error': 'Wrong password', 'login' : login}));
 
                 return done(null, user);
             });
-        }));
+        })
+    );
 };

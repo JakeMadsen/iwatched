@@ -1,15 +1,15 @@
 var mongoose = require('mongoose');
 
 var movieSchema = mongoose.Schema({
-    title: String,
     tmd_id: String,
-    backdrop_path: String
+    movie_title: String,
+    movie_runtime: String
 });
 
 movieSchema.methods.initial = function(movie){
-    this.title = movie.title;
     this.tmd_id = movie.id;
-    this.backdrop_path = movie.backdrop_path
+    this.movie_title = movie.title;
+    this.movie_runtime = movie.runtime;
 }
 
 module.exports = mongoose.model('Movie', movieSchema, 'movies');

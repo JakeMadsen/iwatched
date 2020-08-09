@@ -10,7 +10,7 @@ module.exports = (server) => {
             page_title: "iWatched - Admin",
             page_file: "index",
             page_data: {
-    
+                users_online: process.env['USERS_ONLINE']
             },
             user: req.user
         })

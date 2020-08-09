@@ -1,12 +1,12 @@
-<div class="container">
+<div class="container" style="margin-top: 30px;">
 
 
     <div class="row">
         <div class="col-md-6">
-            <h1>Home</h1>
+            <h1>Welcome to iWatched</h1>
             <p>
-                Create an account to start keeping track of how many hours you have wasted
-                on watching great movies and series
+                <a style="color:lightblue" href="/login">Create an account</a> to start keeping track of how many hours you have wasted
+                on watching great movies.
             </p>
 
         </div>
@@ -15,14 +15,16 @@
             <p style="color: red">
                 Please read
             </p>
-
             <p>
                 This is a beta of the site with the purpose of getting user feedback
-                and finding bugs. 
+                and finding bugs so that we can improve the user experience. 
                 <br>
-                Support for saving shows will arrive in the next update
+                Please keep in mind that since this is a beta version of the website
+                there is the possibilty of major changes which might reset your account 
+                in one way or another. But we will do our best to keep your profile 
+                intact during the course of development.
                 <br>
-                Deleting of watched items will arrive in next update as well
+                Thank you for choosing to participate in the beta of this website.
             </p>
         </div>
     </div>
@@ -33,38 +35,60 @@
     <hr>
     <div class="row">
         <% page_data.popular.movies.forEach(function (movie, index){ %>
-        <% if(index + 1 <= 12) { %>
-        <div class="col-md-2 image-box">
-            <a href="/movies/<%= movie.id %>">
-                <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
-                    alt="">
-                <div class="movie-hover">
-                    See more
-                </div>
-            </a>
-        </div>
-        <% } %>
+            <% if(index + 1 <= 18) { %>
+                <div class="col-md-2 image-box" >
+                    <a href="/movies/<%= movie.id %>">
+                        <% if(typeof user != 'undefined') { %>
+                            <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
+                                alt="" 
+                                onload="    
+                                    checkIfFavourited('<%= user._id %>', '<%= movie.id %>')
+                                    checkIfWatched('<%= user._id %>', '<%= movie.id %>')
+                                    checkIfSaved('<%= user._id %>', '<%= movie.id %>')">
 
+                        <% } else { %>
+                                <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>" alt="" >
+                        <% } %>
+                    </a>
+                    <div class="movie-hover image-box-description">
+                        <p><%= movie.title %></p>
+                        <% if(typeof user != 'undefined') { %>
+                            <div class="row" >
+                                <div class="col-md-4">
+                                        <i  class="far fa-check-circle fa-2x icon-white" 
+                                        id="add_watched_movie_<%= movie.id %>"
+                                        onclick="movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>')" >
+                                    </i>
+                                    <i  class="fas fa-check-circle fa-2x icon-green" 
+                                        id="remove_watched_movie_<%= movie.id %>"  
+                                        onclick="movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    </i>
+                                </div>
+                                <div class="col-md-4">
+                                    <i  class="far fa-heart fa-2x icon-white" 
+                                        id="add_favourited_movie_<%= movie.id %>" 
+                                        onclick="movieAddFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                    </i>
+                                    <i  class="fas fa-heart fa-2x icon-red" 
+                                        id="remove_favourited_movie_<%= movie.id %>" 
+                                        onclick="movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                    </i>
+                                </div>
+                                <div class="col-md-4">
+                                    <i  class="far fa-bookmark fa-2x icon-white"
+                                        id="add_saved_movie_<%= movie.id %>" 
+                                        onclick="movieAddSaved('<%= user._id %>', '<%= movie.id %>')">
+                                    </i>
+                                    <i class="fas fa-bookmark fa-2x icon-blue"
+                                        id="remove_saved_movie_<%= movie.id %>" 
+                                        onclick="movieRemoveSaved('<%= user._id %>', '<%= movie.id %>')">
+                                    </i>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
         <% }); %>
     </div>
-
-    <h2>Popular shows</h2>
-    <hr>
-    <div class="row">
-        <% page_data.popular.shows.forEach(function (show, index){ %>
-        <% if(index + 1 <= 12) { %>
-        <div class="col-md-2 image-box">
-            <a href="/shows/<%= show.id %>">
-                <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= show.poster_path %>"
-                    alt="">
-                <div class="movie-hover">
-                    See more
-                </div>
-            </a>
-        </div>
-        <% } %>
-
-        <% }); %>
-    </div>
-
 </div>

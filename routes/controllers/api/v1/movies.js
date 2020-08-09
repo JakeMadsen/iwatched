@@ -45,4 +45,17 @@ module.exports = function (server) {
                 res.send(error)
             })
     });
+
+    server.get('/api/v1/movies/get_poster/:id', async (req, res) => {
+        let movie = await tmdService.movieInfo(req.params.id)
+        let posterPath = {
+            poster_path: movie.poster_path
+        }
+        if(movie == 'undefined' || null)
+            res.send("error")
+        else
+            res.send(posterPath)
+
+
+    });
 }

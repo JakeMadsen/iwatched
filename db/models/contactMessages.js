@@ -16,4 +16,4 @@ messageSchema.methods.initial = function(message){
     this.from = message.from;
 }
 
-module.exports = mongoose.model('Message', messageSchema, 'messages');
+module.exports = mongoose.model('contactMessage', messageSchema, 'contact_messages');

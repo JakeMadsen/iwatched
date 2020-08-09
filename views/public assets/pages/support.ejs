@@ -1,0 +1,92 @@
+
+<div class="container" style="margin-top: 30px;">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>My Support</h2>
+            <h4>Open cases</h4>
+            <div class="dropdown-divider" style="margin: 0px 0px 10px 0px"></div>
+            <% page_data.open_cases.forEach(function (currentCase, index){ %>
+                <p>
+                    <strong>Title: </strong><%= currentCase.title %>
+                    <br>
+                    <strong>Type: </strong><%= currentCase.type %>
+                    <br>
+                    <% if(currentCase.seen_by_user == false) { %> 
+                    <strong style="color: red;">New answer</strong>
+                    <% } %>
+
+                    <a style="color: lightblue;" href="/support/<%= currentCase._id %>"><strong>See case</strong></a>
+                </p>
+            <% }); %>
+
+
+            <h4>Closed cases</h4>
+            <div class="dropdown-divider" style="margin: 0px 0px 10px 0px"></div>
+
+            <% page_data.closed_cases.forEach(function (currentCase, index){ %>
+                <p>
+                    <strong>Title: </strong><%= currentCase.title %>
+                    <br>
+                    <strong>Type: </strong><%= currentCase.type %>
+                    <br>
+                    <a style="color: lightblue;" href="/support/<%= currentCase._id %>"><strong>See case</strong></a>
+                </p>
+          <% }); %>
+
+        </div>
+
+        <div class="col-md-6">
+            <h2>Open new case</h2>
+            <% if(page_data.message == false) { %>
+                <form action="/support" method="POST" encType="multipart/form-data">
+                    <div class="form-group">
+                        <label for="message_title">Title</label>
+                        <input name="title" type="text" class="form-control" id="message_title" aria-describedby="message_titleHelp" value="" aria-required="true" required>
+                        <small id="message_titlelHelp" class="form-text text-muted">Message subject</small>
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="message_type">Department</label>
+                        <select name="type" id="message_type" class="form-control" aria-required="true" required>
+                            <option selected>Choose...</option>
+                            <option>Account</option>
+                            <option>Bugs</option>
+                            <option>Suggestions</option>
+                            <option>Help</option>
+                            <option>Other</option>
+                        </select>
+                        <small id="emaillHelp" class="form-text text-muted">Choose what you need</small>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="message_text">Message</label>
+                        <textarea name="message" rows="10" class="form-control" id="message_text" aria-describedby="message_textHelp" aria-required="true" required></textarea>
+                        <small id="message_textHelp" class="form-text text-muted">Write your message here</small>
+                    </div>
+    
+                    <input type="hidden" name="opened_by" value="<%= user._id %>">
+                    <input type="hidden" name="username" value="<%= user.local.username %>">
+                
+                    <button type="submit" class="btn btn-primary btn-lg btn-block">Send</button>
+                </form>
+            </div>      
+            <% } else { %>
+                <h4>Thanks for your message <%= user.local.username %></h4>
+    
+                <h5>Message received:</h5>
+                <p>
+                    <strong>Title:</strong>
+                    <%= page_data.message.title %>
+                    <br>
+                    <strong>Type:</strong>
+                    <%= page_data.message.type %>
+                    <br>
+                    <strong>Text:</strong>
+                    <%= page_data.message.message %>
+                    <br>
+                </p>
+            <% } %>
+        </div>
+    </div>
+</div>
+

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- Includees all scripts -->
+<% include partials/standard/scripts.ejs %>
+
 <head>
     <!-- Includees head and styles -->
     <% include ./partials/standard/head.ejs %>
@@ -14,11 +17,8 @@
         <%- include(`pages/${page_file}.ejs`) %>
     </main>
     
-    
+    <% include partials/standard/footer.ejs %>
 </body>
 
    
-</html> 
-
-<!-- Includees all scripts -->
-<% include partials/standard/scripts.ejs %>
+</html>

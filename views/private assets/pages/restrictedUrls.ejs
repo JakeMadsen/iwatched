@@ -1,0 +1,79 @@
+<div id="urlHeader">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Restricted URL's</h2>
+            <p>
+                Add url routes here to protect them against
+                conflicting with other routes
+            </p>
+        </div>
+        <div class="col-md-6">
+            <h2>Restrict new page URL</h2>
+            <form action="/admin/restrictedUrls" method="POST">
+                <!-- name -->
+                <div class="form-group">
+                    <label for="page_name" >Url Name</label>
+                    <input name="name" type="text" class="form-control" id="page_name" placeholder="urlname(ex. about)">
+                </div>
+
+                <!-- text -->
+                <div class="form-group">
+                    <label for="page_text">Description</label>
+                    <textarea name="text" rows="5" class="form-control" id="page_text" placeholder="Short text about why its been listed"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-danger">Restrict</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="listUrls" style="margin-top:20px;">
+    <h3>LIST of restricted url's</h3>
+    <div class="row">
+        <div class="col-md-2">
+            <h4>URL ID</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>URL Name</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>URL Created by</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>URL Description</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>Creation Date</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>Options</h4>
+        </div>
+    </div>
+    <hr>
+    
+    <% page_data.restrictedUrls.forEach(function(url){ %>
+        <div class="row">
+            <div class="col-md-2">
+                <p><%= url._id %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= url.restricted_url %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= url.created_by %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= url.info %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= url.creation_date %></p>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary">Edit</button>
+                <button type="button" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+        <hr>
+    <% }); %>
+</div>

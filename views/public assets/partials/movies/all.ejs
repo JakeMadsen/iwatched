@@ -53,18 +53,71 @@
 </div>
 
 
-<!-- movie template HTML -->
-<script type="text/html" id="movie-template">
-
-    <div class="col-md-2" style="margin-bottom:25px;">
-        <div class="image-box">
-            <a name="{{id}}" href="/movies/{{id}}">
-                <img    class="img-fluid image-box-hover" 
-                        style='' 
-                        src="https://image.tmdb.org/t/p/w500/{{poster_path}}" 
-                        alt="">
-                
+<% if(typeof user != 'undefined') { %>
+    <script type="text/html" id="movie-template">
+        <div class="col-md-2 image-box" >
+            <a href="/movies/{{id}}">
+            <img name="movie_id_{{id}}" class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/{{poster_path}}"
+                alt="" 
+                onload="    
+                    checkIfFavourited('<%= user._id %>', '{{id}}')
+                    checkIfWatched('<%= user._id %>', '{{id}}')
+                    checkIfSaved('<%= user._id %>', '{{id}}')
+                ">
             </a>
+            <div class="movie-hover image-box-description">
+                <p>{{title}}</p>
+                    
+                    <div class="row" >
+                        <div class="col-md-4">
+                                <i  class="far fa-check-circle fa-2x icon-white" 
+                                id="add_watched_movie_{{id}}"
+                                onclick="movieAddWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>')" >
+                            </i>
+                            <i  class="fas fa-check-circle fa-2x icon-green" 
+                                id="remove_watched_movie_{{id}}"  
+                                onclick="movieRemoveWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>')">
+                            </i>
+                        </div>
+                        <div class="col-md-4">
+                            <i  class="far fa-heart fa-2x icon-white" 
+                                id="add_favourited_movie_{{id}}" 
+                                onclick="movieAddFavourited('<%= user._id %>', '{{id}}')">
+                            </i>
+                            <i  class="fas fa-heart fa-2x icon-red" 
+                                id="remove_favourited_movie_{{id}}" 
+                                onclick="movieRemoveFavourited('<%= user._id %>', '{{id}}')">
+                            </i>
+                        </div>
+                        <div class="col-md-4">
+                            <i  class="far fa-bookmark fa-2x icon-white"
+                                id="add_saved_movie_{{id}}" 
+                                onclick="movieAddSaved('<%= user._id %>', '{{id}}')">
+                            </i>
+                            <i class="fas fa-bookmark fa-2x icon-blue"
+                                id="remove_saved_movie_{{id}}" 
+                                onclick="movieRemoveSaved('<%= user._id %>', '{{id}}')">
+                            </i>
+                        </div>
+                    </div>
+            </div>
         </div>
-    </div>
-</script>
+    </script>
+<% } else { %>
+    <script type="text/html" id="movie-template">
+        <div class="col-md-2 image-box" >
+            <a href="/movies/{{id}}">
+                    <img name="movie_id_{{id}}" class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/{{poster_path}}"
+                        alt="">
+            </a>
+            <div class="movie-hover image-box-description">
+                <p>{{title}}</p>
+                    
+                    <div class="row" >
+                        
+                    </div>
+            </div>
+        </div>
+    </script>
+<% } %>
+

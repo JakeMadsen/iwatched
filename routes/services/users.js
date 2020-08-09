@@ -1,85 +1,286 @@
-const User = require('../../db/models/user')
-const createError = require('http-errors');
-const fs = require('fs')
+/*
+*   Mongoose models
+**************************/
+const User                  = require('../../db/models/user');
+const UserWatchedMovies     = require('../../db/models/userWatchedMovies');
+const UserFavouritedMovies  = require('../../db/models/userFavouritedMovies');
+const UserSavedMovies       = require('../../db/models/userSavedMovies');
 
+/*
+*   Services
+**************************/
+const fs        = require('fs');
+const mongoose  = require('mongoose');
+
+
+/*
+*   Exported functions
+**************************/
 module.exports = {
     getAll: () => {
         return new Promise(function (resolve, reject) {
             User.find({}, function (error, users) {
                 if (error)
-                    reject(error, "Fejl i database - hent alle brugere")
+                    reject(error, "Could not get users")
                 else
                     resolve(users)
             });
         })
     },
-    getOne: (value) => {
+    getOne: (user_id) => {
         return new Promise((resolve, reject) => {
-            User.findOne({ $or: [{ '_id': value }, { 'profile.custom_url': value }] }, (error, user) => {
-                if (error)
-                    createError(503, "Could not find user in database")
-                if (!user)
-                    resolve(null)
-                if (user)
-                    resolve(user)
-            });
+            if(mongoose.Types.ObjectId.isValid(user_id) === true){
+                User.findOne({ '_id': user_id }, (error, user) => {
+                    if (error)
+                        reject(error)
+                    if (!user)
+                        resolve(null)
+                    if (user)
+                        resolve(user)
+                });
+            }
+            else {
+                User.findOne({ 'profile.custom_url': user_id }, (error, user) => {
+                    if (error)
+                        reject(error)
+                    if (!user)
+                        resolve(null)
+                    if (user)
+                        resolve(user)
+                });
+            }
         })
     },
     saveUser: async (id, content, files) => {
         return new Promise((resolve, reject) => {
-            var newProfilePicture = files.profilePictureFile;
-            var newProfileBanner = files.profileBannerFile;
+            var newProfilePicture   = null;
+            var newProfileBanner    = null;
 
-            console.log(newProfileBanner)
+            if (files) {
+                newProfilePicture   = files.profilePictureFile
+                newProfileBanner   = files.profileBannerFile
+            }
 
             User
                 .findById(id)
-                .exec((error, user) => {
+                .exec(async (error, user) => {
                     var imagePB = null;
                     var imageBA = null;
 
-                    if (error)
-                        throw new Error({ error: error, custom_error: "Something went wrong with saving settings" })
+                    try {
 
-                    if (JSON.stringify(files) == "{}") {
-                        user.updateSettings(content)
-                    } else {
-                        if (newProfilePicture) {
-                            saveProfileImages(user._id, newProfilePicture, user.profile.profile_image)
-                            imagePB = newProfilePicture.name
+                        if (error)
+                            reject({ error: error, custom_error: "Something went wrong with saving settings" })
+
+                        if (JSON.stringify(files) == "{}" || files == null){
+                            await user.updateSettings(content)
+                        }
+                            
+                        else 
+                        {
+                            if (newProfilePicture) {
+                                saveProfileImages(user._id, newProfilePicture, user.profile.profile_image, "picture");
+                                let newName = `picture_${user._id}.${getFileExtention(newProfilePicture.name)}`;
+                                imagePB = newName;
+                            }
+
+                            if (newProfileBanner) {
+                                saveProfileImages(user._id, newProfileBanner, user.profile.banner_image, "banner");
+                                let newName = `banner_${user._id}.${getFileExtention(newProfileBanner.name)}`;
+                                imageBA = newName
+                            }
+                            await user.updateSettings(content, imagePB, imageBA)
                         }
 
-                        if (newProfileBanner) {
-                            saveProfileImages(user._id, newProfileBanner, user.profile.banner_image)
-                            imageBA = newProfileBanner.name
-                        }
-                        console.log("pb: " + imagePB, "     ba: " + imageBA)
-                        user.updateSettings(content, imagePB, imageBA)
+                        user.save((error, userUpdated) => {
+                            if (error)
+                                reject({ error: error, custom_error: "Something went wrong with saving settings" })
+
+                            else
+                                resolve(userUpdated)
+                        });
+                        
+                    } catch (error) {
+                        console.log("Update user catch error:", error)
                     }
 
-                    user.save((error, userUpdated) => {
-                        if (error)
-                            throw new Error({ error: error, custom_error: "Something went wrong with saving settings" })
-
-                        else
-                            resolve(userUpdated)
-                    });
+                    
 
                 })
         })
+    },
+    checkIfUserWatchedMovie: async(user_id, movie_id) => {
+        return new Promise((resolve, reject) => {
+            UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
+                let check = false;
+
+                if(error)
+                    reject(error)
+
+                if(!watchedMovies) {
+                    let newEntry = new UserWatchedMovies()
+                        newEntry.initial(user_id)
+                        newEntry.save();
+
+                    resolve(false)
+                }
+                
+                else
+                {
+                    watchedMovies.movies_watched.forEach(movie => {
+                        if( movie.id == movie_id)
+                            check = true;
+                    });
+                    resolve(check)
+                }
+            })
+        })
+    },
+    checkIfUserFavouritedMovie: async(user_id, movie_id) => {
+        return new Promise((resolve, reject) => {
+            UserFavouritedMovies.findOne({ 'user_id': user_id }, (error, favouritedMovies) => {
+                let check = false;
+
+                if(error)
+                    reject(error)
+
+                if(!favouritedMovies) {
+                    let newEntry = new UserFavouritedMovies()
+                        newEntry.initial(user_id)
+                        newEntry.save();
+
+                    resolve(false)
+                }
+                
+                else
+                {
+                    favouritedMovies.movies_favourited.forEach(movie => {
+                        if( movie.id == movie_id)
+                            check = true;
+                    });
+                    resolve(check)
+                }
+            })
+        })
+    },
+    checkIfUserSavedMovie: async(user_id, movie_id) => {
+        return new Promise((resolve, reject) => {
+            UserSavedMovies.findOne({ 'user_id': user_id }, (error, savedMovies) => {
+                let check = false;
+
+                if(error)
+                    reject(error)
+
+                if(!savedMovies) {
+                    let newEntry = new UserSavedMovies()
+                        newEntry.initial(user_id)
+                        newEntry.save();
+
+                    resolve(false)
+                }
+                
+                else
+                {
+                    savedMovies.movies_saved.forEach(movie => {
+                        if( movie.id == movie_id)
+                            check = true;
+                    });
+                    resolve(check)
+                }
+            })
+        })
+    },
+    getWatchedMovies: async(user_id) => {
+        return new Promise((resolve, reject) => {
+            UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
+                if(error)
+                    reject(error)
+                if(watchedMovies)
+                    resolve(watchedMovies)
+            })
+        })
+    },
+    getFavouritedMovies: async(user_id) => {
+        return new Promise((resolve, reject) => {
+            UserFavouritedMovies.findOne({ 'user_id': user_id }, (error, favouritedMovies) => {
+                if(error)
+                    reject(error)
+                if(favouritedMovies)
+                    resolve(favouritedMovies)
+            })
+        })
+    },
+    getSavedMovies: async(user_id) => {
+        return new Promise((resolve, reject) => {
+            UserSavedMovies.findOne({ 'user_id': user_id }, (error, savedMovies) => {
+                if(error)
+                    reject(error)
+                if(savedMovies)
+                    resolve(savedMovies)
+            })
+        })
+    },
+    getTimeWatched: async(user_id, type) => {
+        return new Promise((resolve, reject) => {
+            if(type == "movies"){
+                UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
+                    if(error)
+                        reject(error)
+                    if(watchedMovies){
+                        let totalTime = getTimeWatched(watchedMovies.movie_watch_time)
+                        resolve(totalTime)
+                    }
+                        
+                })
+            }
+            else if (type == "shows"){
+    
+            }
+            
+        })
+        
     }
 }
 
-function saveProfileImages(user_id, new_image, old_image) {
+/*
+*   Local functions
+**************************/
+function saveProfileImages(user_id, new_image, old_image, type) {
     var dir = `public/style/img/profile_images/users/${user_id}`;
     
     if (!fs.existsSync(dir)){
         fs.mkdirSync(dir);
     }
     fs.unlink(`public/style/img/profile_images/users/${user_id}/${old_image}`, (err) => {
+        new_image.name = `${type}_${user_id}.${getFileExtention(new_image.name)}`;
         new_image.mv(`public/style/img/profile_images/users/${user_id}/${new_image.name}`, (error) => {
             if (error)
-                console.log("error", error)
+                reject("save image : error", error)
+            else
+                return new_image.name;
         });
     });
+}
+
+function getFileExtention(filename) {
+    var a = filename.split(".");
+    if( a.length === 1 || ( a[0] === "" && a.length === 2 ) ) {
+        return "";
+    }
+    return a.pop().toLowerCase();    // feel free to tack .toLowerCase() here if you want
+}
+
+function getTimeWatched(runtime) {
+    var days = Math.floor(runtime / 1440);
+    var hours = Math.floor((runtime - (days * 1440)) / 60);
+    var minutes = Math.round(runtime % 60);
+    var text = "hour"
+    var text2 = "day"
+
+    if (hours > 1 || hours == 0)
+        text = "hours"
+    if (days > 1 || days == 0)
+        text2 = "days"
+
+    return (`${days} ${text2} and ${hours} ${text} and ${minutes} minutes`);
 }

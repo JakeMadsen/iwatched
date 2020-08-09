@@ -1,7 +1,7 @@
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a href="/" class="navbar-brand">iWatched BETA 0.1</a>
+            <a href="/" class="navbar-brand">iWatched BETA</a>
 
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,13 +40,22 @@
                         <% } %>
                     
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="" id="navbarDropdownMenuLink" data-toggle="dropdown"
+                        <a class='nav-link dropdown-toggle <% if(page_file == "profile" ) { %> active <% } %> ' href="" id="navbarDropdownMenuLink" data-toggle="dropdown"
                             aria-haspopup="true" aria-expanded="false">
                             Profile
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="/<%= user._id %>">My Profile</a>
-                            <a class="dropdown-item" href="/<%= user._id %>/settings">Settings</a>
+
+                            <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+                                <a class="dropdown-item" href="/<%= user.profile.custom_url %>">My Profile</a>
+                                <a class="dropdown-item" href="/<%= user.profile.custom_url %>/settings">Settings</a>
+                            <% } else { %>
+                                <a class="dropdown-item" href="/<%= user._id %>">My Profile</a>
+                                <a class="dropdown-item" href="/<%= user._id %>/settings">Settings</a>
+                            <% } %>
+
+                            <a class="dropdown-item" href="/support">Support</a>
+
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item" href="/logout">Log out</a>
                         </div>

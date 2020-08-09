@@ -1,0 +1,20 @@
+<div id="urlHeader">
+    <h2>Support Dashboard</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <form action="/admin/support/cases/open/">
+                <button id="" type="" class="btn btn-block btn-outline-primary" > See open cases </button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <form action="/admin/support/cases/closed/">
+                <button id="" type="" class="btn btn-block btn-outline-primary" > See closed cases </button>
+            </form>
+        </div>
+    </div>
+
+    <% if(sub_page_file != null) { %> 
+        <%- include(`../partials/support/${sub_page_file}.ejs`) %>
+    <% } %>
+
+</div>

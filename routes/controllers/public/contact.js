@@ -1,4 +1,4 @@
-const Message = require('../../../db/models/message')
+const Message = require('../../../db/models/contactMessages')
 
 module.exports = (server) => {
     console.log('* Index Routes Loaded Into Server');

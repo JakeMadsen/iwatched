@@ -1,4 +1,5 @@
-const server = require('./config/serverSetup');
+const app = require('./config/serverSetup');
+const server = require('http').createServer(app)
 const serverSettings = JSON.parse(process.env['SERVER_SETTINGS']);
 const serverPort = process.env.PORT || serverSettings._serverPort;
 
@@ -14,3 +15,17 @@ server.listen(serverPort, () => {
                 `Server listening public    : \x1b[36m http://${serverSettings._ipPublic}:${serverPort} \x1b[0m`);
 
 });
+
+const socketIo = require('socket.io').listen(server);
+
+process.env['USERS_ONLINE'] = 0;
+
+/* Socket.IO user tracking */
+socketIo.on('connection', (socket) => {
+    process.env['USERS_ONLINE']++
+
+    socket.on('disconnect', () => {
+        process.env['USERS_ONLINE']--
+      });
+})
+

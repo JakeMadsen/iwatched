@@ -1,0 +1,53 @@
+<div id="listUrls" style="margin-top:20px;">
+    <h3>LIST OF OPEN CASES </h3>
+    <div class="row">
+        <div class="col-md-2">
+            <h4>CASE TITLE</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>FROM</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>LAST UPDATE</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>SEEN BY SUPPORT</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>SEEN BY USER</h4>
+        </div>
+        <div class="col-md-2">
+            <h4>OPTIONS</h4>
+        </div>
+        
+    </div>
+    <hr>
+    
+    <% page_data.open_cases.forEach(function(openCase){ %>
+        <div class="row">
+            <div class="col-md-2">
+                <p><strong><%= openCase.title %></strong></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= openCase.messages[0].username %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= openCase.last_updated %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= openCase.seen_by_support %></p>
+            </div>
+            <div class="col-md-2">
+                <p><%= openCase.seen_by_user %></p>
+            </div>
+            <div class="col-md-2">
+                <a class="btn btn-primary" href="/admin/support/case/respond/<%= openCase._id %>">SEE CASE</a>
+                <form method="POST" action="/admin/support/case/close/<%= openCase._id %>">
+                    <button class="btn btn-danger" type="submit">CLOSE</button>
+                </form>
+
+            </div>
+        </div>
+        <hr>
+    <% }); %>
+</div>

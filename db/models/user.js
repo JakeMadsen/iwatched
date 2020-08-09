@@ -1,46 +1,15 @@
-var mongoose = require('mongoose');
-var bcrypt = require('bcrypt-nodejs');
-var hat = require('hat');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt-nodejs');
+const hat = require('hat');
+const restrictedUrlService = require('../../routes/services/restrictedUrls');
+
 
 // define the schema for our user model
 var userSchema = mongoose.Schema({
     local: {
-        username:   { type: String },
-        email:      { type: String },
+        username:   { type: String, default: null, index: {unique : true} },
+        email:      { type: String, default: null, index: {unique : true}},
         password: String,
-    },
-    security : {
-        phone: { type: String, default: null },
-        security_question: {
-            question_id: { type: mongoose.Schema.Types.ObjectId, ref: 'SecurityQuestion' },
-            answer: { type: String, default: null}
-        }
-    },
-    permissions: {
-        level: {
-            admin: { type: Boolean, default: false },
-            moderator: { type: Boolean, default: false }
-        }, 
-        apiKey: {
-            key: { type: String, default: "" },
-            received_date: Date,
-            received_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-        },
-        myKey: { type: String, default: hat()}
-    },
-    social: {
-        facebook: {
-            id: String,
-            token: String,
-            name: String,
-            email: String
-        },
-        google: {
-            id: String,
-            token: String,
-            email: String,
-            name: String
-        }
     },
     profile: {
         registration_date:  { type: Date, default: Date.now },
@@ -51,20 +20,13 @@ var userSchema = mongoose.Schema({
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
-        custom_url:         { type: String, default: null },
-        total_watch_time:   { type: Number, default: 0 },
-        movie_watch_time:   { type: Number, default: 0 },
-        show_watch_time:    { type: Number, default: 0 }
+        custom_url:         { type: String, default: null, index: {unique : true} }
     },
-    movies: {
-        watched:    { type: Array, default: [] },
-        saved:      { type: Array, default: [] },
-        favourite:  { type: Array, default: [] }
-    },
-    series: {
-        watched:    { type: Array, default: [] },
-        saved:      { type: Array, default: [] },
-        favourite:  { type: Array, default: [] }
+    permissions: {
+        user_private_key: { type: String, default: hat()},
+        level: {
+            admin: { type: Boolean, default: false }
+        }
     }
 });
 
@@ -86,7 +48,9 @@ userSchema.methods.validPassword = function (password) {
 };
 
 // updates main user details
-userSchema.methods.updateSettings = function (body, profilePicture, profileBanner){
+userSchema.methods.updateSettings = async function (body, profilePicture, profileBanner){
+    let check = await checkIfCustomUrlAvailable(body.custom_url);
+
     if(this.local.username != body.username && body.username != "")
         this.local.username = body.username;
 
@@ -96,8 +60,11 @@ userSchema.methods.updateSettings = function (body, profilePicture, profileBanne
     if(body.password != "" && body.password != this.validPassword(body.password))
         this.local.password = this.generateHash(body.password);
 
-    if(this.profile.custom_url != body.custom_url && body.custom_url != "")
-        this.profile.custom_url = body.custom_url;
+    if(check == true){
+        if(this.profile.custom_url != body.custom_url && body.custom_url != ""){
+            this.profile.custom_url = body.custom_url;
+        }
+    }
 
     if(this.profile.birthday != body.birthday && body.birthday != "")
         this.profile.birthday = body.birthday;
@@ -113,26 +80,19 @@ userSchema.methods.updateSettings = function (body, profilePicture, profileBanne
 
 };
 
-userSchema.methods.addMovieRuntime = function (time){
-    let totalTime = +this.profile.total_watch_time + +time;
-    let totalMovieTime = +this.profile.movie_watch_time + +time;
-    this.profile.total_watch_time = totalTime;
-    this.profile.movie_watch_time = totalMovieTime;
-}
-
-userSchema.methods.addMovieWatched = function (id){
-    let movie = {
-        movie_id: id,
-        times_watched: 1
-    }
-
-    this.movies.watched.push(movie);
-}
-
-userSchema.methods.checkMovieWatched = function (id){
-    
-}
-
-
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema, 'users');
+
+async function checkIfCustomUrlAvailable(new_url){
+    return new Promise ((resolve, reject) =>{
+        restrictedUrlService
+        .checkUrl(new_url)
+        .then(check => {
+            if(check == null)
+                resolve(true)
+            else
+                reject(false)
+        })
+    })
+    
+}

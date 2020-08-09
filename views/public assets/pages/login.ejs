@@ -1,69 +1,111 @@
-<div class="container darken">
+<div class="container">
     <div class="row" style="padding: 20px 0px 20px 0px;">
         <div class="col-md-6">
-            <div class="card">
-                <article class="card-body">
-                    <h4 class="card-title mb-4 mt-1">Sign in</h4>
-                    <!-- <p>
-                        <a href="" class="btn btn-block btn-outline-info">
-                            <i class="fab fa-twitter"></i>   Login via Twitter</a>
-                        <a href="" class="btn btn-block btn-outline-primary">
-                            <i class="fab fa-facebook-f"></i>   Login via Facebook</a>
-                        <a href="" class="btn btn-block btn-outline-danger">
-                            <i class="fab fa-google"></i>   Login via Gmail</a>
-                    </p>
-                    <hr> -->
-
-                    <% if (page_data.message_login.length != 0) { %>
-                    <div class="alert alert-danger">
-                        <%= page_data.message_login %>
-                    </div>
+            <h4>Sign in</h4>
+            <form method="POST" action="/login">
+                <div class="form-group">
+                    <% if (Object.keys(page_data.login_error).length != 0) { %>
+                        <input id="login_email" name="email" class="form-control" placeholder="Email or Username" type="text" autocomplete="email" value="<%= page_data.login_error.flash[0].login %>">
+                    <% } else { %>
+                        <input id="login_email" name="email" class="form-control" placeholder="Email or Username" type="text" autocomplete="email">
                     <% } %>
-                    <form method="POST" action="/login">
-                        <div class="form-group">
-                            <input name="email" class="form-control" placeholder="Email or Username" type="text">
-                        </div>
-                        <div class="form-group">
-                            <input name="password" class="form-control" placeholder="Password" type="password">
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-block"> Login </button>
-                        </div>
-                        <a class="small" href="#">Forgot password?</a>
-                    </form>
-                </article>
-            </div>
+                </div>
+                <div class="form-group">
+                    <input id="login_password" name="password" class="form-control" placeholder="Password" type="password" autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                    <button id="login_submit" type="submit" class="btn btn-block btn-outline-primary" disabled> Login </button>
+                </div>
+                <% if (Object.keys(page_data.login_error).length != 0) { %>
+                    <div class="alert alert-danger">
+                        <h3  style="color: #101010; text-align: center;">
+                            <%= page_data.login_error.flash[0].error %>
+                        </h3>
+                    </div>
+                <% } %>
+
+                <a class="small float-right" href="#">Forgot password?</a>
+            </form>
+           
         </div>
 
+        <!-- <div class="col-md-6">
+            <h4>Sign in with social media</h4>
+            <form>
+                <div class="form-group">
+                    <a href="" class="btn btn-block btn-outline-info">
+                    <i class="fab fa-twitter"></i>   Login via Twitter</a>
+                </div>
+                <div class="form-group">
+                    <a href="" class="btn btn-block btn-outline-primary">
+                    <i class="fab fa-facebook-f"></i>   Login via Facebook</a>
+                </div>
+                <div class="form-group">
+                    <a href="" class="btn btn-block btn-outline-danger">
+                    <i class="fab fa-google"></i>   Login via Gmail</a>
+                </div>
+            </form>
+        </div> -->
+
         <div class="col-md-6">
-            <div class="card">
-                <article class="card-body">
-                    <h4 class="card-title mb-4 mt-1">Sign Up</h4>
-                    <!-- show any messages that come back with authentication -->
-                    <% if (page_data.message_signup.length != 0) { %>
-                    <div class="alert alert-danger">
-                        <%= page_data.message_signup %>
-                    </div>
-                    <% } %>
-                    <form method="POST" action="/signup">
-                        <div class="form-group">
-                            <input required name="username" class="form-control" placeholder="User Name" type="text">
-                        </div>
-                        <div class="form-group">
-                            <input required name="email" class="form-control" placeholder="Email" type="email">
-                        </div>
-                        <div class="form-group">
-                            <input required name="password" class="form-control" placeholder="Password" type="password">
-                        </div>
-                        <div class="form-group">
-                            <input required name="confirm" class="form-control" placeholder="Confirm Password" type="password">
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
-                        </div>
-                    </form>
-                </article>
+            <h4>Sign Up</h4>
+            <!-- show any messages that come back with authentication -->
+            <% if (Object.keys(page_data.signup_error).length != 0) { %>
+            <div class="alert alert-danger">
+                <%= page_data.signup_error %>
             </div>
+            <% } %>
+            <form method="POST" action="/signup">
+                <div class="form-group">
+                    <input  required 
+                            id="new_username"
+                            name="username" 
+                            class="form-control" 
+                            placeholder="Username" 
+                            type="text">
+                </div>
+                <div class="form-group">
+                    <input  required 
+                            id="new_email" 
+                            name="email" 
+                            class="form-control" 
+                            placeholder="Email" 
+                            type="email" 
+                            autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <input  required 
+                            id="new_password" 
+                            name="password"     
+                            class="form-control" 
+                            placeholder="Password" 
+                            type="password" 
+                            autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <input  required 
+                            id="new_password_confirm" 
+                            name="confirm" 
+                            class="form-control" 
+                            placeholder="Confirm Password" 
+                            type="password" 
+                            autocomplete="new-password">
+                    <small id="newPassWordHelp" class="form-text" style="color: red;">Your passwords needs to match!</small>
+                </div>
+                <div class="form-group">
+                    <div class="progress">
+                        <div id="progressBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small id="passWordStrength" class="form-text" style="color: red;">You're password is too weak</small>
+                </div>
+                <div class="form-check">
+                    <input required type="checkbox" class="form-check-input" style="margin-left: 0px;" id="exampleCheck1">
+                    <label class="form-check-label"  for="exampleCheck1">Accept our <a style="color: lightblue" href="/policy/terms-of-service" target="_blank">Terms of Service</a></label>
+                </div>
+                <div class="form-group">
+                    <button id="newUser" type="submit" class="btn btn-block btn-outline-primary" disabled>Sign Up</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -3,10 +3,10 @@
 #
 #
 //=================== Dependencies ===================//
-/* Requires all needed modules for the server. */
+/* Requires all needed modules for the app. */
 const   express         = require('express'),
         path            = require('path'),
-        server          = express(),
+        app             = express(),
         bodyParser      = require("body-parser"),
         createError     = require('http-errors'),
         fileUpload      = require('express-fileupload')
@@ -19,7 +19,10 @@ const   passport        = require('passport'),
         cookieParser    = require('cookie-parser'),
         flash           = require('connect-flash'),
         session         = require('express-session'),
-        mongoose        = require('mongoose');
+        mongoose        = require('mongoose'),
+        mongoStore      = require('connect-mongo')(session);
+
+
 
 /* Server settings */
 var     serverSettings  = require('./serverSettings');
@@ -28,24 +31,25 @@ var     serverSettings  = require('./serverSettings');
 
 //=================== Configuration ===================//
 /* Server development modules */
-// server.use(logger('dev'));
+// app.use(logger('dev'));
 
 process.env['SERVER_DEV'] = true;
 
 
 /* Server view engine setup */
-server.set('view engine','ejs');
-server.set('views', path.join(__dirname, '../../../views'));
-server.use(express.static(__dirname + '../../../public'))
-server.use('/static', express.static('public'));
-server.use(express.static(path.join(__dirname + 'public')));
+app.set('view engine','ejs');
+app.set('views', path.join(__dirname, '../../../views'));
+app.use(express.static(__dirname + '../../../public'))
+app.use('/static', express.static('public'));
+app.use(express.static(path.join(__dirname + 'public')));
+
 
 
 /* Server module setup*/
-server.use(fileUpload());
-server.use(bodyParser.urlencoded({ extended: true }));
-server.use(bodyParser.json());
-server.use(cookieParser())
+app.use(fileUpload());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser())
 
 
 /* Server Database Connection  */
@@ -57,24 +61,35 @@ mongoose
 
 /* Server User Passport Setup  */
 require('../../../config/passport/passport')(passport)
-server.use(session({ 
+app.use(session({ 
     secret: 'thisIsMySecretCat',
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: false,
+    store: new mongoStore ({ 
+        mongooseConnection: mongoose.connection,
+        collection: 'user_sessions',
+        autoRemove: 'native',
+        ttl: 7 * 24 * 60 * 60,
+        stringify: true,
+
+    })
 }));
-server.use(passport.initialize());
-server.use(passport.session()); // persistent login sessions
-server.use(flash());
+app.use(passport.initialize());
+app.use(passport.session()); // persistent login sessions
+app.use(flash());
+
+
 
 //=================== Routes ===================//
 /* Requires public and private WEB routes. */
-require('../../../routes/controllers/index')(server)
+require('../../../routes/controllers/index')(app)
 
 /* Server 404/ERROR handler*/
-server.use(function(req, res, next) {
+app.use(function(req, res, next) {
     next(createError(404));
 });
-server.use(async function(err, req, res, next) {
+app.use(async function(err, req, res, next) {
+    
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -93,4 +108,4 @@ server.use(async function(err, req, res, next) {
     });
 });
 
-module.exports = server
+module.exports = app

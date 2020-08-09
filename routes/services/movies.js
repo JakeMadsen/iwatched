@@ -26,5 +26,17 @@ module.exports = {
             })
         })
     },
+    getMoveRuntimeIfNull: (id) => {
+        return new Promise((resolve, reject) => {
+            axios.get(`${url}/movie/${id}?api_key=${key}&language=en-US&include_video=true`)
+            .then(response => {
+
+                resolve(response.data.runtime)
+            })
+            .catch(error => {
+                reject(error)
+            })
+        })
+    }
     
 }

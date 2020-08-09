@@ -1,125 +1,47 @@
-<div id="profile_header" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>'); background-repeat: no-repeat; background-size: cover ">
-    <div class="container">
-        <div style="padding: 20px 0px 20px 0px;">
-            <img class="img-fluid rounded" style="height: 160px" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>"
-                alt="">
-        </div>
+
+
+<div class="row">
+    <div class="col-md-6">
+        <h3>
+            <%= page_data.user.local.username %>
+        </h3>
+
+        <p>
+            <strong>Total watch time:</strong>
+            <br>
+            <strong>Total movie time:</strong> <%= page_data.movie_watch_time %>
+            <br>
+            <strong>Total show time:</strong>
+            <br>
+        </p>
     </div>
+
+    <div class="col-md-6">
+        <p>
+            <p><%= page_data.user.profile.description %></p>
+        </p>
+    </div>
+    
 </div>
+<div class="row">
 
-
-<div id="profile_section">
-    <div class="container">
-        <div class="row">
-            <!-- USER INFO -->
-            <div class="col-md-4">
-                <h3>
-                    <%= page_data.user.local.username %>
-                </h3>
-                <p>
-                    <strong>Total watch time:</strong>
-                    <%= page_data.total_watch_time %>
-                    <br>
-                    <strong>Total movie time:</strong>
-                    <%= page_data.movie_watch_time %>
-                    <br>
-                    <strong>Total show time:</strong>
-                    will be added later
-                    <br>
-                </p>
+    <div id="profile_lists" class="container">
+        <div id="profile_movie_list">
+            <div name="allMovies" >
+                <h3 style="text-align: left;">Latest movies added</h3>
             </div>
-
-            <!-- TOP 10 MOVIES -->
-            <div class="col-md-4">
-                <div id="topMoviesHeader">
-                    <h3 class="text-center">
-                        TOP 10 MOVIES
-                    </h3>
-                    <a class="text-center" href="#allMovies">
-                        <p style="color: blue">All movies </p>
-                    </a>
-                    <p class="text-center">Will be added later</p>
-                </div>
-                <div id="topMovieslist">
-
-                </div>
-            </div>
-
-            <!-- TOP 10 SHOWS -->
-            <div class="col-md-4">
-                <div id="topShowsHeader">
-                    <h3 class="text-center">
-                        TOP 10 SHOWS
-                    </h3>
-                    <a class="text-center" href="#allShows">
-                        <p style="color: blue">All shows</p>
-                    </a>
-                    <p class="text-center">Will be added later</p>
-                </div>
-                <div id="topMovieslist">
-
-                </div>
+    
+            <div id="movies_holder" class="row">
+    
             </div>
         </div>
     </div>
+        
+    <script>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            profileMoviesLatest('<%= page_data.user._id%>')
+        });
+    </script>
+
+    <% include movie_template.ejs %>
 </div>
-
-<div id="profile_lists" class="container">
-    <div id="profile_movie_list">
-        <a name="allMovies">
-            <h3>All movies</h3>
-            <p>Amount of movies:
-                <%= page_data.user.movies.watched.length %>
-            </p>
-        </a>
-        <div id="movies_holder" class="row">
-
-        </div>
-        <div id="view_more" style="display: none;">
-            <div class="page-load-status">
-                <div class="loader-ellips infinite-scroll-request">
-                    <span class="loader-ellips__dot"></span>
-                    <span class="loader-ellips__dot"></span>
-                    <span class="loader-ellips__dot"></span>
-                    <span class="loader-ellips__dot"></span>
-                </div>
-                <p class="infinite-scroll-last">End of content</p>
-                <p class="infinite-scroll-error">No more pages to load</p>
-            </div>
-
-            <p><button type="button" class="btn btn-primary  view-more-button">View more</button></p>
-        </div>
-        <!-- List all movies -->
-    </div>
-
-    <div id="profile_show_list">
-        <a name="allShows">
-            <h3>All shows</h3>
-            <p>Will be added later</p>
-        </a>
-        <!-- List all shows -->
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function(event) {
-    profileMovies('<%= page_data.user._id%>')
-  });
-</script>
-
-<!-- movie template HTML -->
-<script type="text/html" id="movie-template">
-
-    <div class="col-md-3" style="margin-bottom:25px;">
-        <div class="image-box">
-            <a name="{{id}}" href="/movies/{{tmd_id}}">
-                <img    class="img-fluid image-box-hover" 
-                        style='' 
-                        src="https://image.tmdb.org/t/p/w500/{{backdrop_path}}" 
-                        alt="">
-                
-            </a>
-            <p>{{title}}</p>
-        </div>
-    </div>
-</script>

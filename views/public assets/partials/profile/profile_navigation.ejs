@@ -1,0 +1,66 @@
+<nav class="navbar navbar-expand-lg navbar-dark" style="margin-bottom: 20px;">
+    <div class="container">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarInProfile"
+            aria-controls="navbarInProfile" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarInProfile">
+            <ul class="navbar-nav mr-auto">
+                <li class='nav-item'>
+                    
+                    <% if(page_data.user.profile.custom_url != "" && page_data.user.profile.custom_url != null) { %>
+                        <a href="/<%= page_data.user.profile.custom_url %>" class='nav-link'>Profile</a>
+                    <% } else { %>
+                        <a href="/<%= page_data.user._id%>" class='nav-link'>Profile</a>
+                    <% } %>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class='nav-link dropdown-toggle' href="" id="navbarDropdownMenuLink" data-toggle="dropdown"aria-haspopup="true" aria-expanded="false">
+                        Movies
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+
+                        <% if(page_data.user.profile.custom_url != "" && page_data.user.profile.custom_url != null) { %>
+                            <a class="dropdown-item" href="/<%= page_data.user.profile.custom_url %>/watched/movies">Watched movies</a>
+                            <a class="dropdown-item" href="/<%= page_data.user.profile.custom_url %>/favourite/movies">Favourite movies</a>
+                            <a class="dropdown-item" href="/<%= page_data.user.profile.custom_url %>/saved/movies">Saved movies</a>
+                        <% } else { %>
+                            <a class="dropdown-item" href="/<%= page_data.user._id %>/watched/movies">Watched movies</a>
+                            <a class="dropdown-item" href="/<%= page_data.user._id %>/favourite/movies">Favourite movies</a>
+                            <a class="dropdown-item" href="/<%= page_data.user._id %>/saved/movies">Saved movies</a>
+                        <% } %>
+
+                        
+                    </div>
+                </li>
+
+                <!-- <li class="nav-item dropdown ">
+                    <a class='nav-link dropdown-toggle' href="" id="navbarDropdownMenuLink" data-toggle="dropdown"aria-haspopup="true" aria-expanded="false">
+                        Series
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="#">Watched series</a>
+                        <a class="dropdown-item" href="#">Favourite series</a>
+                        <a class="dropdown-item" href="#">Saved series</a>
+                    </div>
+                </li>
+
+                <li class='nav-item'>
+                    <a href="#" class='nav-link'>Reviews</a>
+                </li>
+
+                <li class='nav-item'>
+                    <a href="#" class='nav-link'>Reccomended</a>
+                </li>
+
+                <li class='nav-item'>
+                    <a href="#" class='nav-link'>Friends</a>
+                </li> -->
+
+            </ul>
+        </div>
+    </div>
+</nav>

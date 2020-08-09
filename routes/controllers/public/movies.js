@@ -1,6 +1,6 @@
 // const tmdService = require('../../services/themoviedatabase')
 const MovieDb = require('moviedb-promise');
-const tmdService = new MovieDb('ab4e974d12c288535f869686bd72e1da')
+const tmdService = new MovieDb('ab4e974d12c288535f869686bd72e1da');
 
 module.exports = (server) => {
     console.log('* Movie Routes Loaded Into Server');
@@ -23,12 +23,7 @@ module.exports = (server) => {
         let videos = await tmdService.movieVideos(req.params.id)
         let similar = await tmdService.movieSimilar(req.params.id)
         let runtime = getRunTime(movie.runtime);
-        let userWatched = false;
-        let userSaved = false;
 
-        if(typeof req.user != 'undefined')
-        userWatched = checkIfWatched(req.params.id, req.user.movies.watched)
-    
         res.render('public assets/template.ejs', {
             page_title: `iWatched - ${movie.title}`,
             page_file: "movies",
@@ -39,9 +34,7 @@ module.exports = (server) => {
                 runtime:  runtime,
                 similar: similar.results
             },
-            user: req.user,
-            user_watched: userWatched,
-            user_saved: userSaved
+            user: req.user
         });
     });
 

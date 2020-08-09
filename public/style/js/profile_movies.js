@@ -1,7 +1,9 @@
-function profileMovies(user_id) {
+function profileWatchedMovies(user_id) {
     $('#view_more').show()
 
-    var link = `/api/v1/profile/movies/watched/${user_id}/`
+    var link = `/api/v1/profile/movies/watched/${user_id}/`;
+    var host = location.origin;
+    var posterlink = `/api/v1/movies/get_poster/`;
 
     var $container = $('#movies_holder').infiniteScroll({
         path: function () {
@@ -44,15 +46,15 @@ function profileMovies(user_id) {
     //------------------//
 
     var itemTemplateSrc = $('#movie-template').html();
-
+    
     function getItemHTML(movie) {
+        getPoster(movie.tmd_id)
+
         return microTemplate(itemTemplateSrc, movie);
     }
 
     // micro templating, sort-of
     function microTemplate(src, data) {
-        if (data.backdrop_path == null || data.backdrop_path == "")
-            return null
         // replace {{tags}} in source
         return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (match, key) {
             // walk through objects to get value
@@ -60,7 +62,299 @@ function profileMovies(user_id) {
             key.split('.').forEach(function (part) {
                 value = value[part];
             });
+
             return value;
         });
     }
+
+    //----------------------//
+    //Get poster links
+
+
+    function getPoster(movie_id) {
+        let url = host + posterlink + movie_id;
+        let tmdImageLink= "https://image.tmdb.org/t/p/w500/";
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            $(`[name='movie_id_${movie_id}']`).attr("src", tmdImageLink+data.poster_path);
+        })
+        .catch(error => {
+            console.log(error)
+        })
+
+    }
+
+}
+
+function profileFavouriteMovies(user_id){
+    $('#view_more').show()
+
+    var link = `/api/v1/profile/movies/favourited/${user_id}/`;
+    var host = location.origin;
+    var posterlink = `/api/v1/movies/get_poster/`;
+
+    var $container = $('#movies_holder').infiniteScroll({
+        path: function () {
+            return link + this.pageIndex;
+        },
+        // load response as flat text
+        responseType: 'text',
+        loadOnScroll: false,
+        status: '.page-load-status',
+        history: true,
+    });
+
+    var $viewMoreButton = $('.view-more-button');
+    $viewMoreButton.on('click', function () {
+        // load next page
+        $container.infiniteScroll('loadNextPage');
+        // enable loading on scroll
+        $container.infiniteScroll('option', {
+            loadOnScroll: true,
+        });
+        // hide button
+        $viewMoreButton.hide();
+    });
+
+
+    $container.on('load.infiniteScroll', function (event, response) {
+        // parse response into JSON data
+        var data = JSON.parse(response);
+        // compile data into HTML
+        var itemsHTML = data.results.map(getItemHTML).join('');
+        // convert HTML string into elements
+        var $items = $(itemsHTML);
+        // append item elements
+        $container.infiniteScroll('appendItems', $items);
+    });
+
+    // load initial page
+    $container.infiniteScroll('loadNextPage');
+
+    //------------------//
+
+    var itemTemplateSrc = $('#movie-template').html();
+    
+    function getItemHTML(movie) {
+        getPoster(movie.tmd_id)
+
+        return microTemplate(itemTemplateSrc, movie);
+    }
+
+    // micro templating, sort-of
+    function microTemplate(src, data) {
+        // replace {{tags}} in source
+        return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (match, key) {
+            // walk through objects to get value
+            var value = data;
+            key.split('.').forEach(function (part) {
+                value = value[part];
+            });
+
+            return value;
+        });
+    }
+
+    //----------------------//
+    //Get poster links
+
+
+    function getPoster(movie_id) {
+        let url = host + posterlink + movie_id;
+        let tmdImageLink= "https://image.tmdb.org/t/p/w500/";
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            $(`[name='movie_id_${movie_id}']`).attr("src", tmdImageLink+data.poster_path);
+        })
+        .catch(error => {
+            console.log(error)
+        })
+
+    }
+   
+}
+
+function profileSavedMovies(user_id){
+    $('#view_more').show()
+
+    var link = `/api/v1/profile/movies/saved/${user_id}/`;
+    var host = location.origin;
+    var posterlink = `/api/v1/movies/get_poster/`;
+
+    var $container = $('#movies_holder').infiniteScroll({
+        path: function () {
+            return link + this.pageIndex;
+        },
+        // load response as flat text
+        responseType: 'text',
+        loadOnScroll: false,
+        status: '.page-load-status',
+        history: true,
+    });
+
+    var $viewMoreButton = $('.view-more-button');
+    $viewMoreButton.on('click', function () {
+        // load next page
+        $container.infiniteScroll('loadNextPage');
+        // enable loading on scroll
+        $container.infiniteScroll('option', {
+            loadOnScroll: true,
+        });
+        // hide button
+        $viewMoreButton.hide();
+    });
+
+
+    $container.on('load.infiniteScroll', function (event, response) {
+        // parse response into JSON data
+        var data = JSON.parse(response);
+        // compile data into HTML
+        var itemsHTML = data.results.map(getItemHTML).join('');
+        // convert HTML string into elements
+        var $items = $(itemsHTML);
+        // append item elements
+        $container.infiniteScroll('appendItems', $items);
+    });
+
+    // load initial page
+    $container.infiniteScroll('loadNextPage');
+
+    //------------------//
+
+    var itemTemplateSrc = $('#movie-template').html();
+    
+    function getItemHTML(movie) {
+        getPoster(movie.tmd_id)
+
+        return microTemplate(itemTemplateSrc, movie);
+    }
+
+    // micro templating, sort-of
+    function microTemplate(src, data) {
+        // replace {{tags}} in source
+        return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (match, key) {
+            // walk through objects to get value
+            var value = data;
+            key.split('.').forEach(function (part) {
+                value = value[part];
+            });
+
+            return value;
+        });
+    }
+
+    //----------------------//
+    //Get poster links
+
+
+    function getPoster(movie_id) {
+        let url = host + posterlink + movie_id;
+        let tmdImageLink= "https://image.tmdb.org/t/p/w500/";
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            $(`[name='movie_id_${movie_id}']`).attr("src", tmdImageLink+data.poster_path);
+        })
+        .catch(error => {
+            console.log(error)
+        })
+
+    }
+   
+}
+
+function profileMoviesLatest(user_id) {
+    $('#view_more').show()
+
+    var link = `/api/v1/profile/movies/latest/${user_id}`;
+    var host = location.origin;
+    var posterlink = `/api/v1/movies/get_poster/`;
+
+    var $container = $('#movies_holder').infiniteScroll({
+        path: function () {
+            return link;
+        },
+        // load response as flat text
+        responseType: 'text',
+        loadOnScroll: false,
+        status: '.page-load-status',
+        history: true,
+    });
+
+    var $viewMoreButton = $('.view-more-button');
+    $viewMoreButton.on('click', function () {
+        // load next page
+        $container.infiniteScroll('loadNextPage');
+        // enable loading on scroll
+        $container.infiniteScroll('option', {
+            loadOnScroll: true,
+        });
+        // hide button
+        $viewMoreButton.hide();
+    });
+
+
+    $container.on('load.infiniteScroll', function (event, response) {
+        // parse response into JSON data
+        var data = JSON.parse(response);
+        // compile data into HTML
+        var itemsHTML = data.results.map(getItemHTML).join('');
+        // convert HTML string into elements
+        var $items = $(itemsHTML);
+        // append item elements
+        $container.infiniteScroll('appendItems', $items);
+    });
+
+    // load initial page
+    $container.infiniteScroll('loadNextPage');
+
+    //------------------//
+
+    var itemTemplateSrc = $('#movie-template').html();
+    
+    function getItemHTML(movie) {
+        getPoster(movie.tmd_id)
+
+        return microTemplate(itemTemplateSrc, movie);
+    }
+
+    // micro templating, sort-of
+    function microTemplate(src, data) {
+        // replace {{tags}} in source
+        return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (match, key) {
+            // walk through objects to get value
+            var value = data;
+            key.split('.').forEach(function (part) {
+                value = value[part];
+            });
+
+            return value;
+        });
+    }
+
+    //----------------------//
+    //Get poster links
+
+
+    function getPoster(movie_id) {
+        let url = host + posterlink + movie_id;
+        let tmdImageLink= "https://image.tmdb.org/t/p/w500/";
+
+        fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            $(`[name='movie_id_${movie_id}']`).attr("src", tmdImageLink+data.poster_path);
+        })
+        .catch(error => {
+            console.log(error)
+        })
+
+    }
+
+   
 }
