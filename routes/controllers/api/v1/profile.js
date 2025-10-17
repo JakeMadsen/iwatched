@@ -27,120 +27,135 @@ module.exports = (server) => {
     **************************************/
 
     server.post('/api/v1/profile/movies/watched/add/', apiIsCorrectUser, async (req, res) => {
-        let movieInfo = await tmdService.movieInfo(req.body.movie_id)
+        try {
+            let movieInfo = await tmdService.movieInfo(req.body.movie_id)
 
-        Movie
-        .findOne({ 'tmd_id': movieInfo.id })
-        .exec((error, found) => {
-            if (error)
-                res.send({ status: 400, message: "Something went wrong when adding movie to movie db" })
-            if (!found) {
-                let newEntry = new Movie()
-                newEntry.initial(movieInfo)
-                newEntry.save()
-            }
+            Movie
+            .findOne({ 'tmd_id': movieInfo.id })
+            .exec((error, found) => {
+                if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to movie db" })
+                if (!found) {
+                    let newEntry = new Movie()
+                    newEntry.initial(movieInfo)
+                    newEntry.save()
+                }
 
-            UserWatchedMovies.findOne({ 'user_id': req.body.user_id }, (error, watchedMovies) => {
-                if (error)
-                    res.send({ status: 400, message: "Something went wrong when adding movie to user watched" });
-                
-                else {
+                UserWatchedMovies.findOne({ 'user_id': req.body.user_id }, (error, watchedMovies) => {
+                    if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to user watched" });
+                    if (!watchedMovies) return res.status(404).send({ status: 404, message: "Watched list not found" });
+
                     watchedMovies.addMovieWatched(req.body.movie_id)
                     watchedMovies.addMovieRuntime(movieInfo.runtime)
                     watchedMovies.save()
-                }
+                    if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+                })
             })
-        })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
     server.post('/api/v1/profile/movies/watched/remove/', apiIsCorrectUser, async (req, res) => {
-        let runtime = await movieService.getMoveRuntimeIfNull(req.body.movie_id)
-        UserWatchedMovies.findOne({ 'user_id': req.body.user_id }, (error, watchedMovies) => {
-            if(error)
-                res.send(400)
-            
-            else {
+        try {
+            let runtime = await movieService.getMoveRuntimeIfNull(req.body.movie_id)
+            UserWatchedMovies.findOne({ 'user_id': req.body.user_id }, (error, watchedMovies) => {
+                if(error) return res.status(400).send({ status: 400 })
+                if(!watchedMovies) return res.status(404).send({ status: 404, message: 'Watched list not found' })
+
                 watchedMovies.removeMovieWatched(req.body.movie_id)
                 watchedMovies.removeMovieRuntime(runtime)
                 watchedMovies.save()
-            }
-        })
+                if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+            })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
     server.post('/api/v1/profile/movies/favourited/add/', apiIsCorrectUser, async (req, res) => {
-        let movieInfo = await tmdService.movieInfo(req.body.movie_id)
+        try {
+            let movieInfo = await tmdService.movieInfo(req.body.movie_id)
 
-        Movie
-        .findOne({ 'tmd_id': movieInfo.id })
-        .exec((error, found) => {
-            if (error)
-                res.send({ status: 400, message: "Something went wrong when adding movie to movie db" });
-            if (!found) {
-                let newEntry = new Movie();
-                newEntry.initial(movieInfo);
-                newEntry.save();
-            }
-            else
-            UserFavouritedMovies.findOne({ 'user_id': req.body.user_id }, (error, favouritedMovies) => {
-                if (error)
-                    res.send({ status: 400, message: "Something went wrong when adding movie to user favourited" });
+            Movie
+            .findOne({ 'tmd_id': movieInfo.id })
+            .exec((error, found) => {
+                if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to movie db" });
+                if (!found) {
+                    let newEntry = new Movie();
+                    newEntry.initial(movieInfo);
+                    newEntry.save();
+                }
 
-                else {
+                UserFavouritedMovies.findOne({ 'user_id': req.body.user_id }, (error, favouritedMovies) => {
+                    if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to user favourited" });
+                    if (!favouritedMovies) return res.status(404).send({ status: 404, message: 'Favourited list not found' });
+
                     favouritedMovies.addFavouritedMovie(req.body.movie_id);
                     favouritedMovies.save();
-                }
+                    if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+                })
             })
-        })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
     server.post('/api/v1/profile/movies/favourited/remove/', apiIsCorrectUser, async (req, res) => {
-        UserFavouritedMovies.findOne({ 'user_id': req.body.user_id }, (error, favouritedMovies) => {
-            if(error)
-                res.send(400, {error: "Couldnt remove favourited movie"});
-            
-            else {
+        try {
+            UserFavouritedMovies.findOne({ 'user_id': req.body.user_id }, (error, favouritedMovies) => {
+                if(error) return res.status(400).send({ status: 400, error: "Couldnt remove favourited movie"});
+                if(!favouritedMovies) return res.status(404).send({ status: 404, message: 'Favourited list not found' });
+
                 favouritedMovies.removeFavouritedMovie(req.body.movie_id);
                 favouritedMovies.save();
-            }
-        })
+                if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+            })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
     server.post('/api/v1/profile/movies/saved/add/', apiIsCorrectUser, async (req, res) => {
-        let movieInfo = await tmdService.movieInfo(req.body.movie_id)
+        try {
+            let movieInfo = await tmdService.movieInfo(req.body.movie_id)
 
-        Movie
-        .findOne({ 'tmd_id': movieInfo.id })
-        .exec((error, found) => {
-            if (error)
-                res.send({ status: 400, message: "Something went wrong when adding movie to movie db" });
-            if (!found) {
-                let newEntry = new Movie();
-                newEntry.initial(movieInfo);
-                newEntry.save();
-            }
-            else
-            UserSavedMovies.findOne({ 'user_id': req.body.user_id }, (error, savedMovies) => {
-                if (error)
-                    res.send({ status: 400, message: "Something went wrong when adding movie to user favourited" });
-                
-                else {
+            Movie
+            .findOne({ 'tmd_id': movieInfo.id })
+            .exec((error, found) => {
+                if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to movie db" });
+                if (!found) {
+                    let newEntry = new Movie();
+                    newEntry.initial(movieInfo);
+                    newEntry.save();
+                }
+
+                UserSavedMovies.findOne({ 'user_id': req.body.user_id }, (error, savedMovies) => {
+                    if (error) return res.status(400).send({ status: 400, message: "Something went wrong when adding movie to user favourited" });
+                    if (!savedMovies) return res.status(404).send({ status: 404, message: 'Saved list not found' });
+
                     savedMovies.addSavedMovie(req.body.movie_id);
                     savedMovies.save();
-                }
+                    if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+                })
             })
-        })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
     server.post('/api/v1/profile/movies/saved/remove/', apiIsCorrectUser, async (req, res) => {
-        UserSavedMovies.findOne({ 'user_id': req.body.user_id }, (error, savedMovies) => {
-            if(error)
-                res.send(400)
-            
-            else {
+        try {
+            UserSavedMovies.findOne({ 'user_id': req.body.user_id }, (error, savedMovies) => {
+                if(error) return res.status(400).send({ status: 400 })
+                if(!savedMovies) return res.status(404).send({ status: 404, message: 'Saved list not found' })
+
                 savedMovies.removeSavedMovie(req.body.movie_id)
                 savedMovies.save()
-            }
-        })
+                if (!res.headersSent) return res.status(200).send({ status: 'ok' })
+            })
+        } catch (e) {
+            if (!res.headersSent) return res.status(500).send({ status: 500, message: 'Internal error' })
+        }
     });
 
 

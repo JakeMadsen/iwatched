@@ -1,0 +1,159 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-6">
+      <h3>Badges</h3>
+      <table class="table table-dark table-striped">
+        <thead>
+          <tr>
+            <th>Icon</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Levels</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% (page_data.badges || []).forEach(function(b){ %>
+            <tr>
+              <td>
+                <% if (b.icon) { %>
+                  <img src="/static/style/img/badges/<%= b.icon %>" style="width:32px;height:32px;object-fit:contain;" />
+                <% } else { %>
+                  <span style="opacity:.6;">No icon</span>
+                <% } %>
+              </td>
+              <td><%= b.title %></td>
+              <td style="max-width:360px; white-space:normal;"><%= b.description %></td>
+              <td>
+                <% if ((b.levels||[]).length) { %>
+                  <%= (b.levels||[]).map(function(l){ return (l.name||l); }).join(', ') %>
+                <% } else { %>
+                  <span class="text-muted">Single</span>
+                <% } %>
+                <div style="opacity:.7;font-size:12px;">Kind: <%= b.kind %></div>
+              </td>
+              <td>
+                <a class="btn btn-sm btn-outline-info" href="/admin/badges/<%= b._id %>">Edit</a>
+                <form method="POST" action="/admin/badges/<%= b._id %>/delete" onsubmit="return confirm('Delete this badge?');" style="display:inline-block;">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h3>Create Badge</h3>
+      <form method="POST" action="/admin/badges" enctype="multipart/form-data" id="create_badge_form">
+        <div class="form-group">
+          <label for="badge_slug">Slug</label>
+          <input type="text" class="form-control" id="badge_slug" name="slug" placeholder="e.g. tenure" />
+        </div>
+        <div class="form-group">
+          <label for="badge_title">Title</label>
+          <input type="text" class="form-control" id="badge_title" name="title" required />
+        </div>
+        <div class="form-group">
+          <label for="badge_desc">Description</label>
+          <textarea class="form-control" id="badge_desc" name="description" rows="3"></textarea>
+          <small class="form-text text-muted">Shown where you present the badge to users.</small>
+        </div>
+        <div class="form-group">
+          <label>Kind</label>
+          <select class="form-control" name="kind" id="new_badge_kind">
+            <option value="manual">Manual</option>
+            <option value="tenure">Tenure (time-based)</option>
+            <option value="flag">Flag (user flag)</option>
+          </select>
+          <small class="form-text text-muted">Manual = awarded by admin. Tenure = auto levels by account age. Flag = auto (e.g., beta_tester).</small>
+        </div>
+        <div class="form-group" id="new_tenure_cfg" style="display:none;">
+          <label>Thresholds</label>
+          <input class="form-control" name="thresholds" placeholder="bronze:365,silver:730,gold:1095" />
+          <small class="form-text text-muted">Pairs of level:days since registration (highest reached level is used).</small>
+        </div>
+        <div class="form-group" id="new_flag_cfg" style="display:none;">
+          <label>Flag name</label>
+          <input class="form-control" name="flag" placeholder="beta_tester" />
+          <small class="form-text text-muted">Checks user.profile.flags[flag] == true</small>
+        </div>
+        <div class="form-group">
+          <label>Mode</label>
+          <div>
+            <label class="form-check-label" style="margin-right:12px;"><input type="radio" name="mode" value="single" checked> Single</label>
+            <label class="form-check-label"><input type="radio" name="mode" value="multi"> Multiple (levels)</label>
+          </div>
+          <small class="form-text text-muted">Single badges don’t have levels (e.g., Beta Tester). Multiple badges define named levels (e.g., Bronze/Silver).</small>
+        </div>
+        <div id="levels_editor" style="display:none;">
+          <label>Levels</label>
+          <div id="levels_rows"></div>
+          <button type="button" class="btn btn-sm btn-outline-info" id="add_level_btn">Add Level</button>
+          <input type="hidden" name="levels_json" id="levels_json" />
+          <small class="form-text text-muted">Order matters (ascending). Each level can have its own description.</small>
+          <hr/>
+        </div>
+        <div class="form-group">
+          <label for="badge_icon">Icon</label>
+          <input type="file" class="form-control" id="badge_icon" name="icon" accept="image/*" />
+          <small class="form-text text-muted">Square PNG/SVG recommended. Stored under /static/style/img/badges/</small>
+        </div>
+        <button type="submit" class="btn btn-outline-primary">Create</button>
+      </form>
+      <hr>
+      <form method="POST" action="/admin/badges/recompute">
+        <button type="submit" class="btn btn-outline-warning">Recompute Auto Badges for All Users</button>
+      </form>
+      <hr>
+      <p class="text-muted">Levels available by default: bronze, silver, gold, platinum, diamond</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var sel = document.getElementById('new_badge_kind');
+    function refresh(){
+      var v = sel.value;
+      document.getElementById('new_tenure_cfg').style.display = (v==='tenure') ? 'block':'none';
+      document.getElementById('new_flag_cfg').style.display = (v==='flag') ? 'block':'none';
+    }
+    sel.addEventListener('change', refresh);
+
+    // Levels editor
+    var modeInputs = document.querySelectorAll('input[name="mode"]');
+    var levelsEditor = document.getElementById('levels_editor');
+    function refreshMode(){
+      var val = document.querySelector('input[name="mode"]:checked').value;
+      levelsEditor.style.display = (val==='multi') ? 'block' : 'none';
+    }
+    modeInputs.forEach(function(i){ i.addEventListener('change', refreshMode); });
+    refreshMode();
+
+    var rows = document.getElementById('levels_rows');
+    document.getElementById('add_level_btn').addEventListener('click', function(){
+      var div = document.createElement('div');
+      div.className = 'form-row';
+      div.style.marginBottom = '8px';
+      div.innerHTML = '<div class="col-4"><input class="form-control level-name" placeholder="Level name (e.g., bronze)"></div>'+
+                      '<div class="col-7"><input class="form-control level-desc" placeholder="Level description"></div>'+
+                      '<div class="col-1"><button type="button" class="btn btn-outline-danger btn-sm remove">✕</button></div>';
+      rows.appendChild(div);
+      div.querySelector('.remove').addEventListener('click', function(){ div.remove(); });
+    });
+
+    // Serialize levels on submit
+    document.getElementById('create_badge_form').addEventListener('submit', function(){
+      var val = document.querySelector('input[name="mode"]:checked').value;
+      if (val !== 'multi') return;
+      var data = [];
+      rows.querySelectorAll('.form-row').forEach(function(r){
+        var name = r.querySelector('.level-name').value.trim();
+        var desc = r.querySelector('.level-desc').value.trim();
+        if (name) data.push({ name: name, description: desc });
+      });
+      document.getElementById('levels_json').value = JSON.stringify(data);
+    });
+  });
+</script>

@@ -1,0 +1,66 @@
+<div class="modal fade" id="recommendModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Recommend to a Friend</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:8px; opacity:.9;" id="recommend_context"></div>
+        <div class="form-group">
+          <label for="recommendTo">Friend (username or email)</label>
+          <input type="text" class="form-control" id="recommendTo" placeholder="e.g. @jane or jane@example.com" disabled>
+          <small class="form-text text-muted">Sending directly is coming soon. For now, copy a link.</small>
+        </div>
+        <div class="form-group">
+          <label for="recommendNote">Message (optional)</label>
+          <textarea class="form-control" id="recommendNote" rows="2" placeholder="Add a short note..." disabled></textarea>
+        </div>
+        <div class="alert alert-secondary" role="alert" id="recommend_copied_msg" style="display:none; margin-bottom:0;">
+          Link copied to clipboard.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="copyRecommendLink">Copy share link</button>
+        <button type="button" class="btn btn-secondary" disabled title="Coming soon">Send recommendation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function buildLink(){
+    var modal = document.getElementById('recommendModal');
+    var type = modal.getAttribute('data-content-type') || '';
+    var id = modal.getAttribute('data-content-id') || '';
+    if(!type || !id) return location.href;
+    var path = type === 'movie' ? '/movies/' + id : '/shows/' + id;
+    return location.origin + path + '?via=recommend';
+  }
+  $('#recommendModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var type = button.data('content-type');
+    var id = button.data('content-id');
+    var title = button.data('content-title');
+    var modal = $(this);
+    modal.attr('data-content-type', type);
+    modal.attr('data-content-id', id);
+    modal.find('#recommend_context').text('You are sharing "' + (title||'') + '"');
+    modal.find('#recommend_copied_msg').hide();
+  });
+  document.getElementById('copyRecommendLink').addEventListener('click', function(){
+    var link = buildLink();
+    var el = document.createElement('input');
+    el.value = link; document.body.appendChild(el); el.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(el);
+    var msg = document.getElementById('recommend_copied_msg');
+    if(msg){ msg.style.display='block'; setTimeout(function(){ msg.style.display='none'; }, 2000); }
+  });
+})();
+</script>
+

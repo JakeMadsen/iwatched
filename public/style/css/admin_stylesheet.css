@@ -201,6 +201,16 @@ a.article:hover {
     transition: all 0.3s;
 }
 
+/* Admin metric cards */
+.stat-card { background: #fff; border: 1px solid rgba(0,0,0,.06); border-radius: 12px; padding: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06); color:#333; }
+.stat-card__label { opacity: .75; font-size: 13px; margin-bottom: 6px; font-weight:600; }
+.stat-card__value { font-size: 28px; font-weight: 800; line-height: 1; }
+.stat-card__value--sm { font-size: 18px; font-weight: 700; }
+.stat-card__sub { opacity: .65; font-size: 12px; margin-top: 4px; }
+.stat-pair { display:flex; justify-content: space-between; align-items: baseline; margin: 4px 0; }
+.stat-card--movies { background: linear-gradient(180deg, rgba(92,22,137,.08), #fff); }
+.stat-card--shows { background: linear-gradient(180deg, rgba(137,22,58,.08), #fff); }
+
 /* ---------------------------------------------------
     MEDIAQUERIES
 ----------------------------------------------------- */
@@ -253,4 +263,3 @@ a.article:hover {
         display: none;
     }
 }
-

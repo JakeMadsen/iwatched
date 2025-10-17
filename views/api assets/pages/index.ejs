@@ -5,9 +5,9 @@
 
         <hr>
 
-        <h2>Quick link's</h2>
+        <h2>Quick links</h2>
 
-        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1b1b1b; border-radius:8px;">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -25,6 +25,9 @@
                         <a class="nav-link" href="#movie_routes">Movie Routes</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#search_routes">Search Routes</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#profile_routes">Profile Routes</a>
                     </li>
                 </ul>
@@ -33,7 +36,7 @@
 
         <hr>
 
-        <div class="row">
+        <div class="row" style="margin-top:12px;">
             <div class="col-md-6">
                 <h2>Short text about the API</h2>
                 <p>
@@ -51,7 +54,7 @@
 
             <div class="col-md-6">
                 <h2>Status codes for API routes</h2>
-                <table class="table" style="background-color: #e3f2fd;">
+                <table class="table table-dark" style="border-radius:8px;">
                     <thead>
                         <tr>
                             <th scope="col">Status code</th>
@@ -86,7 +89,7 @@
         <a name="user_routes">
             <h2>User API Routes</h2>
         </a>
-        <table class="table" style="background-color: #e3f2fd;">
+        <table class="table table-dark" style="border-radius:8px;">
             <thead>
                 <tr>
                     <th scope="col">API Version</th>
@@ -122,7 +125,7 @@
         <a name="movie_routes">
             <h2>Movie API Routes</h2>
         </a>
-        <table class="table" style="background-color: #e3f2fd;">
+        <table class="table table-dark" style="border-radius:8px;">
             <thead>
                 <tr>
                     <th scope="col">API Version</th>
@@ -151,12 +154,39 @@
         </table>
     </div>
 
+    <!-- Search Routes -->
+    <div class="route_list">
+        <a name="search_routes">
+            <h2>Search API Routes</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/search?q=iron%20man&limit=5">search?q=&limit=</a></td>
+                    <td>Returns grouped results: { movies, shows, users } limited per group. Uses TMDB proxy for movies/shows and DB for users.</td>
+                    <td>false</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Profile Routes -->
     <div class="route_list">
         <a name="profile_routes">
             <h2>Profile API Routes</h2>
         </a>
-        <table class="table" style="background-color: #e3f2fd;">
+        <table class="table table-dark" style="border-radius:8px;">
             <thead>
                 <tr>
                     <th scope="col">API Version</th>
@@ -180,6 +210,54 @@
                     <td><a href="/api/v1/profile/movies/get/:page?">profile/movies/get/:page?</a></td>
                     <td>Gets all movies that a profile has watched. ":page" is the page number</td>
                     <td>false</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Friends Routes -->
+    <div class="route_list">
+        <a name="friends_routes">
+            <h2>Friends API Routes</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>friends/request</td>
+                    <td>Body: { user_id, user_key, to_user_id } — sends a request.</td>
+                    <td>Yes (sender)</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>friends/respond</td>
+                    <td>Body: { user_id, user_key, from_user_id, action: accept|deny }.</td>
+                    <td>Yes (recipient)</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>friends/remove</td>
+                    <td>Body: { user_id, user_key, friend_user_id } — removes both sides.</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/friends/list/123">friends/list/:user_id</a></td>
+                    <td>Lists friends for a user.</td>
+                    <td>No</td>
                 </tr>
             </tbody>
         </table>

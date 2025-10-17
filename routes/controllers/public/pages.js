@@ -45,14 +45,35 @@ module.exports = function (server) {
             user: req.user
         });
     });
-    server.
-    get('/policy/community', async function(req, res) {
+    server.get('/policy/community', async function(req, res) {
         res.render('public assets/template.ejs', {
             page_title: "iWatched.xyz - Community",
             page_file: "policy-community",
             page_data: {
 
             },
+            user: req.user
+        });
+    });
+
+    // Global search results page
+    server.get('/search', async function(req, res) {
+        res.render('public assets/template.ejs', {
+            page_title: "iWatched.xyz - Search",
+            page_file: "search",
+            page_data: {
+                q: (req.query.q || '').toString()
+            },
+            user: req.user
+        });
+    });
+
+    // Minimal page to debug nav/search in isolation
+    server.get('/nav-test', async function(req, res) {
+        res.render('public assets/template.ejs', {
+            page_title: "iWatched.xyz - Nav Test",
+            page_file: "nav-test",
+            page_data: {},
             user: req.user
         });
     });

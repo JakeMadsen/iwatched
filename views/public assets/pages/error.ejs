@@ -1,9 +1,15 @@
 <div class="container">
     <div class="error-page-box" style="margin-top:30px;">
         <h1 class="text-center">Whoops Something went wrong</h1>
-        <h2 class="text-center"><%= error.status %></h2>
-        <h3 class="text-center"><%= error.message %></h3>
-        <pre style="color: white;"><%= error.stack %></pre>
+        <h2 class="text-center"><%= (page_data && page_data.error) ? page_data.error.status : '' %></h2>
+        <h3 class="text-center"><%= (page_data && page_data.error) ? page_data.error.message : '' %></h3>
+        <% if (process.env.NODE_ENV === 'development' && page_data && page_data.error && page_data.error.stack) { %>
+            <pre style="color: white;"><%= page_data.error.stack %></pre>
+        <% } %>
     </div>
+    <% if (page_data && page_data.error && page_data.error.status === 403) { %>
+        <div class="text-center" style="margin-bottom:24px;">
+            <a href="/" class="btn btn-outline-primary">Go Home</a>
+        </div>
+    <% } %>
 </div>
-

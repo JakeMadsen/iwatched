@@ -1,0 +1,34 @@
+<div class="container" style="margin-top:12px; max-width: 840px;">
+  <h2>Create Announcement</h2>
+  <form id="ann_form" onsubmit="return false;" style="margin-top:12px;">
+    <div class="form-group">
+      <label>Title</label>
+      <input id="ann_title" type="text" class="form-control" placeholder="Announcement title">
+    </div>
+    <div class="form-group">
+      <label>Text</label>
+      <textarea id="ann_text" class="form-control" rows="6" placeholder="Write your announcement..."></textarea>
+    </div>
+    <button id="ann_submit" class="btn btn-primary">Publish</button>
+  </form>
+  <div id="ann_status" style="margin-top:10px;"></div>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('ann_submit');
+  btn && btn.addEventListener('click', function(){
+    var title = document.getElementById('ann_title').value.trim();
+    var text = document.getElementById('ann_text').value.trim();
+    if(!title || !text){ return showToast('Title and text required','warning'); }
+    fetch('/api/v1/admin/announcements', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ title: title, text: text }) })
+      .then(function(r){ return r.json(); })
+      .then(function(resp){
+        if(resp && resp.ok){ showToast('Announcement published','success'); document.getElementById('ann_form').reset(); }
+        else showToast('Failed to publish','warning');
+      })
+      .catch(function(){ showToast('Failed to publish','warning'); });
+  });
+})();
+</script>
+

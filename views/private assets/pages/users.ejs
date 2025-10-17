@@ -9,57 +9,39 @@
     </div>
 </div>
 
-<div id="listUrls" style="margin-top:20px;">
-    <h3>LIST of <% page_data.users.length %> USERS </h3>
-    <div class="row">
-        <div class="col-md-2">
-            <h4>USER ID</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>USERNAME</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>USER DEACTIVATED</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>USER ADMIN</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>SIGN UP DATE</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>OPTIONS</h4>
-        </div>
-        
-    </div>
-    <hr>
-    
-    <% page_data.users.forEach(function(user){ %>
-        <div class="row">
-            <div class="col-md-2">
-                <p><%= user._id %></p>
-            </div>
-            <div class="col-md-2">
-                <% if(user.profile.custom_url != "" &&user.profile.custom_url != null) { %>
-                    <a style="color: lightblue" href="/<%= user.profile.custom_url %>" ><%= user.local.username %></a>
-                <% } else { %>
-                    <a style="color: lightblue" href="/<%= user._id%>" ><%= user.local.username %></a>
-                <% } %>
-            </div>
-            <div class="col-md-2">
-                <p><%= user.profile.inactive %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= user.permissions.level.admin %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= user.profile.registration_date %></p>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-primary">Edit</button>
-                <button type="button" class="btn btn-danger">Delete</button>
-            </div>
-        </div>
-        <hr>
-    <% }); %>
+<div style="margin-top:20px;">
+  <h3>Users</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Username</th>
+        <th>Inactive</th>
+        <th>Admin</th>
+        <th>Sign up date</th>
+        <th style="width:160px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% page_data.users.forEach(function(user){ %>
+        <tr>
+          <td><%= user._id %></td>
+          <td>
+            <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+              <a style="color: lightblue" href="/<%= user.profile.custom_url %>"><%= user.local.username %></a>
+            <% } else { %>
+              <a style="color: lightblue" href="/<%= user._id %>"><%= user.local.username %></a>
+            <% } %>
+          </td>
+          <td><%= user.profile.inactive %></td>
+          <td><%= user.permissions.level.admin %></td>
+          <td><%= user.profile.registration_date %></td>
+          <td>
+            <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-primary">Edit</a>
+            <!-- Future: delete/deactivate -->
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
 </div>

@@ -1,1 +1,102 @@
-<h3>Users online: <%= page_data.users_online%></h3>
+<div class="container" style="margin-top: 12px;">
+  <h2>Admin Dashboard</h2>
+  <div class="row" style="margin-top: 12px;">
+    <div class="col-md-3">
+      <div class="stat-card" data-toggle="tooltip" title="Unique authenticated users active within the last 5 minutes">
+        <div class="stat-card__label">Active users (5m)</div>
+        <div class="stat-card__value" id="users_online"><%= page_data.users_online %></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" data-toggle="tooltip" title="Requests per second handled by the server">
+        <div class="stat-card__label">RPS (current)</div>
+        <div class="stat-card__value"><span id="rps_current"><%= page_data.metrics.rps.current %></span></div>
+        <div class="stat-card__sub">avg60s: <span id="rps_avg"><%= page_data.metrics.rps.avg60s %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" data-toggle="tooltip" title="Average response time for recent requests">
+        <div class="stat-card__label">Latency (avg)</div>
+        <div class="stat-card__value stat-card__value--sm"><span id="lat_avg"><%= page_data.metrics.latencyMs.avg %></span> ms</div>
+        <div class="stat-card__sub">p50: <span id="lat_p50"><%= page_data.metrics.latencyMs.p50 %></span> • p95: <span id="lat_p95"><%= page_data.metrics.latencyMs.p95 %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" data-toggle="tooltip" title="HTTP error counters since server start">
+        <div class="stat-card__label">Errors</div>
+        <div class="stat-card__value stat-card__value--sm">4xx: <span id="e4xx"><%= page_data.metrics.errors.e4xx %></span> • 5xx: <span id="e5xx"><%= page_data.metrics.errors.e5xx %></span></div>
+        <div class="stat-card__sub" data-toggle="tooltip" title="401/403 and failed login attempts">Auth failures: <span id="auth_fail"><%= page_data.metrics.authFailures %></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="col-md-4">
+      <div class="stat-card" data-toggle="tooltip" title="Mongoose connection status and count">
+        <div class="stat-card__label">DB</div>
+        <div class="stat-card__value stat-card__value--sm"><%= page_data.metrics.db.state %></div>
+        <div class="stat-card__sub">Connections: <span id="db_conn"><%= page_data.metrics.db.connections %></span> • Host: <%= page_data.metrics.db.host %></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card stat-card--movies" data-toggle="tooltip" title="Unique users seen over periods">
+        <div class="stat-card__label">Activity</div>
+        <div class="stat-pair"><span>DAU</span><span id="dau"><%= page_data.activity.dau %></span></div>
+        <div class="stat-pair"><span>WAU</span><span id="wau"><%= page_data.activity.wau %></span></div>
+        <div class="stat-pair"><span>New signups (24h)</span><span id="new24"><%= page_data.activity.newSignups24h %></span></div>
+        <div class="stat-pair"><span>Retention (7d)</span><span id="ret7"><%= page_data.activity.retention7d %></span>%</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card stat-card--shows" data-toggle="tooltip" title="Host metrics from Node.js">
+        <div class="stat-card__label">System</div>
+        <div class="stat-pair"><span>Uptime</span><span id="uptime"><%= page_data.metrics.uptimeSec %></span> sec</div>
+        <div class="stat-pair"><span>Load (1m)</span><span id="sysload"><%= page_data.metrics.system.load %></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 12px;">
+    <div class="col-md-6">
+      <div class="stat-card" data-toggle="tooltip" title="New user support cases opened in the last 24 hours">
+        <div class="stat-card__label">Support — New (24h)</div>
+        <div class="stat-card__value"><%= page_data.support.new24h %></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="stat-card" data-toggle="tooltip" title="All unresolved support cases">
+        <div class="stat-card__label">Support — Open</div>
+        <div class="stat-card__value"><%= page_data.support.open %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function poll(){
+    fetch('/admin/metrics.json').then(function(r){ return r.json(); }).then(function(m){
+      if(!m) return;
+      function set(id,v){ var el = document.getElementById(id); if(el) el.textContent = v; }
+      set('users_online', m.activeUsers5m || 0);
+      set('rps_current', m.rps && m.rps.current || 0);
+      set('rps_avg', m.rps && m.rps.avg60s || 0);
+      set('lat_avg', m.latencyMs && m.latencyMs.avg || 0);
+      set('lat_p50', m.latencyMs && m.latencyMs.p50 || 0);
+      set('lat_p95', m.latencyMs && m.latencyMs.p95 || 0);
+      set('e4xx', m.errors && m.errors.e4xx || 0);
+      set('e5xx', m.errors && m.errors.e5xx || 0);
+      set('auth_fail', m.authFailures || 0);
+      set('db_conn', m.db && m.db.connections || 0);
+      set('uptime', m.uptimeSec || 0);
+      set('sysload', m.system && m.system.load || 0);
+    }).catch(function(){});
+  }
+  document.addEventListener('DOMContentLoaded', function(){ poll(); setInterval(poll, 5000); });
+})();
+</script>
+
+<script>
+  // Activate Bootstrap tooltips
+  try { $(function () { $('[data-toggle="tooltip"]').tooltip() }) } catch(e){}
+</script>

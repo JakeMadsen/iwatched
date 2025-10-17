@@ -1,53 +1,44 @@
-<div id="listUrls" style="margin-top:20px;">
-    <h3>LIST OF CLOSED CASES </h3>
-    <div class="row">
-        <div class="col-md-2">
-            <h4>CASE TITLE</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>FROM</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>LAST UPDATE</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>SEEN BY SUPPORT</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>SEEN BY USER</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>OPTIONS</h4>
-        </div>
-        
-    </div>
-    <hr>
-    
+<div style="margin-top:20px;">
+  <h3>Closed cases</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>From</th>
+        <th>Last update</th>
+        <th>Seen (support)</th>
+        <th>Seen (user)</th>
+        <th style="width:180px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
     <% page_data.closed_cases.forEach(function(closedCase){ %>
-        <div class="row">
-            <div class="col-md-2">
-                <p><strong><%= closedCase.title %></strong></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= closedCase.messages[0].username %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= closedCase.last_updated %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= closedCase.seen_by_support %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= closedCase.seen_by_user %></p>
-            </div>
-            <div class="col-md-2">
-                <a class="btn btn-primary" href="/admin/support/case/respond/<%= closedCase._id %>">SEE CASE</a>
-                <form method="POST" action="/admin/support/case/delete/<%= closedCase._id %>">
-                    <button class="btn btn-danger" type="submit">DELETE</button>
-                </form>
-
-            </div>
-        </div>
-        <hr>
+      <tr>
+        <td><strong><%= closedCase.title %></strong></td>
+        <td><%= closedCase.messages[0].username %></td>
+        <td><%= closedCase.last_updated %></td>
+        <td>
+          <% if(closedCase.seen_by_support) { %>
+            <span class="badge badge-success">yes</span>
+          <% } else { %>
+            <span class="badge badge-warning">no</span>
+          <% } %>
+        </td>
+        <td>
+          <% if(closedCase.seen_by_user) { %>
+            <span class="badge badge-success">yes</span>
+          <% } else { %>
+            <span class="badge badge-warning">no</span>
+          <% } %>
+        </td>
+        <td>
+          <a class="btn btn-sm btn-primary" href="/admin/support/case/respond/<%= closedCase._id %>">See case</a>
+          <form method="POST" action="/admin/support/case/delete/<%= closedCase._id %>" style="display:inline-block;">
+            <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
     <% }); %>
+    </tbody>
+  </table>
 </div>

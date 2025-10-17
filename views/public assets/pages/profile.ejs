@@ -1,19 +1,65 @@
 
 
-<div id="profile_header" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>'); background-repeat: no-repeat; background-size: cover ">
+<div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
+    
     <div class="container">
-        <div style="padding: 20px 0px 20px 0px;">
-            <img class="img-fluid rounded" style="height: 160px" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>"
-                alt="">
+        <div class="container profile-hero__inner">
+        <div class="profile-hero__left">
+            <img class="profile-hero__avatar" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>" alt="">
+            <div class="profile-hero__meta">
+                <h1 class="profile-hero__name"><%= page_data.user.local.username %></h1>
+                <% 
+                  const handle = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
+                    ? page_data.user.profile.custom_url
+                    : (page_data.user.local.username || '');
+                  const handleBasePath = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
+                    ? '/' + page_data.user.profile.custom_url
+                    : '/' + page_data.user._id;
+                %>
+                <% if (handle) { %>
+                    <div class="profile-hero__handle"><a class="profile-hero__handle-link" href="<%= handleBasePath %>">@<%= handle %></a></div>
+                <% } %>
+                <% if (page_data.user.profile.description) { %>
+                    <p class="profile-hero__bio"><%= page_data.user.profile.description %></p>
+                <% } %>
+            </div>
         </div>
+        <div class="profile-hero__actions">
+            <%
+              var basePath = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
+                ? '/' + page_data.user.profile.custom_url
+                : '/' + page_data.user._id;
+              var friendsCount = (typeof page_data.friends_count !== 'undefined' && page_data.friends_count !== null)
+                ? page_data.friends_count
+                : null;
+            %>
+            <a class="profile-hero__friends" href="<%= basePath %>/friends" title="Friends">
+                <% if (friendsCount !== null) { %>
+                    <span><%= friendsCount %></span>
+                <% } %>
+                <i class="fas fa-user-friends"></i>
+            </a>
+            <% if (user && String(user._id) !== String(page_data.user._id)) { %>
+                <div id="friend_cta"
+                     data-viewer-id="<%= user._id %>"
+                     data-viewer-key="<%= user.permissions.user_private_key %>"
+                     data-profile-id="<%= page_data.user._id %>"></div>
+            <% } %>
+        </div>
+    </div>
+    <div class="profile-hero__overlay"></div>
+
     </div>
 </div>
 
 
 <div id="profile_section" style="padding-top:px;">
-        <% include ../partials/profile/profile_navigation.ejs %>
+    
     <div class="container">
+    <% if (page_subFile !== 'settings') { %>
+        <% include ../partials/profile/profile_stats.ejs %>
+        <% include ../partials/profile/profile_quicklinks.ejs %>
+    <% } %>
         <%- include(`../partials/profile/${page_subFile}.ejs`) %>
     </div>
 </div>
-

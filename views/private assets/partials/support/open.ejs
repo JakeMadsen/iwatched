@@ -1,53 +1,44 @@
-<div id="listUrls" style="margin-top:20px;">
-    <h3>LIST OF OPEN CASES </h3>
-    <div class="row">
-        <div class="col-md-2">
-            <h4>CASE TITLE</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>FROM</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>LAST UPDATE</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>SEEN BY SUPPORT</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>SEEN BY USER</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>OPTIONS</h4>
-        </div>
-        
-    </div>
-    <hr>
-    
+<div style="margin-top:20px;">
+  <h3>Open cases</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>From</th>
+        <th>Last update</th>
+        <th>Seen (support)</th>
+        <th>Seen (user)</th>
+        <th style="width:180px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
     <% page_data.open_cases.forEach(function(openCase){ %>
-        <div class="row">
-            <div class="col-md-2">
-                <p><strong><%= openCase.title %></strong></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= openCase.messages[0].username %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= openCase.last_updated %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= openCase.seen_by_support %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= openCase.seen_by_user %></p>
-            </div>
-            <div class="col-md-2">
-                <a class="btn btn-primary" href="/admin/support/case/respond/<%= openCase._id %>">SEE CASE</a>
-                <form method="POST" action="/admin/support/case/close/<%= openCase._id %>">
-                    <button class="btn btn-danger" type="submit">CLOSE</button>
-                </form>
-
-            </div>
-        </div>
-        <hr>
+      <tr>
+        <td><strong><%= openCase.title %></strong></td>
+        <td><%= openCase.messages[0].username %></td>
+        <td><%= openCase.last_updated %></td>
+        <td>
+          <% if(openCase.seen_by_support) { %>
+            <span class="badge badge-success">yes</span>
+          <% } else { %>
+            <span class="badge badge-warning">no</span>
+          <% } %>
+        </td>
+        <td>
+          <% if(openCase.seen_by_user) { %>
+            <span class="badge badge-success">yes</span>
+          <% } else { %>
+            <span class="badge badge-warning">no</span>
+          <% } %>
+        </td>
+        <td>
+          <a class="btn btn-sm btn-primary" href="/admin/support/case/respond/<%= openCase._id %>">See case</a>
+          <form method="POST" action="/admin/support/case/close/<%= openCase._id %>" style="display:inline-block;">
+            <button class="btn btn-sm btn-danger" type="submit">Close</button>
+          </form>
+        </td>
+      </tr>
     <% }); %>
+    </tbody>
+  </table>
 </div>

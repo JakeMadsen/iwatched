@@ -1,0 +1,127 @@
+<div class="container" style="margin-top:12px; max-width: 1100px;">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <h2>Announcements</h2>
+    <div>
+      <button id="btn_new" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> New</button>
+    </div>
+  </div>
+  <div class="row" style="margin-top:12px;">
+    <div class="col-md-5">
+      <div class="stat-card">
+        <div class="stat-card__label">All announcements</div>
+        <div class="form-group" style="margin-top:8px;">
+          <input id="search" type="text" class="form-control" placeholder="Search title...">
+        </div>
+        <div id="ann_list" style="max-height:60vh; overflow:auto;"></div>
+        <div id="pager" style="margin-top:8px;"></div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="stat-card">
+        <div class="stat-card__label"><span id="form_mode">Create</span> announcement</div>
+        <form id="ann_form" onsubmit="return false;" style="margin-top:8px;">
+          <input type="hidden" id="ann_id" value="">
+          <div class="form-group">
+            <label>Title</label>
+            <input id="ann_title" type="text" class="form-control" placeholder="Announcement title">
+          </div>
+          <div class="form-group">
+            <label>Text (Markdown supported)</label>
+            <textarea id="ann_text" class="form-control" rows="10" placeholder="Write your announcement in Markdown..."></textarea>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button id="ann_submit" class="btn btn-primary">Save</button>
+            <button id="ann_cancel" class="btn btn-secondary" type="button">Cancel</button>
+            <button id="ann_delete" class="btn btn-danger" type="button" style="margin-left:auto; display:none;">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var page = 1, size = 20, q = '';
+  var listEl = document.getElementById('ann_list');
+  var pagerEl = document.getElementById('pager');
+  var editingId = <%- JSON.stringify(page_data.edit_id || '') %>;
+  function load(){
+    var url = '/api/v1/announcements?page='+page+'&size='+size + (q ? ('&q='+encodeURIComponent(q)) : '');
+    fetch(url).then(function(r){ return r.json(); }).then(function(d){
+      listEl.innerHTML = '';
+      (d.items||[]).forEach(function(a){
+        var el = document.createElement('div');
+        el.className = 'card'; el.style.cssText='background:#fff;margin-bottom:8px;border-radius:10px;';
+        el.innerHTML = '<div class="card-body" style="display:flex;gap:8px;align-items:center;">'
+          + '<div style="flex:1 1 auto;"><div style="font-weight:700;">'+a.title+'</div><div style="opacity:.7;font-size:12px;">'+new Date(a.created_at).toLocaleString()+'</div></div>'
+          + '<div class="btn-group btn-group-sm">'
+          +   '<a class="btn btn-outline-secondary" href="/announcements/'+a._id+(a.slug?('-'+a.slug):'')+'" target="_blank">View</a>'
+          +   '<button class="btn btn-outline-primary js-edit" data-id="'+a._id+'">Edit</button>'
+          + '</div>'
+          + '</div>';
+        listEl.appendChild(el);
+      });
+      var totalPages = Math.max(1, Math.ceil((d.total||0)/(d.size||size)));
+      pagerEl.innerHTML = '<div class="btn-group">'
+        + '<button class="btn btn-sm btn-secondary" '+(page<=1?'disabled':'')+' id="prevBtn">Prev</button>'
+        + '<span class="btn btn-sm btn-light">'+page+'/'+totalPages+'</span>'
+        + '<button class="btn btn-sm btn-secondary" '+(page>=totalPages?'disabled':'')+' id="nextBtn">Next</button>'
+        + '</div>';
+      var prev = document.getElementById('prevBtn'); var next = document.getElementById('nextBtn');
+      prev && (prev.onclick = function(){ page=Math.max(1,page-1); load(); });
+      next && (next.onclick = function(){ page=page+1; load(); });
+      // bind edit buttons
+      listEl.querySelectorAll('.js-edit').forEach(function(btn){ btn.addEventListener('click', function(){ startEdit(btn.getAttribute('data-id')); }); });
+      if (editingId){ var id = editingId; editingId=''; startEdit(id); }
+    });
+  }
+
+  function startEdit(id){
+    fetch('/api/v1/announcements/'+id).then(function(r){ return r.json(); }).then(function(d){
+      var a = d.announcement; if(!a) return;
+      document.getElementById('ann_id').value = a._id;
+      document.getElementById('ann_title').value = a.title || '';
+      document.getElementById('ann_text').value = a.text || '';
+      document.getElementById('form_mode').textContent = 'Edit';
+      document.getElementById('ann_delete').style.display = 'inline-block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  function resetForm(){
+    document.getElementById('ann_id').value = '';
+    document.getElementById('ann_title').value = '';
+    document.getElementById('ann_text').value = '';
+    document.getElementById('form_mode').textContent = 'Create';
+    document.getElementById('ann_delete').style.display = 'none';
+  }
+
+  document.getElementById('btn_new').addEventListener('click', function(){ resetForm(); });
+  document.getElementById('ann_cancel').addEventListener('click', function(){ resetForm(); });
+  document.getElementById('ann_submit').addEventListener('click', function(){
+    var id = document.getElementById('ann_id').value.trim();
+    var title = document.getElementById('ann_title').value.trim();
+    var text = document.getElementById('ann_text').value.trim();
+    if(!title || !text){ return showToast('Title and text required','warning'); }
+    if(id){
+      fetch('/api/v1/admin/announcements/'+id, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: title, text: text }) })
+        .then(function(r){ return r.json(); }).then(function(resp){ if(resp && resp.ok){ showToast('Announcement updated','success'); load(); } else { showToast('Save failed','warning'); } });
+    } else {
+      fetch('/api/v1/admin/announcements', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title: title, text: text }) })
+        .then(function(r){ return r.json(); }).then(function(resp){ if(resp && resp.ok){ showToast('Announcement published','success'); resetForm(); load(); } else { showToast('Save failed','warning'); } });
+    }
+  });
+  document.getElementById('ann_delete').addEventListener('click', function(){
+    var id = document.getElementById('ann_id').value.trim();
+    if(!id) return; if(!confirm('Delete this announcement?')) return;
+    fetch('/api/v1/admin/announcements/'+id, { method:'DELETE' })
+      .then(function(r){ return r.json(); }).then(function(resp){ if(resp && resp.ok){ showToast('Deleted','success'); resetForm(); load(); } else { showToast('Delete failed','warning'); } });
+  });
+
+  document.getElementById('search').addEventListener('input', function(){ q = this.value.trim(); page = 1; load(); });
+
+  document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
+

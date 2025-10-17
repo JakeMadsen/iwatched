@@ -3,13 +3,215 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script src="/static/style/js/js_helpers/infinite-scroll.pkgd.min.js"></script>
 <script src="/static/style/js/search_movies.js"></script>
+<script src="/static/style/js/search_shows.js"></script>
 <script src="/static/style/js/profile_movies.js"></script>
 <script src="/static/style/js/profile_settings.js"></script>
+<script src="/static/style/js/search_global.js"></script>
+<script>
+  (function(){
+    // Simple toast utility
+    window.showToast = function(message, type){
+      var bg = (type==='success')? '#28a745' : (type==='warning')? '#dc3545' : '#343a40';
+      var el = document.createElement('div');
+      el.style.cssText = 'position:fixed;right:16px;top:16px;z-index:3000;background:'+bg+';color:#fff;padding:10px 14px;border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.3);opacity:0;transition:opacity .2s, transform .2s; transform: translateY(-8px);';
+      el.textContent = message;
+      document.body.appendChild(el);
+      requestAnimationFrame(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; });
+      setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateY(-8px)'; setTimeout(function(){ el.remove(); }, 200); }, 2200);
+    }
+    // Friend CTA in hero
+    function renderFriendCta(){
+      var cta = document.getElementById('friend_cta');
+      if(!cta) return;
+      var viewer = cta.getAttribute('data-viewer-id');
+      var key = cta.getAttribute('data-viewer-key');
+      var profile = cta.getAttribute('data-profile-id');
+      fetch('/api/v1/friends/status?user_id='+viewer+'&other_id='+profile)
+        .then(function(r){ return r.json(); })
+        .then(function(s){
+          if(s.status === 'friends'){
+            cta.innerHTML = '<button class="btn btn-sm btn-success js-friends-remove" title="Friends"><i class="fas fa-user-check"></i> Friends</button>';
+          } else if (s.status === 'pending_outgoing'){
+            cta.innerHTML = '<button class="btn btn-sm btn-secondary" disabled><i class="fas fa-paper-plane"></i> Request sent</button>';
+          } else if (s.status === 'pending_incoming'){
+            cta.innerHTML = '<div class="btn-group">\
+              <button class="btn btn-sm btn-success js-fr-accept" title="Accept"><i class="fas fa-check"></i></button>\
+              <button class="btn btn-sm btn-secondary js-fr-deny" title="Deny"><i class="fas fa-times"></i></button></div>';
+          } else {
+            cta.innerHTML = '<button class="btn btn-sm btn-outline-light js-friends-add"><i class="fas fa-user-plus"></i> Add Friend</button>';
+          }
+
+          cta.onclick = function(e){
+            if(e.target.closest('.js-friends-add')){
+              fetch('/api/v1/friends/request', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: viewer, user_key: key, to_user_id: profile })})
+                .then(function(){ showToast('Friend request sent','success'); renderFriendCta(); });
+            } else if(e.target.closest('.js-friends-remove')){
+              if(!confirm('Remove friend?')) return;
+              fetch('/api/v1/friends/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: viewer, user_key: key, friend_user_id: profile })})
+                .then(function(){ showToast('Friend removed','warning'); renderFriendCta(); refreshNotif && refreshNotif(); });
+            } else if(e.target.closest('.js-fr-accept')){
+              fetch('/api/v1/friends/respond', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: viewer, user_key: key, from_user_id: profile, action:'accept' })})
+                .then(function(){ showToast('Friend request accepted','success'); renderFriendCta(); refreshNotif && refreshNotif(); });
+            } else if(e.target.closest('.js-fr-deny')){
+              fetch('/api/v1/friends/respond', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: viewer, user_key: key, from_user_id: profile, action:'deny' })})
+                .then(function(){ showToast('Friend request denied'); renderFriendCta(); refreshNotif && refreshNotif(); });
+            }
+          };
+        });
+    }
+    document.addEventListener('DOMContentLoaded', renderFriendCta);
+
+    // Notifications: pending friend requests
+    <% if(typeof user != 'undefined'){ %>
+    function refreshNotif(){
+      var badge = document.getElementById('notif_badge');
+      var menu = document.getElementById('notif_menu');
+      if(!badge || !menu) return;
+      Promise.all([
+        fetch('/api/v1/friends/requests/<%= user._id %>').then(function(r){ return r.json(); }).catch(function(){ return { incoming: [] }; }),
+        fetch('/api/v1/support/notifications/<%= user._id %>').then(function(r){ return r.json(); }).catch(function(){ return { notifications: [] }; })
+      ]).then(function(res){
+        var fr = res[0] || { incoming: [] };
+        var sup = res[1] || { notifications: [] };
+        var count = (fr.incoming||[]).length + (sup.notifications||[]).length;
+        if(count>0){ badge.textContent = count; badge.style.display='inline-block'; }
+        else { badge.style.display='none'; }
+
+        var html='';
+        if(((fr.incoming||[]).length)>0){
+          html += '<h6 class="dropdown-header">Friends</h6>';
+          (fr.incoming||[]).forEach(function(fr){
+            html += '<div class="dropdown-item" style="white-space:normal;">'
+              + '<div><i class="fas fa-user"></i> <strong>'+(fr.from.username||fr.from.slug||fr.from.id)+'</strong> sent a friend request</div>'
+              + '<div style="margin-top:6px;">'
+              + '<button class="btn btn-sm btn-success js-fr-accept" data-from="'+fr.from.id+'">Accept</button>'
+              + '<button class="btn btn-sm btn-secondary js-fr-deny" data-from="'+fr.from.id+'" style="margin-left:6px;">Deny</button>'
+              + '</div></div>';
+          });
+          html += '<div class="dropdown-divider"></div>';
+        }
+        if(((sup.notifications||[]).length)>0){
+          html += '<h6 class="dropdown-header">Support</h6>';
+          (sup.notifications||[]).forEach(function(n){
+            html += '<a class="dropdown-item js-support-open" data-case="'+n.id+'" href="/support/'+n.id+'">'
+              + '<i class="fas fa-life-ring"></i> New reply on <strong>'+ (n.title||'support case') +'</strong>'
+              + '</a>';
+          });
+        }
+        if(!html){ html = '<span class="dropdown-item-text" style="opacity:.75;">No notifications</span>'; }
+        menu.innerHTML = html;
+      });
+    }
+    document.addEventListener('click', function(e){
+      if(e.target.classList && (e.target.classList.contains('js-fr-accept') || e.target.classList.contains('js-fr-deny'))){
+        var fromId = e.target.getAttribute('data-from');
+        var action = e.target.classList.contains('js-fr-accept') ? 'accept' : 'deny';
+        fetch('/api/v1/friends/respond', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: '<%= user._id %>', user_key: '<%= user.permissions.user_private_key %>', from_user_id: fromId, action: action })
+        }).then(function(){ refreshNotif(); });
+      } else if(e.target.closest && e.target.closest('.js-support-open')){
+        var caseId = e.target.closest('.js-support-open').getAttribute('data-case');
+        fetch('/api/v1/support/notifications/mark', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ case_id: caseId })
+        }).then(function(){ setTimeout(refreshNotif, 1500); });
+      }
+    });
+    // Ensure notification DOM exists before first fetch (defensive for some views)
+    (function(){
+      var tries = 0;
+      function tryInit(){
+        var badge = document.getElementById('notif_badge');
+        var menu = document.getElementById('notif_menu');
+        if(!badge || !menu){ if(++tries < 20) return setTimeout(tryInit, 150); else return; }
+        refreshNotif();
+      }
+      document.addEventListener('DOMContentLoaded', tryInit);
+      window.addEventListener('load', function(){ setTimeout(tryInit, 0); });
+    })();
+    <% } %>
+
+    // Realtime support events listener will be attached after socket init (see below)
+  })();
+</script>
 <script src="/static/style/js/toggle_watched_movies.js"></script>
 <script src="/static/style/js/toggle_favourited_movies.js"></script>
 <script src="/static/style/js/toggle_saved_movies.js"></script>
 <script src="/static/style/js/signup_helper.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-  var socket = io();
+  try {
+    if (window.io) {
+      window.socket = io({ reconnectionAttempts: 2, timeout: 2000 });
+    }
+  } catch (e) {
+    // optional realtime; ignore failures
+  }
 </script>
+<script>
+  // Attach realtime listeners once socket is ready
+  (function(){
+    function attach(){
+      if(!window.socket) return false;
+      try {
+        var currentUser = <%- JSON.stringify(typeof user != 'undefined' ? user._id : '') %>;
+        if(!currentUser) return true; // nothing to listen for
+        // Avoid duplicate listeners
+        if (window.__supportReplyBound) return true;
+        window.__supportReplyBound = true;
+        window.socket.on('support:reply', function(evt){
+          try {
+            if(evt && String(evt.user_id) === String(currentUser)){
+              if (typeof refreshNotif === 'function') refreshNotif();
+            }
+          } catch(_){}
+        });
+      } catch(_){}
+      return true;
+    }
+    if(!attach()){
+      var tries = 0, h = setInterval(function(){ if(attach() || ++tries > 20) clearInterval(h); }, 250);
+    }
+  })();
+  // Realtime basic toasts for mentions/replies
+  (function(){
+    function bind(){
+      if(!window.socket) return false;
+      var currentUser = <%- JSON.stringify(typeof user != 'undefined' ? String(user._id) : '') %>;
+      if(!currentUser) return true;
+      if (window.__activityBound) return true; window.__activityBound = true;
+      function onEvt(evt){ try { if(evt && String(evt.to_user_id) === currentUser){ showToast(evt.type==='announcement-reply' ? 'Someone replied to your comment' : 'You were mentioned', 'success'); } } catch(_){} }
+      window.socket.on('activity:mention', onEvt);
+      window.socket.on('activity:reply', onEvt);
+      return true;
+    }
+    if(!bind()){
+      var t=0; var hi=setInterval(function(){ if(bind()||++t>20) clearInterval(hi); }, 250);
+    }
+  })();
+  
+  // Lightweight injection for a floating Recommend button on detail pages
+  (function(){
+    document.addEventListener('DOMContentLoaded', function(){
+      var pf = <%- JSON.stringify(typeof page_file !== 'undefined' ? page_file : '') %>;
+      var ps = <%- JSON.stringify(typeof page_subFile !== 'undefined' ? page_subFile : '') %>;
+      if ((pf === 'movies' || pf === 'shows') && ps === 'one'){
+        var isMovie = pf === 'movies';
+        var data = isMovie ? (<%- JSON.stringify({ id: (page_data.movie||{}).id, title: (page_data.movie||{}).title }) %>)
+                           : (<%- JSON.stringify({ id: (page_data.show||{}).id, title: (page_data.show||{}).name }) %>);
+        if(!data || !data.id) return;
+        var btn = document.createElement('button');
+        btn.className = 'btn btn-primary';
+        btn.innerHTML = '<i class="fas fa-share-alt"></i> Recommend';
+        btn.setAttribute('data-toggle','modal');
+        btn.setAttribute('data-target','#recommendModal');
+        btn.setAttribute('data-content-type', isMovie ? 'movie' : 'show');
+        btn.setAttribute('data-content-id', data.id);
+        btn.setAttribute('data-content-title', data.title || '');
+        btn.style.cssText = 'position:fixed; right:16px; bottom:16px; z-index:1040; box-shadow:0 4px 14px rgba(0,0,0,.25)';
+        document.body.appendChild(btn);
+      }
+    });
+  })();
+  </script>

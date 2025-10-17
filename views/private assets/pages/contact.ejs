@@ -1,0 +1,45 @@
+<div class="container" style="margin-top:10px;">
+  <h3>Contact messages</h3>
+  <div class="dropdown-divider"></div>
+  <% if ((page_data.messages||[]).length === 0) { %>
+    <p style="opacity:.75;">No messages yet.</p>
+  <% } else { %>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Type</th>
+          <th>From</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% page_data.messages.forEach(function(m){ %>
+          <tr>
+            <td><%= m.title %></td>
+            <td><%= m.type %></td>
+            <td>
+              <% if (m.from_username || m.from_slug) { %>
+                <a href="/<%= m.from_slug || m.from %>" target="_blank" style="color:lightblue;">
+                  <%= m.from_username || m.from_slug %>
+                </a>
+              <% } else { %>
+                <%= m.from %>
+              <% } %>
+            </td>
+            <td><a href="mailto:<%= m.email %>" style="color:lightblue;"><%= m.email %></a></td>
+            <td>
+              <button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse" data-target="#c_<%= m._id %>">View</button>
+            </td>
+          </tr>
+          <tr class="collapse" id="c_<%= m._id %>">
+            <td colspan="5" style="background:#1b1b1b;">
+              <pre style="white-space:pre-wrap; color:#e0e0e0; margin:0; padding:10px; background:#1b1b1b; border:none;"><%= m.text %></pre>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>

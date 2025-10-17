@@ -13,11 +13,11 @@ module.exports = {
     },
     getAllCases: () => {
         return new Promise ((resolve, reject) => {
-            Support.find    ({'resolved': false }, function (error, open_cases) {
+            Support.find    ({'resolved': false }).sort({ last_updated: -1 }).exec(function (error, open_cases) {
                 if (error)
                     reject(error, "Could not get open cases")
                 else
-                Support.find({ 'resolved': true }, function (error, closed_cases) {
+                Support.find({ 'resolved': true }).sort({ last_updated: -1 }).exec(function (error, closed_cases) {
                     if (error)
                         reject(error, "Could not get closed cases")
                     else
@@ -28,7 +28,7 @@ module.exports = {
     },
     getAllOpenCases: () => {
         return new Promise ((resolve, reject) => {
-            Support.find    ({'resolved': false }, function (error, open_cases) {
+            Support.find    ({'resolved': false }).sort({ last_updated: -1 }).exec(function (error, open_cases) {
                 if (error)
                     reject(error, "Could not get open cases")
                 else
@@ -38,7 +38,7 @@ module.exports = {
     },
     getAllClosedCases: () => {
         return new Promise ((resolve, reject) => {
-            Support.find({ 'resolved': true }, function (error, closed_cases) {
+            Support.find({ 'resolved': true }).sort({ last_updated: -1 }).exec(function (error, closed_cases) {
                 if (error)
                     reject(error, "Could not get closed cases")
                 else
@@ -48,11 +48,11 @@ module.exports = {
     },
     getAllCasesFromUser: (user_id) => {
         return new Promise ((resolve, reject) => {
-            Support.find    ({ 'opened_by': user_id, 'resolved': false }, function (error, open_cases) {
+            Support.find    ({ 'opened_by': user_id, 'resolved': false }).sort({ last_updated: -1 }).exec(function (error, open_cases) {
                 if (error)
                     reject(error, "Could not get open cases")
                 else
-                Support.find({ 'opened_by': user_id, 'resolved': true }, function (error, closed_cases) {
+                Support.find({ 'opened_by': user_id, 'resolved': true }).sort({ last_updated: -1 }).exec(function (error, closed_cases) {
                     if (error)
                         reject(error, "Could not get closed cases")
                     else
@@ -122,7 +122,21 @@ module.exports = {
                     if (error)
                         reject(error, "Could not get open cases")
                     else
+                    {
+                        // Emit realtime notification to clients
+                        try {
+                            const hub = require('../../bin/server/socketHub');
+                            const payload = {
+                                type: 'support-reply',
+                                user_id: String(foundCase.opened_by),
+                                case_id: String(foundCase._id),
+                                title: foundCase.title || 'Support update',
+                                at: Date.now()
+                            };
+                            hub.emit('support:reply', payload);
+                        } catch (_) {}
                         resolve(caseSaved)
+                    }
                 })
             });
         })

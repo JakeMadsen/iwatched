@@ -14,12 +14,38 @@
             </a>
         </li>
 
-        <!-- Go to support management -->
+        <!-- Inbox dropdown -->
         <li class="">
-            <a href="/admin/support">
-                <i class="fas fa-envelope"></i>
-                Support
+            <a href="#inboxSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-inbox"></i>
+                Inbox
             </a>
+            <ul class="collapse list-unstyled" id="inboxSubmenu">
+                <li class="">
+                    <a href="/admin/contact">
+                        <i class="fas fa-envelope-open"></i>
+                        Contact messages
+                    </a>
+                </li>
+                <li class="">
+                    <a href="/admin/support">
+                        <i class="fas fa-life-ring"></i>
+                        Support
+                    </a>
+                </li>
+                <li class="">
+                    <a href="/admin/announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        Announcements
+                    </a>
+                </li>
+                <li class="">
+                    <a href="/admin/reports">
+                        <i class="fas fa-flag"></i>
+                        Reports
+                    </a>
+                </li>
+            </ul>
         </li>
 
         <!-- Go to user management -->
@@ -29,6 +55,14 @@
                 Users
             </a>
         </li>  
+
+        <!-- Badges management -->
+        <li class="">
+            <a href="/admin/badges">
+                <i class="fas fa-award"></i>
+                Badges
+            </a>
+        </li>
 
         <!-- Other minor things -->
         <li class="">
@@ -41,6 +75,12 @@
                     <a href="/admin/restrictedUrls">
                         <i class="fas fa-list"></i>
                         URL Restrictions
+                    </a>
+                </li>
+                <li class="">
+                    <a href="/admin/personas">
+                        <i class="fas fa-user-ninja"></i>
+                        Moderator nicknames
                     </a>
                 </li>
             </ul>

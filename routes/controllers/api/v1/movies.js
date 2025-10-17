@@ -1,5 +1,5 @@
 const MovieDb = require('moviedb-promise');
-const tmdService = new MovieDb('ab4e974d12c288535f869686bd72e1da')
+const tmdService = new MovieDb(process.env.TMDB_API_KEY || 'ab4e974d12c288535f869686bd72e1da')
 
 module.exports = function (server) {
     console.log('* Movie Routes Loaded Into Server');

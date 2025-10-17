@@ -50,6 +50,8 @@ module.exports = (passport) => {
 
                     var newUser = new User();
                         newUser.initialSignup(username, req.body.email, password)
+                        // Temporary: mark all newly created users as beta testers
+                        try { newUser.profile = newUser.profile || {}; newUser.profile.flags = newUser.profile.flags || {}; newUser.profile.flags.beta_tester = true; } catch (e) {}
 
                     newUser.save((err) => {
 
@@ -74,15 +76,20 @@ module.exports = (passport) => {
         });
     }));
 
+    function escapeRegex(text) {
+        return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     passport.use('local-login', new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',
         passReqToCallback: true 
     },
         function (req, login, password, done) { 
+            const escaped = escapeRegex(login || '');
             User.findOne({$or: [
-                {'local.email':new RegExp('^'+login+'$', "i") },
-                {'local.username': new RegExp('^'+login+'$', "i")}
+                {'local.email': new RegExp('^' + escaped + '$', 'i') },
+                {'local.username': new RegExp('^' + escaped + '$', 'i')}
             ]}, function (error, user) {
 
                 if (error)

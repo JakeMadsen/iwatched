@@ -1,0 +1,49 @@
+<div class="container" style="margin-top: 20px;">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <h1>Announcements</h1>
+    <% if (typeof user != 'undefined' && user.permissions && user.permissions.level && user.permissions.level.admin) { %>
+      <a href="/admin/announcements" class="btn btn-sm btn-primary"><i class="fas fa-bullhorn"></i> New announcement</a>
+    <% } %>
+  </div>
+  <div id="ann_list" class="mt-3"></div>
+  <div id="ann_pager" class="mt-3"></div>
+</div>
+
+<script>
+(function(){
+  var page = 1;
+  function load(){
+    fetch('/api/v1/announcements?page='+page+'&size=10').then(function(r){ return r.json(); }).then(function(d){
+      var wrap = document.getElementById('ann_list');
+      var pager = document.getElementById('ann_pager');
+      wrap.innerHTML = '';
+      (d.items||[]).forEach(function(a){
+        var el = document.createElement('div');
+        el.className = 'card';
+        el.style.cssText = 'background:#151515;border:1px solid #2a2a2a;margin-bottom:10px;border-radius:10px; position:relative;';
+        var slug = (a.slug||'').toString();
+        var ccount = (a.comments||[]).length;
+        el.innerHTML = '<div style="color:#ffff;" class="card-body">'
+          + '<h5 class="card-title"><a style="color: lightblue;" href="/announcements/'+a._id+(slug?('-'+slug):'')+'">'+a.title+'</a></h5>'
+          + '<div style="opacity:.75; font-size:12px;">'+new Date(a.created_at).toLocaleString()+'</div>'
+          + '<p class="card-text" style="margin-top:6px;">'+(a.text||'').replace(/\n/g,'<br>')+'</p>'
+          + '<div class="ann-cmt-counter" title="Comments" style="position:absolute; left:10px; bottom:10px; background:#202020; border:1px solid #2a2a2a; color:#e0e0e0; border-radius:16px; padding:2px 8px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">'
+          +   '<i class="fas fa-comments"></i> <span>'+ccount+'</span>'
+          + '</div>'
+          + '</div>';
+        wrap.appendChild(el);
+      });
+      var totalPages = Math.max(1, Math.ceil((d.total||0)/(d.size||10)));
+      pager.innerHTML = '<div class="btn-group">'
+        + '<button class="btn btn-sm btn-secondary" '+(page<=1?'disabled':'')+' id="prevBtn">Prev</button>'
+        + '<span class="btn btn-sm btn-dark">'+page+'/'+totalPages+'</span>'
+        + '<button class="btn btn-sm btn-secondary" '+(page>=totalPages?'disabled':'')+' id="nextBtn">Next</button>'
+        + '</div>';
+      var prev = document.getElementById('prevBtn'); var next = document.getElementById('nextBtn');
+      prev && (prev.onclick = function(){ page=Math.max(1,page-1); load(); });
+      next && (next.onclick = function(){ page=page+1; load(); });
+    });
+  }
+  document.addEventListener('DOMContentLoaded', load);
+})();
+</script>

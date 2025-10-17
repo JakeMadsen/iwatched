@@ -7,6 +7,9 @@
 <link rel="stylesheet" type="text/css" href="/static/style/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="/static/style/css/stylesheet.css">
 <link rel="stylesheet" type="text/css" href="/static/style/css/navigation.css">
+<% if (typeof page_file !== 'undefined' && (page_file === 'movies' || page_file === 'shows' || page_file === 'person')) { %>
+<link rel="stylesheet" type="text/css" href="/static/style/css/detail.css">
+<% } %>
 
 <!-- Font Awesome JS -->
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">

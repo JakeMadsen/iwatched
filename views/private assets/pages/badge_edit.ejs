@@ -1,0 +1,146 @@
+<div class="container-fluid">
+  <h3>Edit Badge</h3>
+  <form method="POST" action="/admin/badges/<%= page_data.badge._id %>" enctype="multipart/form-data" style="max-width:680px;" id="edit_badge_form">
+    <div class="form-group">
+      <label>Slug</label>
+      <input name="slug" class="form-control" value="<%= page_data.badge.slug %>" />
+      <small class="form-text text-muted">Unique identifier used internally.</small>
+    </div>
+    <div class="form-group">
+      <label>Title</label>
+      <input name="title" class="form-control" value="<%= page_data.badge.title %>" />
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" class="form-control" rows="3"><%= page_data.badge.description %></textarea>
+    </div>
+    <div class="form-group">
+      <label>Kind</label>
+      <select name="kind" class="form-control" id="badge_kind">
+        <option value="manual" <%= page_data.badge.kind==='manual' ? 'selected' : '' %>>Manual</option>
+        <option value="tenure" <%= page_data.badge.kind==='tenure' ? 'selected' : '' %>>Tenure (time-based)</option>
+        <option value="flag" <%= page_data.badge.kind==='flag' ? 'selected' : '' %>>Flag (user flag)</option>
+      </select>
+      <small class="form-text text-muted">Manual = awarded by admin. Tenure = auto levels by account age. Flag = auto (e.g., beta_tester).</small>
+    </div>
+    <div class="form-group" id="tenure_cfg" style="display:<%= page_data.badge.kind==='tenure' ? 'block':'none' %>;">
+      <label>Thresholds</label>
+      <input name="thresholds" class="form-control" value="<%=( (page_data.badge.config&&page_data.badge.config.thresholds)||[]).map(function(t){return t.level+':'+t.days}).join(',')%>" />
+      <small class="form-text text-muted">Format: level:days (e.g., bronze:365,silver:730). Levels must match names below.</small>
+    </div>
+    <div class="form-group" id="flag_cfg" style="display:<%= page_data.badge.kind==='flag' ? 'block':'none' %>;">
+      <label>Flag name</label>
+      <input name="flag" class="form-control" value="<%= page_data.badge.config && page_data.badge.config.flag || '' %>" />
+      <small class="form-text text-muted">Checks user.profile.flags[flag] == true. Example: beta_tester</small>
+    </div>
+    <div class="form-group">
+      <label>Mode</label>
+      <% var isMulti = (page_data.badge.levels||[]).length > 0; %>
+      <div>
+        <label class="form-check-label" style="margin-right:12px;"><input type="radio" name="mode" value="single" <%= isMulti ? '' : 'checked' %>> Single</label>
+        <label class="form-check-label"><input type="radio" name="mode" value="multi" <%= isMulti ? 'checked' : '' %>> Multiple (levels)</label>
+      </div>
+      <small class="form-text text-muted">Single badges don’t have levels (e.g., Beta Tester). Multiple badges define named levels (e.g., Bronze/Silver).</small>
+    </div>
+    <div id="levels_editor" style="display:<%= isMulti ? 'block' : 'none' %>;">
+      <label>Levels</label>
+      <div id="levels_rows">
+        <% (page_data.badge.levels||[]).forEach(function(l){ %>
+          <div class="form-row" style="margin-bottom:8px;">
+            <div class="col-4"><input class="form-control level-name" placeholder="Level name" value="<%= l.name || l %>"></div>
+            <div class="col-7"><input class="form-control level-desc" placeholder="Level description" value="<%= l.description || '' %>"></div>
+            <div class="col-1"><button type="button" class="btn btn-outline-danger btn-sm remove">✕</button></div>
+          </div>
+        <% }); %>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-info" id="add_level_btn">Add Level</button>
+      <input type="hidden" name="levels_json" id="levels_json" />
+      <small class="form-text text-muted">Order matters (ascending). Each level can have its own description.</small>
+      <hr/>
+    </div>
+    <div class="form-group">
+      <label>Icon</label>
+      <input type="file" name="icon" class="form-control" accept="image/*" />
+      <% if(page_data.badge.icon){ %>
+        <div style="margin-top:8px;">
+          <img src="/static/style/img/badges/<%= page_data.badge.icon %>" style="width:48px;height:48px;object-fit:contain;" />
+        </div>
+      <% } %>
+    </div>
+    <div class="form-check" style="margin-bottom:12px;">
+      <input class="form-check-input" type="checkbox" id="badge_active" name="active" <%= page_data.badge.active ? 'checked' : '' %> />
+      <label class="form-check-label" for="badge_active">Active</label>
+    </div>
+    <div class="form-group">
+      <button class="btn btn-outline-primary" type="submit">Save</button>
+      <a href="/admin/badges" class="btn btn-secondary">Back</a>
+    </div>
+  </form>
+
+  <hr />
+  <h4>Assign to user (manual)</h4>
+  <form method="POST" action="/admin/badges/assign" class="form-inline">
+    <input type="hidden" name="badge_id" value="<%= page_data.badge._id %>" />
+    <div class="form-group" style="margin-right:8px;">
+      <input class="form-control" name="username" placeholder="Username" />
+    </div>
+    <div class="form-group" style="margin-right:8px;">
+      <% var lvl = (page_data.badge.levels||[]); if (lvl.length) { %>
+        <select class="form-control" name="level">
+          <% lvl.forEach(function(l){ %>
+            <option value="<%= l.name || l %>"><%= l.name || l %></option>
+          <% }); %>
+        </select>
+      <% } else { %>
+        <input class="form-control" name="level" value="single" readonly />
+      <% } %>
+    </div>
+    <button type="submit" class="btn btn-outline-success">Assign</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var sel = document.getElementById('badge_kind');
+    function refresh(){
+      var k = sel.value;
+      document.getElementById('tenure_cfg').style.display = (k==='tenure')?'block':'none';
+      document.getElementById('flag_cfg').style.display = (k==='flag')?'block':'none';
+    }
+    sel.addEventListener('change', refresh);
+
+    // Mode + levels editor
+    function bindRemove(btn, row){ btn.addEventListener('click', function(){ row.remove(); }); }
+    var modeInputs = document.querySelectorAll('input[name="mode"]');
+    var levelsEditor = document.getElementById('levels_editor');
+    function refreshMode(){
+      var val = document.querySelector('input[name="mode"]:checked').value;
+      levelsEditor.style.display = (val==='multi') ? 'block' : 'none';
+    }
+    modeInputs.forEach(function(i){ i.addEventListener('change', refreshMode); });
+    var rows = document.getElementById('levels_rows');
+    document.getElementById('add_level_btn').addEventListener('click', function(){
+      var div = document.createElement('div');
+      div.className = 'form-row';
+      div.style.marginBottom = '8px';
+      div.innerHTML = '<div class="col-4"><input class="form-control level-name" placeholder="Level name"></div>'+
+                      '<div class="col-7"><input class="form-control level-desc" placeholder="Level description"></div>'+
+                      '<div class="col-1"><button type="button" class="btn btn-outline-danger btn-sm remove">✕</button></div>';
+      rows.appendChild(div);
+      bindRemove(div.querySelector('.remove'), div);
+    });
+    refreshMode();
+
+    document.getElementById('edit_badge_form').addEventListener('submit', function(){
+      var val = document.querySelector('input[name="mode"]:checked').value;
+      if (val !== 'multi') return;
+      var data = [];
+      rows.querySelectorAll('.form-row').forEach(function(r){
+        var name = r.querySelector('.level-name').value.trim();
+        var desc = r.querySelector('.level-desc').value.trim();
+        if (name) data.push({ name: name, description: desc });
+      });
+      document.getElementById('levels_json').value = JSON.stringify(data);
+    });
+  });
+</script>

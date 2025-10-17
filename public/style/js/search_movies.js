@@ -1,91 +1,193 @@
+// NOTE: How API requests happen from this file
+// - The InfiniteScroll plugin is configured with a `path()` function that
+//   generates URLs like:
+//     /api/v1/movies/search/<term>/<pageIndex>
+//     /api/v1/movies/search_genre/<genre>/<pageIndex>
+// - Calling `$container.infiniteScroll('loadNextPage')` performs the HTTP GET
+//   to that URL. When the response arrives, the plugin triggers the
+//   `load.infiniteScroll` event, which we handle to parse the JSON and append
+//   rendered items into `#movies_holder`.
+
 (function () {
-    var urlParams = parseQueryString(location.search);
+    // Run after DOM is ready so containers exist
+    window.addEventListener('DOMContentLoaded', function () {
+        var urlParams = parseQueryString(location.search);
 
-    if(urlParams.genre != null){
-        searchMovies(urlParams.genre)
-    }
+        // Intercept Enter key (form submit) to avoid page reload
+        var $input = $('#search_input');
+        if ($input && $input.length) {
+            $input.closest('form').on('submit', function (e) {
+                e.preventDefault();
+                searchMovies();
+            });
+        }
 
+        if (urlParams.genre != null) {
+            var g = urlParams.genre;
+            try { g = decodeURIComponent(String(g).replace(/\+/g, ' ')); } catch (e) { /* noop */ }
+            searchMovies(g);
+            console.log("Searching by genre: " + urlParams.genre);
+            return;
+        }
+
+        // Support landing on /movies?search_input=iron+man
+        if (urlParams.search_input != null) {
+            try {
+                var term = decodeURIComponent(String(urlParams.search_input).replace(/\+/g, ' '));
+                if ($input && $input.length) $input.val(term);
+            } catch (e) { /* ignore */ }
+            searchMovies();
+        }
+    });
 })();
 
 function searchMovies(genre) {
-    $('#movies_holder').empty()
-    $('#view_more').show()
-    console.log("searchMovies()", genre)
+    var $holder = $('#movies_holder');
+    // If a previous InfiniteScroll instance exists, destroy it and unbind events
+    try { $holder.infiniteScroll('destroy'); } catch (e) { /* no-op */ }
+    $holder.off('load.infiniteScroll');
+    $holder.off('append.infiniteScroll');
+    $holder.off('request.infiniteScroll');
+    $holder.off('last.infiniteScroll');
+
+    $holder.empty();
+    $('#view_more').hide();
+
     var searchParam;
     var link;
 
-    if (genre != null){
-        console.log("got genre")
-         searchParam = genre;
-         link = `/api/v1/movies/search_genre/`
+    console.log("searchParam before if: " + searchParam);
+
+    if (genre != null) {
+        console.log("Searching by genre: " + genre);
+        try { searchParam = decodeURIComponent(String(genre)); } catch (e) { searchParam = genre; }
+        link = `/api/v1/movies/search_genre/`;
     } else {
-        console.log("no genre")
-        searchParam = $('#search_input').val();
-        link = `/api/v1/movies/search/`
+        console.log("Searching by text input");
+        searchParam = ($('#search_input').val() || '').trim();
+        link = `/api/v1/movies/search/`;
     }
 
-    try {
-        console.log("try")
-        var $container = $('#movies_holder').infiniteScroll({
-        path: function () {
-            console.log("container function", link + searchParam + '/' + this.pageIndex)
-            return link + searchParam + '/' + this.pageIndex;
-        },
-        // load response as flat text
-        responseType: 'text',
-        loadOnScroll: false,
-        status: '.page-load-status',
-        history: true
-    });
-    } catch (error) {
-        console.log(error)
+    // If no query and no genre, do nothing to avoid 404s
+    if (!genre && (!searchParam || searchParam.length === 0)) {
+        // Optionally focus the input for UX
+        var $input = $('#search_input');
+        if ($input && $input.length) $input.focus();
+        return;
     }
-    
-    
-console.log("viewmore")
-    var $viewMoreButton = $('.view-more-button');
-    $viewMoreButton.on('click', function () {
-        console.log("view more button functio")
-        // load next page
-        $container.infiniteScroll('loadNextPage');
-        // enable loading on scroll
-        $container.infiniteScroll('option', {
+
+    var $container;
+    var autoButtonTimer = null;
+    var consecutiveEmptyPages = 0;
+    var autoLoadCount = 0;
+    try {
+        $container = $holder.infiniteScroll({
+            path: function () {
+                // Avoid double slashes when no searchParam
+                var base = link;
+                if (searchParam) {
+                    base += encodeURIComponent(searchParam) + '/';
+                }
+                return base + this.pageIndex;
+            },
+            responseType: 'text',
             loadOnScroll: true,
+            prefill: false,
+            scrollThreshold: 400,
+            status: '.page-load-status',
+            history: false // keep URL stable; we manage query via input/genre
         });
-        // hide button
+    } catch (error) {
+        console.log(error);
+        return;
+    }
+
+    // Show status UI; hide the manual button since scrolling is enabled
+    $('#view_more').show();
+    var $viewMoreButton = $('.view-more-button');
+    $viewMoreButton.hide();
+    $viewMoreButton.off('click').on('click', function(){
+        $container.infiniteScroll('loadNextPage');
+    });
+
+    $container.on('request.infiniteScroll', function(){
+        // hide button while a request is in-flight
+        clearTimeout(autoButtonTimer);
         $viewMoreButton.hide();
     });
 
-
     $container.on('load.infiniteScroll', function (event, response) {
-        console.log("load infinite scroll")
-        // parse response into JSON data
         var data = JSON.parse(response);
-        // compile data into HTML
-        var itemsHTML = data.results.map(getItemHTML).join('');
-        // convert HTML string into elements
+        var results = (data.results || []).map(function (m) {
+            if (!m.poster_path && m.backdrop_path) {
+                // Fallback so pagination still feels responsive
+                m.poster_path = m.backdrop_path;
+            }
+            return m;
+        });
+        var itemsHTML = results.map(getItemHTML).filter(Boolean).join('');
         var $items = $(itemsHTML);
-        // append item elements
         $container.infiniteScroll('appendItems', $items);
+
+        // If nothing appended and there are more pages, auto-skip to next
+        var appendedCount = $items.length;
+        var totalPages = (data.total_pages || 0);
+        var currentPage = (data.page || 0);
+        if (appendedCount === 0 && totalPages && currentPage && currentPage < totalPages) {
+            consecutiveEmptyPages++;
+            if (consecutiveEmptyPages <= 2) {
+                // try to fetch next page to avoid dead-ends
+                $container.infiniteScroll('loadNextPage');
+                return;
+            }
+        } else {
+            consecutiveEmptyPages = 0;
+        }
+
+        // Schedule showing the button if no auto-load happens shortly
+        clearTimeout(autoButtonTimer);
+        autoButtonTimer = setTimeout(function(){
+            $viewMoreButton.show();
+        }, 900);
+    });
+
+    // When items are appended, decide if we should pause auto-loading
+    $container.on('append.infiniteScroll', function(){
+        autoLoadCount++;
+        // After several auto loads, pause auto-loading and show button
+        if (autoLoadCount >= 4) {
+            $container.infiniteScroll('option', { loadOnScroll: false });
+            $viewMoreButton.show();
+        }
+    });
+
+    $container.on('last.infiniteScroll', function(){
+        clearTimeout(autoButtonTimer);
+        $viewMoreButton.hide();
     });
 
     // load initial page
     $container.infiniteScroll('loadNextPage');
+
+    // Re-enable auto scroll on manual button click and reset counter
+    $viewMoreButton.on('click', function(){
+        autoLoadCount = 0;
+        $container.infiniteScroll('option', { loadOnScroll: true });
+        $viewMoreButton.hide();
+    });
 
     //------------------//
 
     var itemTemplateSrc = $('#movie-template').html();
 
     function getItemHTML(movie) {
-        console.log("getitemhtml")
         return microTemplate(itemTemplateSrc, movie);
     }
 
     // micro templating, sort-of
     function microTemplate(src, data) {
-        console.log("micro template function")
-        if (data.backdrop_path == null || data.backdrop_path == "")
-            return null
+        if (data.poster_path == null || data.poster_path == "")
+            return null;
         // replace {{tags}} in source
         return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (match, key) {
             // walk through objects to get value

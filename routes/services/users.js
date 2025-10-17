@@ -246,20 +246,27 @@ module.exports = {
 *   Local functions
 **************************/
 function saveProfileImages(user_id, new_image, old_image, type) {
-    var dir = `public/style/img/profile_images/users/${user_id}`;
-    
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir);
+    const dir = `public/style/img/profile_images/users/${user_id}`;
+
+    try {
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        // remove old image if provided and exists
+        if (old_image && fs.existsSync(`${dir}/${old_image}`)) {
+            try { fs.unlinkSync(`${dir}/${old_image}`); } catch (_) {}
+        }
+        if (!new_image) return;
+        new_image.name = `${type}_${user_id}.${getFileExtention(new_image.name || '')}`;
+        // express-fileupload provides mv
+        if (typeof new_image.mv === 'function') {
+            new_image.mv(`${dir}/${new_image.name}`, (error) => {
+                if (error) console.error('save image : error', error);
+            });
+        }
+    } catch (e) {
+        console.error('saveProfileImages failure:', e);
     }
-    fs.unlink(`public/style/img/profile_images/users/${user_id}/${old_image}`, (err) => {
-        new_image.name = `${type}_${user_id}.${getFileExtention(new_image.name)}`;
-        new_image.mv(`public/style/img/profile_images/users/${user_id}/${new_image.name}`, (error) => {
-            if (error)
-                reject("save image : error", error)
-            else
-                return new_image.name;
-        });
-    });
 }
 
 function getFileExtention(filename) {

@@ -13,20 +13,36 @@ var userSchema = mongoose.Schema({
     },
     profile: {
         registration_date:  { type: Date, default: Date.now },
-        private:            { type: Boolean, default: false },
+        private:            { type: Boolean, default: false }, 
+        visibility:         { type: String, enum: ['public','friends','private'], default: 'public' },
+        flags:              { 
+            beta_tester: { type: Boolean, default: false }
+        },
         inactive:           { type: Boolean, default: false },  
         banner_image:       { type: String, default: null },
         profile_image:      { type: String, default: 'profile-picture-missing.png' },
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
-        custom_url:         { type: String, default: hat(), index: {unique : true} }
+        custom_url:         { type: String, default: hat(), index: {unique : true} },
+        user_badges:        { type: [
+            new mongoose.Schema({
+                badge_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Badge' },
+                level: { type: String, default: 'single' }, // for multi-level badges, store level name; for single, 'single'
+                awarded_at: { type: Date, default: Date.now }
+            }, { _id: false })
+        ], default: [] }
     },
     permissions: {
         user_private_key: { type: String, default: hat()},
         level: {
             admin: { type: Boolean, default: false }
         }
+    },
+    account: {
+        plan: { type: String, enum: ['free','premium'], default: 'free' },
+        premium_since: { type: Date, default: null },
+        premium_until: { type: Date, default: null }
     }
 });
 
@@ -49,7 +65,8 @@ userSchema.methods.validPassword = function (password) {
 
 // updates main user details
 userSchema.methods.updateSettings = async function (body, profilePicture, profileBanner){
-    let check = await checkIfCustomUrlAvailable(body.custom_url);
+    const restrictedUrlService = require('../../routes/services/restrictedUrls');
+    const validation = await restrictedUrlService.validateCustomUrl(body.custom_url);
 
     if(this.local.username != body.username && body.username != "")
         this.local.username = body.username;
@@ -57,12 +74,12 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
     if(this.local.email != body.email && body.email != "")
         this.local.email = body.email;
 
-    if(body.password != "" && body.password != this.validPassword(body.password))
-        this.local.password = this.generateHash(body.password);
+    if (body.password && body.password.trim() !== "")
+        this.local.password = this.generateHash(body.password.trim());
 
-    if(check == true){
+    if(validation && validation.ok === true){
         if(this.profile.custom_url != body.custom_url && body.custom_url != ""){
-            this.profile.custom_url = body.custom_url;
+            this.profile.custom_url = body.custom_url.toLowerCase();
         }
     }
 
@@ -71,6 +88,11 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
 
     if(this.profile.description != body.description && body.description != "")
         this.profile.description = body.description;
+
+    if (body.visibility && ['public','friends','private'].includes(String(body.visibility))) {
+        this.profile.visibility = String(body.visibility);
+        this.profile.private = (this.profile.visibility === 'private');
+    }
 
     if(this.profile.profile_image != profilePicture && profilePicture != "" && profilePicture != null)
         this.profile.profile_image = profilePicture;
@@ -82,17 +104,3 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema, 'users');
-
-async function checkIfCustomUrlAvailable(new_url){
-    return new Promise ((resolve, reject) =>{
-        restrictedUrlService
-        .checkUrl(new_url)
-        .then(check => {
-            if(check == null)
-                resolve(true)
-            else
-                reject(false)
-        })
-    })
-    
-}

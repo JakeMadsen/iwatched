@@ -29,6 +29,7 @@
 
     <!-- Movie Information -->
     <div class="row">
+        <!-- If there is a video, show full width layout -->
         <% if (page_data.movie_videos.length != '0' ) { %>
         
         <div class="col-md-12">
@@ -42,31 +43,31 @@
                             <div class="col-sm-4 col-md-4">
                                 <i  class="far fa-check-circle fa-2x icon-white" title="Add a movie that you have watched"
                                     id="add_watched_movie_<%= page_data.movie.id %>"
-                                    onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')" >
+                                    onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')" >
                                 </i>
                                 <i  class="fas fa-check-circle fa-2x icon-green" title="Remove a movie from watched"
                                     id="remove_watched_movie_<%= page_data.movie.id %>"  
-                                    onclick="movieRemoveWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    onclick="movieRemoveWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
                                 </i>
                             </div>
                             <div class="col-sm-4 col-md-4">
                                 <i  class="far fa-heart fa-2x icon-white" 
                                     id="add_favourited_movie_<%= page_data.movie.id %>" 
-                                    onclick="movieAddFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    onclick="movieAddFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
                                 </i>
                                 <i  class="fas fa-heart fa-2x icon-red" 
                                     id="remove_favourited_movie_<%= page_data.movie.id %>" 
-                                    onclick="movieRemoveFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    onclick="movieRemoveFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
                                 </i>
                             </div>
                             <div class="col-sm-4 col-md-4">
                                 <i  class="far fa-bookmark fa-2x icon-white"
                                     id="add_saved_movie_<%= page_data.movie.id %>" 
-                                    onclick="movieAddSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    onclick="movieAddSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
                                 </i>
                                 <i class="fas fa-bookmark fa-2x icon-blue"
                                     id="remove_saved_movie_<%= page_data.movie.id %>" 
-                                    onclick="movieRemoveSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                    onclick="movieRemoveSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
                                 </i>
                             </div>
                         </div>
@@ -74,60 +75,181 @@
                 </div>
             </div>
             
+            <!-- Modernized info section -->
+            <div class="row" style="margin-top:6px;">
+                <div class="col-md-12">
+                    <div style="color: #fff; margin:6px 0 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <% var year = (page_data.movie.release_date||'').toString().slice(0,4); %>
+                        <% if (year) { %><span style="opacity:.85;"> <%= year %> </span><% } %>
+                        <% if (page_data.movie.vote_average) { var __v = Number(page_data.movie.vote_average||0); var __vr = Math.round(__v*2)/2; var __vrStr = (__vr % 1 === 0) ? __vr.toFixed(0) : __vr.toFixed(1); %>
+                            <span style="opacity:.85;">•</span>
+                            <span style="opacity:.85;"> <i class="fas fa-star" style="color:#f5c518;"></i> <%= __vrStr %>/10</span>
+                        <% } %>
+                        <!-- <span style="opacity:.85;">â€¢</span> -->
+                        <!-- <span style="opacity:.85;"> <%= page_data.runtime %> </span> -->
+                    </div>
 
-            <div class="row">
-                
-
-                <div class="col-md-4 ">
-                    <p>
-                        <b>Runtime: </b> <%= page_data.runtime %> 
-                        
-                        <br>
-
-                        <b>Genres: </b>
-
-                        <% page_data.movie.genres.forEach(function (genre, index){ %>
-                            <a style="color: lightblue;" href="/movies?genre=<%= genre.name.toLowerCase() %>"> <%= genre.name %></a> , 
+                    <div style="margin-bottom:8px;">
+                        <% (page_data.movie.genres||[]).forEach(function(genre){ %>
+                            <a href="/movies?genre=<%= genre.name.toLowerCase() %>" class="badge badge-secondary" style="margin-right:6px; background:rgba(255,255,255,.08); color:#fff;"> <%= genre.name %> </a>
                         <% }); %>
+                    </div>
 
-                        <br>
-                    
-                        <b>Spoken Language</b> <%= page_data.movie.spoken_languages[0].name %>
-
-                        <br>
-
-                        <b>Release Date: </b> <%= page_data.movie.release_date %>
-
-                        <br>
-                        
-                        <b>Movie Budget: </b> <%= '$' + page_data.movie.budget.toLocaleString('us') %>
-
-                        <br>
-
-                        <b>Movie Revenue: </b> <%= '$' + page_data.movie.revenue.toLocaleString('us') %>
-                        
-                        <br>
+                    <% if (page_data.movie.overview) { %>
+                    <p style="font-size:16px; line-height:1.6; opacity:.95; max-width:980px;">
+                        <%= page_data.movie.overview %>
                     </p>
-                </div>
-                <div class="col-md-6 ml-auto">
-                        <p><%= page_data.movie.overview %> </p>
+                    <% } %>
+
+                    <!-- New responsive info cards -->
+                    <div class="info-cards">
+                        <div class="row no-gutters">
+                            <% if (page_data.movie.release_date) { %>
+                            <div class="col-12 col-sm-6 col-md-3 p-1">
+                            <div class="info-card">
+                                <div class="label">Release Date</div>
+                                <div class="value"><%= new Date(page_data.movie.release_date).toLocaleDateString() %></div>
+                            </div>
+                            </div>
+                            <% } %>
+                            <div class="col-12 col-sm-6 col-md-3 p-1">
+                            <div class="info-card">
+                                <div class="label">Runtime</div>
+                                <div class="value"><%= page_data.runtime %></div>
+                            </div>
+                            </div>
+                            <% if ((page_data.directors||[]).length) { var d0 = page_data.directors[0]; %>
+                            <div class="col-12 col-sm-6 col-md-3 p-1">
+                            <div class="info-card">
+                                <div class="label">Director</div>
+                                <div class="value"><a href="/person/<%= d0.id %>" style="color:#fff; text-decoration:none;"> <%= d0.name %> </a></div>
+                            </div>
+                            </div>
+                            <% } %>
+                            <% if (page_data.movie.budget) { %>
+                            <div class="col-12 col-sm-6 col-md-3 p-1">
+                            <div class="info-card">
+                                <div class="label">Budget</div>
+                                <div class="value">$<%= (page_data.movie.budget||0).toLocaleString('en-US') %></div>
+                            </div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
         </div>
         
         <% } else { %>
+            <!-- No video available, show normal layout -->
+
             <div class="col-md-9">
                 <div class="row">
-                    <div class="col-md-6">
-                        <h1>
-                            <%= page_data.movie.title %>
-                        </h1>
+                    <div class="col-md-10">
+                        <h1><%= page_data.movie.title %></h1>
                     </div>
-                    <div class="col-md-6">
-                        <h1>
-                            <%= page_data.movie.title %>
-                        </h1>
-                        <%= page_data.movie.video %>
+                    <div class="col-md-2">
+                        <% if(typeof user != 'undefined') { %>
+                            <div class="row">
+                                <div class="col-sm-4 col-md-4">
+                                    <i  class="far fa-check-circle fa-2x icon-white" title="Add a movie that you have watched"
+                                        id="add_watched_movie_<%= page_data.movie.id %>"
+                                        onclick="movieAddWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')" >
+                                    </i>
+                                    <i  class="fas fa-check-circle fa-2x icon-green" title="Remove a movie from watched"
+                                        id="remove_watched_movie_<%= page_data.movie.id %>"  
+                                        onclick="movieRemoveWatched('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                    </i>
+                                </div>
+                                <div class="col-sm-4 col-md-4">
+                                    <i  class="far fa-heart fa-2x icon-white" 
+                                        id="add_favourited_movie_<%= page_data.movie.id %>" 
+                                        onclick="movieAddFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                    </i>
+                                    <i  class="fas fa-heart fa-2x icon-red" 
+                                        id="remove_favourited_movie_<%= page_data.movie.id %>" 
+                                        onclick="movieRemoveFavourited('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                    </i>
+                                </div>
+                                <div class="col-sm-4 col-md-4">
+                                    <i  class="far fa-bookmark fa-2x icon-white"
+                                        id="add_saved_movie_<%= page_data.movie.id %>" 
+                                        onclick="movieAddSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                    </i>
+                                    <i class="fas fa-bookmark fa-2x icon-blue"
+                                        id="remove_saved_movie_<%= page_data.movie.id %>" 
+                                        onclick="movieRemoveSaved('<%= user._id %>', '<%= page_data.movie.id %>', '<%= page_data.movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                    </i>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Modernized info section -->
+                <div class="row" style="margin-top:6px;">
+                    <div class="col-md-12">
+                        <div style="color: #fff; margin:6px 0 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <% var year = (page_data.movie.release_date||'').toString().slice(0,4); %>
+                            <% if (year) { %><span style="opacity:.85;"> <%= year %> </span><% } %>
+                            <% if (page_data.movie.vote_average) { var __v = Number(page_data.movie.vote_average||0); var __vr = Math.round(__v*2)/2; var __vrStr = (__vr % 1 === 0) ? __vr.toFixed(0) : __vr.toFixed(1); %>
+                            <span style="opacity:.85;">•</span>
+                            <span style="opacity:.85;"> <i class="fas fa-star" style="color:#f5c518;"></i> <%= __vrStr %>/10</span>
+                        <% } %>
+                            <!-- <span style="opacity:.85;">â€¢</span> -->
+                            <!-- <span style="opacity:.85;"> <%= page_data.runtime %> </span> -->
+                        </div>
+
+                        <div style="margin-bottom:8px;">
+                            <% (page_data.movie.genres||[]).forEach(function(genre){ %>
+                                <a href="/movies?genre=<%= genre.name.toLowerCase() %>" class="badge badge-secondary" style="margin-right:6px; background:rgba(255,255,255,.08); color:#fff;"> <%= genre.name %> </a>
+                            <% }); %>
+                        </div>
+
+                        <% if (page_data.movie.overview) { %>
+                        <p style="font-size:16px; line-height:1.6; opacity:.95; max-width:980px;">
+                            <%= page_data.movie.overview %>
+                        </p>
+                        <% } %>
+
+                        <!-- New responsive info cards -->
+                        <div class="info-cards">
+                            <div class="row no-gutters">
+                                <% if (page_data.movie.release_date) { %>
+                                <div class="col-12 col-sm-6 col-md-3 p-1">
+                                <div class="info-card">
+                                    <div class="label">Release Date</div>
+                                    <div class="value"><%= new Date(page_data.movie.release_date).toLocaleDateString() %></div>
+                                </div>
+                                </div>
+                                <% } %>
+                                <div class="col-12 col-sm-6 col-md-3 p-1">
+                                <div class="info-card">
+                                    <div class="label">Runtime</div>
+                                    <div class="value"><%= page_data.runtime %></div>
+                                </div>
+                                </div>
+                                <% if ((page_data.directors||[]).length) { var d0 = page_data.directors[0]; %>
+                                <div class="col-12 col-sm-6 col-md-3 p-1">
+                                <div class="info-card">
+                                    <div class="label">Director</div>
+                                    <div class="value"><a href="/person/<%= d0.id %>" style="color:#fff; text-decoration:none;"> <%= d0.name %> </a></div>
+                                </div>
+                                </div>
+                                <% } %>
+                                <% if (page_data.movie.budget) { %>
+                                <div class="col-12 col-sm-6 col-md-3 p-1">
+                                <div class="info-card">
+                                    <div class="label">Budget</div>
+                                    <div class="value">$<%= (page_data.movie.budget||0).toLocaleString('en-US') %></div>
+                                </div>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -139,7 +261,35 @@
         
     </div>
 
-    <div class="dropdown-divider" style="margin: 30px 0px 30px 0px"></div>
+
+
+    <% if ((page_data.cast||[]).length) { %>
+    <div>
+        <style>
+            .cast-row{overflow-x:auto; white-space:nowrap; flex-wrap:nowrap; padding-bottom:8px;}
+            .cast-row::-webkit-scrollbar{height:6px;}
+            .cast-row::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.25); border-radius:6px; }
+            .cast-row{scrollbar-width:thin; scrollbar-color: rgba(255,255,255,.25) transparent;}
+        </style>
+        <h4 style="margin-bottom:8px; color:#fff;">Cast</h4>
+
+        <div class="row cast-row">
+            <% page_data.cast.forEach(function (p, index){ if (index < 20) { %>
+                <div class="col-md-2" style="display:inline-block; float:none;">
+                    <a href="/person/<%= p.id %>">
+                        <% if (p.profile_path) { %>
+                            <img class="img-fluid" src="https://image.tmdb.org/t/p/w185/<%= p.profile_path %>" alt="<%= p.name %>" style="border-radius:6px;">
+                        <% } %>
+                        <div style="color:#fff; font-weight:600; margin-top:6px;"><%= p.name %></div>
+                        <div style="opacity:.8; color:#ccc; font-size:12px;">
+                            <%= p.character %>
+                        </div>
+                    </a>
+                </div>
+            <% } }); %>
+        </div>
+    </div>
+    <% } %>
     
     <!-- Similar Movies -->
     <div>
@@ -166,36 +316,35 @@
                         <div class="movie-hover image-box-description">
                             <p><%= movie.title %></p>
                             <% if(typeof user != 'undefined') { %>
-                                
                                 <div class="row" >
                                     <div class="col-md-4">
                                             <i  class="far fa-check-circle fa-2x icon-white" 
                                             id="add_watched_movie_<%= movie.id %>"
-                                            onclick="movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>')" >
+                                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;" >
                                         </i>
                                         <i  class="fas fa-check-circle fa-2x icon-green" 
                                             id="remove_watched_movie_<%= movie.id %>"  
-                                            onclick="movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>')">
+                                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;">
                                         </i>
                                     </div>
                                     <div class="col-md-4">
                                         <i  class="far fa-heart fa-2x icon-white" 
                                             id="add_favourited_movie_<%= movie.id %>" 
-                                            onclick="movieAddFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
                                         </i>
                                         <i  class="fas fa-heart fa-2x icon-red" 
                                             id="remove_favourited_movie_<%= movie.id %>" 
-                                            onclick="movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
                                         </i>
                                     </div>
                                     <div class="col-md-4">
                                         <i  class="far fa-bookmark fa-2x icon-white"
                                             id="add_saved_movie_<%= movie.id %>" 
-                                            onclick="movieAddSaved('<%= user._id %>', '<%= movie.id %>')">
+                                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
                                         </i>
                                         <i class="fas fa-bookmark fa-2x icon-blue"
                                             id="remove_saved_movie_<%= movie.id %>" 
-                                            onclick="movieRemoveSaved('<%= user._id %>', '<%= movie.id %>')">
+                                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
                                         </i>
                                     </div>
                                 </div>
@@ -219,3 +368,4 @@
     
     </script>
 <% } %>
+

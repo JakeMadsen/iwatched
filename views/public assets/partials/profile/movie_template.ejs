@@ -12,39 +12,39 @@
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{movie_title}}</p>
-                    
-                    <div class="row" >
-                        <div class="col-md-4">
-                                <i  class="far fa-check-circle fa-2x icon-white" 
-                                id="add_watched_movie_{{tmd_id}}"
-                                onclick="movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>')" >
-                            </i>
-                            <i  class="fas fa-check-circle fa-2x icon-green" 
-                                id="remove_watched_movie_{{tmd_id}}"  
-                                onclick="movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>')">
-                            </i>
-                        </div>
-                        <div class="col-md-4">
-                            <i  class="far fa-heart fa-2x icon-white" 
-                                id="add_favourited_movie_{{tmd_id}}" 
-                                onclick="movieAddFavourited('<%= user._id %>', '{{tmd_id}}')">
-                            </i>
-                            <i  class="fas fa-heart fa-2x icon-red" 
-                                id="remove_favourited_movie_{{tmd_id}}" 
-                                onclick="movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}')">
-                            </i>
-                        </div>
-                        <div class="col-md-4">
-                            <i  class="far fa-bookmark fa-2x icon-white"
-                                id="add_saved_movie_{{tmd_id}}" 
-                                onclick="movieAddSaved('<%= user._id %>', '{{tmd_id}}')">
-                            </i>
-                            <i class="fas fa-bookmark fa-2x icon-blue"
-                                id="remove_saved_movie_{{tmd_id}}" 
-                                onclick="movieRemoveSaved('<%= user._id %>', '{{tmd_id}}')">
-                            </i>
-                        </div>
+
+                <div class="row" >
+                    <div class="col-md-4">
+                        <i  class="far fa-check-circle fa-2x icon-white" 
+                            id="add_watched_movie_{{tmd_id}}"
+                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>'); return false;" >
+                        </i>
+                        <i  class="fas fa-check-circle fa-2x icon-green" 
+                            id="remove_watched_movie_{{tmd_id}}"  
+                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>'); return false;">
+                        </i>
                     </div>
+                    <div class="col-md-4">
+                        <i  class="far fa-heart fa-2x icon-white" 
+                            id="add_favourited_movie_{{tmd_id}}" 
+                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{tmd_id}}'); return false;">
+                        </i>
+                        <i  class="fas fa-heart fa-2x icon-red" 
+                            id="remove_favourited_movie_{{tmd_id}}" 
+                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}'); return false;">
+                        </i>
+                    </div>
+                    <div class="col-md-4">
+                        <i  class="far fa-bookmark fa-2x icon-white"
+                            id="add_saved_movie_{{tmd_id}}" 
+                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{tmd_id}}'); return false;">
+                        </i>
+                        <i class="fas fa-bookmark fa-2x icon-blue"
+                            id="remove_saved_movie_{{tmd_id}}" 
+                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{tmd_id}}'); return false;">
+                        </i>
+                    </div>
+                </div>
             </div>
         </div>
     </script>

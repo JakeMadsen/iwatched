@@ -11,21 +11,10 @@
 
         </div>
         <div class="col-md-6">
-            <h1>News</h1>
-            <p style="color: red">
-                Please read
-            </p>
-            <p>
-                This is a beta of the site with the purpose of getting user feedback
-                and finding bugs so that we can improve the user experience. 
-                <br>
-                Please keep in mind that since this is a beta version of the website
-                there is the possibilty of major changes which might reset your account 
-                in one way or another. But we will do our best to keep your profile 
-                intact during the course of development.
-                <br>
-                Thank you for choosing to participate in the beta of this website.
-            </p>
+            <h1>Latest Announcement</h1>
+            <div id="latest_announcement">
+                <div style="color:#fff; opacity:.75;">Loading announcements...</div>
+            </div>
         </div>
     </div>
 
@@ -57,31 +46,31 @@
                                 <div class="col-md-4">
                                         <i  class="far fa-check-circle fa-2x icon-white" 
                                         id="add_watched_movie_<%= movie.id %>"
-                                        onclick="movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>')" >
+                                        onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>'); return false;" >
                                     </i>
                                     <i  class="fas fa-check-circle fa-2x icon-green" 
                                         id="remove_watched_movie_<%= movie.id %>"  
-                                        onclick="movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>')">
+                                        onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>'); return false;">
                                     </i>
                                 </div>
                                 <div class="col-md-4">
                                     <i  class="far fa-heart fa-2x icon-white" 
                                         id="add_favourited_movie_<%= movie.id %>" 
-                                        onclick="movieAddFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                        onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
                                     </i>
                                     <i  class="fas fa-heart fa-2x icon-red" 
                                         id="remove_favourited_movie_<%= movie.id %>" 
-                                        onclick="movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>')">
+                                        onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
                                     </i>
                                 </div>
                                 <div class="col-md-4">
                                     <i  class="far fa-bookmark fa-2x icon-white"
                                         id="add_saved_movie_<%= movie.id %>" 
-                                        onclick="movieAddSaved('<%= user._id %>', '<%= movie.id %>')">
+                                        onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
                                     </i>
                                     <i class="fas fa-bookmark fa-2x icon-blue"
                                         id="remove_saved_movie_<%= movie.id %>" 
-                                        onclick="movieRemoveSaved('<%= user._id %>', '<%= movie.id %>')">
+                                        onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
                                     </i>
                                 </div>
                             </div>
@@ -92,3 +81,30 @@
         <% }); %>
     </div>
 </div>
+
+<script>
+(function(){
+  function render(a){
+    var el = document.getElementById('latest_announcement');
+    if(!el) return;
+    if(!a){ el.innerHTML = '<div style="opacity:.75;">No announcements yet.</div>'; return; }
+    var created = new Date(a.created_at).toLocaleString();
+    var slug = (a.slug||'').toString();
+    el.innerHTML = '<div style="color:#fff; background:#151515; border:1px solid #2a2a2a; border-radius:10px; padding:12px;">'
+      + '<div style="font-size:20px; font-weight:700;">'+a.title+'</div>'
+      + '<div style="opacity:.75; font-size:12px;">'+created+'</div>'
+      + '<div id="ann_md" style="margin-top:8px;"></div>'
+      + '<div style="margin-top:8px;"><a style="color: lightblue;" href="/announcements/'+a._id+(slug?('-'+slug):'')+'">Discuss</a> &middot; <a style="color: lightblue;" href="/announcements">See all</a></div>'
+      + '</div>';
+    try { if(window.marked && window.DOMPurify){ document.getElementById('ann_md').innerHTML = DOMPurify.sanitize(marked.parse(a.text||'')); } else { document.getElementById('ann_md').innerHTML = (a.text||'').replace(/\n/g,'<br>'); } } catch(_){}
+    // record impression for logged-in users
+    try { fetch('/api/v1/announcements/'+a._id+'/impression', { method:'POST', headers:{'Content-Type':'application/json'} }); } catch(_){ }
+  }
+  fetch('/api/v1/announcements/latest').then(function(r){ return r.json(); }).then(function(d){ render(d.announcement); }).catch(function(){ render(null); });
+})();
+</script>
+<!-- Markdown + Sanitizer for homepage announcement -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+</script>
+</script>

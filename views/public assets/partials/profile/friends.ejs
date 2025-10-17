@@ -1,0 +1,131 @@
+<div class="container" style="margin-top:16px;">
+  <h3>Friends</h3>
+  <ul class="nav nav-tabs" role="tablist" style="margin-top:8px;">
+    <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tab-friends" role="tab">Friends</a></li>
+    <% if (user && String(user._id) === String(page_data.user._id)) { %>
+      <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tab-requests" role="tab">Requests</a></li>
+    <% } %>
+  </ul>
+  <div class="tab-content" style="padding-top:12px;">
+    <div id="tab-friends" class="tab-pane fade show active" role="tabpanel">
+      <div class="row" id="friends_list">
+        <% (page_data.friends || []).forEach(function(f){ %>
+          <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom:12px;">
+            <div class="card" style="background:#1b1b1b;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#e0e0e0;">
+              <a href="<%= f.slug ? ('/'+f.slug) : ('/'+f.id) %>" style="display:flex;align-items:center;gap:12px;color:#e0e0e0;text-decoration:none;">
+                <img src="<%= f.avatar || '/static/style/img/profile_images/users/default/picture_default.png' %>" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+                <div><div style="font-weight:700;"><%= f.username || f.slug || f.id %></div></div>
+              </a>
+              <% if (user && String(user._id) === String(page_data.user._id)) { %>
+                <button class="btn btn-sm btn-outline-danger js-remove-friend" data-fid="<%= f.id %>" title="Remove"><i class="fas fa-user-times"></i></button>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+      <div id="friends_empty" style="display:<%= (page_data.friends||[]).length ? 'none' : 'block' %>; opacity:.8;">No friends yet.</div>
+    </div>
+    <% if (user && String(user._id) === String(page_data.user._id)) { %>
+    <div id="tab-requests" class="tab-pane fade" role="tabpanel">
+      <h5>Incoming</h5>
+      <div id="requests_incoming"></div>
+      <h5 style="margin-top:12px;">Outgoing</h5>
+      <div id="requests_outgoing"></div>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var profileId = '<%= page_data.user._id %>';
+    function el(html){ var d=document.createElement('div'); d.innerHTML=html; return d.firstChild; }
+    function render(){
+      fetch('/api/v1/friends/list/'+profileId)
+        .then(r=>r.json())
+        .then(function(data){
+          var list = document.getElementById('friends_list');
+          var empty = document.getElementById('friends_empty');
+          list.innerHTML='';
+          var isOwner = '<%= user ? user._id : '' %>' === profileId;
+          (data.friends||[]).forEach(function(f){
+            var href = f.slug ? '/'+f.slug : '/'+f.id;
+            var name = f.username || f.slug || f.id;
+            var av = f.avatar || '/static/style/img/profile_images/users/default/picture_default.png';
+            var since = f.since ? new Date(f.since) : null;
+            var sinceTxt = since ? ('Friends since: '+('0'+since.getDate()).slice(-2)+('0'+(since.getMonth()+1)).slice(-2)+since.getFullYear()) : '';
+            var card = '<div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom:12px;">\
+              <div class="card" style="background:#1b1b1b;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#e0e0e0;">\
+                <a href="'+href+'" style="display:flex;align-items:center;gap:12px;color:#e0e0e0;text-decoration:none;">\
+                  <img src="'+av+'" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">\
+                  <div><div style="font-weight:700;">'+name+'</div><div style="opacity:.75; font-size:12px;">'+sinceTxt+'</div></div>\
+                </a>' + (isOwner ? '\
+                <button class="btn btn-sm btn-outline-danger js-remove-friend" data-fid="'+f.id+'" title="Remove"><i class="fas fa-user-times"></i></button>' : '') + '
+              </div></div>';
+            list.appendChild(el(card));
+          });
+          empty.style.display = (data.friends||[]).length? 'none':'block';
+        });
+
+      var isOwner = '<%= user ? user._id : '' %>' === profileId;
+      if(!isOwner) return; // Do not fetch requests for other users
+      fetch('/api/v1/friends/requests/'+profileId)
+        .then(r=>r.json())
+        .then(function(data){
+          var incoming = document.getElementById('requests_incoming');
+          var outgoing = document.getElementById('requests_outgoing');
+          incoming.innerHTML=''; outgoing.innerHTML='';
+          (data.incoming||[]).forEach(function(fr){
+            var row = el('<div class="card" style="background:#1b1b1b;border-radius:10px;padding:10px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between;">\
+              <div><i class="fas fa-user"></i> <strong>'+ (fr.from.username||fr.from.slug||fr.from.id) +'</strong></div>\
+              <div>\
+                <button class="btn btn-sm btn-success js-fr-accept" data-from="'+fr.from.id+'">Accept</button>\
+                <button class="btn btn-sm btn-secondary js-fr-deny" data-from="'+fr.from.id+'" style="margin-left:6px;">Deny</button>\
+              </div></div>');
+            incoming.appendChild(row);
+          });
+          (data.outgoing||[]).forEach(function(fr){
+            outgoing.appendChild(el('<div class="card" style="background:#1b1b1b;border-radius:10px;padding:10px; margin-bottom:8px;">\
+              <i class="fas fa-user"></i> <strong>'+ (fr.to.username||fr.to.slug||fr.to.id) +'</strong> <span style="opacity:.75;">(pending)</span></div>'));
+          });
+
+          incoming.addEventListener('click', function(e){
+            if(e.target.classList.contains('js-fr-accept') || e.target.classList.contains('js-fr-deny')){
+              var fromId = e.target.getAttribute('data-from');
+              var action = e.target.classList.contains('js-fr-accept') ? 'accept' : 'deny';
+              fetch('/api/v1/friends/respond', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: '<%= user ? user._id : '' %>', user_key: '<%= user ? user.permissions.user_private_key : '' %>', from_user_id: fromId, action: action })
+              }).then(()=>{ if(window.showToast) showToast('Request '+action+'ed'); render(); });
+            }
+          });
+          document.getElementById('friends_list').addEventListener('click', function(e){
+            if(e.target.closest('.js-remove-friend')){
+              var fid = e.target.closest('.js-remove-friend').getAttribute('data-fid');
+              if(!confirm('Remove this friend?')) return;
+              fetch('/api/v1/friends/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id:'<%= user ? user._id : '' %>', user_key:'<%= user ? user.permissions.user_private_key : '' %>', friend_user_id: fid }) })
+                .then(()=>{ if(window.showToast) showToast('Friend removed','warning'); render(); });
+            }
+          });
+        });
+    }
+    document.addEventListener('DOMContentLoaded', render);
+  })();
+</script>
+
+<script>
+  // Ensure remove-friend works immediately on server-rendered list
+  document.addEventListener('DOMContentLoaded', function(){
+    var list = document.getElementById('friends_list');
+    if(!list) return;
+    list.addEventListener('click', function(e){
+      var btn = e.target.closest('.js-remove-friend');
+      if(!btn) return;
+      var fid = btn.getAttribute('data-fid');
+      if(!fid) return;
+      if(!confirm('Remove this friend?')) return;
+      fetch('/api/v1/friends/remove', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id:'<%= user ? user._id : '' %>', user_key:'<%= user ? user.permissions.user_private_key : '' %>', friend_user_id: fid }) })
+        .then(function(){ if(window.showToast) showToast('Friend removed','warning'); try { if (typeof render === 'function') render(); } catch(e){} });
+    });
+  });
+</script>

@@ -1,0 +1,93 @@
+<div class="container-fluid">
+  <h3>Edit User</h3>
+  <% if (page_data.ok) { %>
+    <div class="alert alert-success">Saved</div>
+  <% } %>
+  <% if (page_data.err) { %>
+    <div class="alert alert-danger">Save failed. Check logs for details.</div>
+  <% } %>
+  <form method="POST" action="/admin/users/<%= page_data.user._id %>" style="max-width:800px;">
+    <h5>Login</h5>
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label>Username</label>
+        <input class="form-control" name="username" value="<%= page_data.user.local && page_data.user.local.username || '' %>">
+        <small class="form-text text-muted">Changing username may break old links if custom URL depends on it.</small>
+      </div>
+      <div class="form-group col-md-6">
+        <label>Email</label>
+        <input class="form-control" name="email" value="<%= page_data.user.local && page_data.user.local.email || '' %>">
+      </div>
+    </div>
+
+    <h5>Profile</h5>
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label>Custom URL</label>
+        <input class="form-control" name="custom_url" value="<%= page_data.user.profile && page_data.user.profile.custom_url || '' %>">
+        <small class="form-text text-muted">Lowercase; must be unique.</small>
+      </div>
+      <div class="form-group col-md-6">
+        <label>Birthday</label>
+        <input class="form-control" name="birthday" type="date" value="<%= page_data.user.profile && page_data.user.profile.birthday || '' %>">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea class="form-control" rows="3" name="description"><%= page_data.user.profile && page_data.user.profile.description || '' %></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label>Visibility</label>
+        <% var vis = (page_data.user.profile && page_data.user.profile.visibility) || 'public'; %>
+        <select class="form-control" name="visibility">
+          <option value="public" <%= vis==='public'?'selected':'' %>>Public</option>
+          <option value="friends" <%= vis==='friends'?'selected':'' %>>Friends only</option>
+          <option value="private" <%= vis==='private'?'selected':'' %>>Private</option>
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label>Account plan</label>
+        <% var plan = (page_data.user.account && page_data.user.account.plan) || 'free'; %>
+        <select class="form-control" name="plan">
+          <option value="free" <%= plan==='free'?'selected':'' %>>Free</option>
+          <option value="premium" <%= plan==='premium'?'selected':'' %>>Premium</option>
+        </select>
+      </div>
+      <div class="form-group col-md-4">
+        <label style="display:block;">Status</label>
+        <% var inactive = page_data.user.profile && page_data.user.profile.inactive; %>
+        <label class="form-check-label"><input type="checkbox" name="inactive" <%= inactive?'checked':'' %>> Inactive</label>
+      </div>
+    </div>
+
+    <h5>Flags & Permissions</h5>
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <% var beta = page_data.user.profile && page_data.user.profile.flags && page_data.user.profile.flags.beta_tester; %>
+        <label class="form-check-label"><input type="checkbox" name="beta_tester" <%= beta?'checked':'' %>> Beta tester</label>
+      </div>
+      <div class="form-group col-md-4">
+        <% var isAdmin = page_data.user.permissions && page_data.user.permissions.level && page_data.user.permissions.level.admin; %>
+        <label class="form-check-label"><input type="checkbox" name="is_admin" <%= isAdmin?'checked':'' %>> Admin</label>
+      </div>
+      <div class="form-group col-md-4">
+        <label>Private key</label>
+        <div class="input-group">
+          <input class="form-control" value="<%= page_data.user.permissions && page_data.user.permissions.user_private_key || '' %>" readonly>
+          <div class="input-group-append">
+            <form method="POST" action="/admin/users/<%= page_data.user._id %>/reset_key" onsubmit="return confirm('Reset private key?');">
+              <button class="btn btn-outline-warning" type="submit">Reset</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <button type="submit" class="btn btn-outline-primary">Save</button>
+      <a href="/admin/users" class="btn btn-secondary">Back</a>
+    </div>
+  </form>
+</div>
+

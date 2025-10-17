@@ -1,18 +1,41 @@
+<div id="profile_section" class="container">
 
-
-
-<div id="profile_section">
-
-    <h2>Update settings</h2>
-
-    <div id="profile_header" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>'); background-repeat: no-repeat; background-size: cover ">
-        <div class="container">
-            <div style="padding: 20px 0px 20px 0px;">
-                <img id="profile_image_holder" class="img-fluid rounded" style="height: 160px" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>"
-                    alt="">
+    <div class="settings-card" style="margin-bottom:24px;">
+        <h2>Tier Status</h2>
+        <div class="row">
+            <div class="col-md-12">
+                <p style="margin:0 0 8px;">Your current plan: <strong><span id="account_plan">Free</span></strong></p>
+                <div>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="upgrade_btn">Upgrade to Premium</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <div class="settings-card" style="margin-bottom:24px;">
+        <h2>Active Sessions</h2>
+        <p class="text" style="margin-top:-6px;">See where you're logged in and sign out of other devices.</p>
+        <div class="table-responsive">
+            <table class="table table-sm" style="color: #ffff;">
+                <thead>
+                    <tr >
+                        <th >Device / Browser</th>
+                        <th>IP</th>
+                        <th >Location</th>
+                        <th >Last Seen</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="sessions_table" style="color: #ffff;">
+                    <tr><td colspan="5" class="text">Loading sessions…</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="logout_others_btn">Log out other sessions</button>
+    </div>
+
+    <div class="settings-card">
+    <h2>Profile Settings</h2>
 
     <form action="/<%= user._id %>/settings" method="POST" encType="multipart/form-data">
         <!-- Images -->
@@ -76,19 +99,27 @@
                     <input name="password_confirm" type="password" class="form-control" id="user_password_confirm"
                         value="">
                 </div>
+
+                <div class="form-group">
+                    <label for="profile_visibility">Profile Visibility</label>
+                    <select class="form-control" id="profile_visibility" name="visibility">
+                        <option value="public" <%= (user.profile.visibility === 'public') ? 'selected' : '' %>>Public</option>
+                        <option value="friends" <%= (user.profile.visibility === 'friends') ? 'selected' : '' %>>Friends only</option>
+                        <option value="private" <%= (user.profile.visibility === 'private') ? 'selected' : '' %>>Private</option>
+                    </select>
+                    <small class="form-text text-muted">Control who can view your profile and activity.</small>
+                </div>
             </div>
         </div>
 
         <!-- Description -->
         <div class="form-group">
             <label for="editor_description">Profile Description</label>
-            <textarea name="description" rows="10" class="form-control" id="editor_description" placeholder=""><%= user.profile.description %></textarea>
+            <textarea name="description" rows="6" class="form-control" id="editor_description" placeholder=""><%= user.profile.description %></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-lg btn-block">Update Settings</button>
+        <button type="submit" class="btn btn-primary">Update Settings</button>
     </form>
-
-    <!-- To be cleaned up. Not pretty -->
 
     <script>
         var password = document.getElementById("user_password")
@@ -105,4 +136,60 @@
         password.onchange = validatePassword;
         confirm_password.onkeyup = validatePassword;
     </script>
+    </div>
 </div>
+
+<script>
+  (function(){
+    function fmtDate(d){ try { var dt = new Date(d); return dt.toLocaleString(); } catch(e) { return ''; } }
+    function renderSessions(data){
+      var tbody = document.getElementById('sessions_table');
+      if(!tbody) return;
+      var rows = '';
+      (data.sessions||[]).forEach(function(s){
+        var loc = (s.geo && (s.geo.city||s.geo.region||s.geo.country)) ? [s.geo.city, s.geo.region, s.geo.country].filter(Boolean).join(', ') : '-';
+        var ua = (s.user_agent||'').split(')')[0];
+        var badge = s.current ? '<span class="badge badge-success">Current</span>' : (s.active?'<span class="badge badge-info">Active</span>':'<span class="badge badge-secondary">Offline</span>');
+        var action = s.current ? '' : '<button class="btn btn-link btn-sm js-revoke" data-sid="'+s.sid+'">Log out</button>';
+        rows += '<tr>'+
+          '<td style="max-width:280px;word-break:break-word;">'+ (ua||'Unknown') +' '+badge+'</td>'+
+          '<td>'+(s.ip||'-')+'</td>'+
+          '<td>'+loc+'</td>'+
+          '<td>'+fmtDate(s.last_seen_at)+'</td>'+
+          '<td>'+action+'</td>'+
+        '</tr>';
+      });
+      if (!rows) rows = '<tr><td colspan="5" class="text-muted">No sessions found.</td></tr>';
+      tbody.innerHTML = rows;
+    }
+    function loadSessions(){
+      fetch('/api/v1/user/sessions')
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          try {
+            document.getElementById('account_plan').textContent = (d.plan||'free').toString().replace(/^./, function(c){ return c.toUpperCase(); });
+          } catch(e){}
+          renderSessions(d);
+        })
+        .catch(function(){
+          var tbody = document.getElementById('sessions_table');
+          if(tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-muted">Failed to load sessions.</td></tr>';
+        });
+    }
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest('.js-revoke');
+      if(btn){
+        var sid = btn.getAttribute('data-sid');
+        fetch('/api/v1/user/sessions/revoke', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ sid: sid }) })
+          .then(function(){ loadSessions(); window.showToast && showToast('Session logged out','warning'); });
+      }
+    });
+    var loBtn = document.getElementById('logout_others_btn');
+    if(loBtn){ loBtn.addEventListener('click', function(){
+      fetch('/api/v1/user/sessions/revoke_others', { method:'POST' })
+        .then(function(){ loadSessions(); window.showToast && showToast('Other sessions logged out','warning'); });
+    }); }
+    // init
+    document.addEventListener('DOMContentLoaded', loadSessions);
+  })();
+</script>

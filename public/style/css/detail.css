@@ -1,0 +1,19 @@
+/* Detail pages (movies, shows, person) */
+
+.detail-meta{ margin:6px 0 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; color:#fff; }
+.detail-genres .badge{ margin-right:6px; background:rgba(255,255,255,.12); color:#fff; }
+.detail-overview{ font-size:16px; line-height:1.6; color:#fff; max-width:980px; }
+
+.info-cards{ margin:14px 0 6px; }
+.info-card{ background:rgba(255,255,255,.08); border-radius:10px; padding:12px 14px; height:100%; }
+.info-card .label{ opacity:.9; font-size:12px; color:#ddd; }
+.info-card .value{ font-weight:700; color:#fff; }
+
+/* Cast row */
+.cast-header{ margin-bottom:8px; color:#fff; }
+.cast-scroll{ overflow-x:auto; white-space:nowrap; flex-wrap:nowrap; padding-bottom:8px; }
+.cast-scroll::-webkit-scrollbar{ height:6px; }
+.cast-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.25); border-radius:6px; }
+.cast-scroll{ scrollbar-width:thin; scrollbar-color: rgba(255,255,255,.25) transparent; }
+.cast-item{ display:inline-block; float:none; }
+

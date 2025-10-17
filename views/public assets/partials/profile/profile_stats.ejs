@@ -1,0 +1,43 @@
+<a id="profile_stats"></a>
+<div class="profile-stats container" style="margin-top: 16px;">
+  <%
+    var moviesCount = (page_data.numberOfMoviesWatched != null
+      ? page_data.numberOfMoviesWatched
+      : (page_data.amountOfMovies != null
+        ? page_data.amountOfMovies
+        : (page_data.amount != null ? page_data.amount : 0)));
+    var moviesTime = page_data.movie_watch_time || '-';
+    var showsCount = page_data.numberOfShowsWatched || 0;
+    var showsTime = page_data.show_watch_time || '-';
+    var totalTimeText = (moviesTime !== '-' && showsTime !== '-')
+      ? (moviesTime + ' + ' + showsTime)
+      : moviesTime;
+  %>
+
+  <div class="stat-card stat-card--movies">
+    <div class="stat-card__label">Movies</div>
+    <div class="stat-card__value"><%= moviesCount %></div>
+    <div class="stat-card__sub">watched</div>
+    <div class="stat-card__sub">Time: <%= moviesTime %></div>
+  </div>
+  <div class="stat-card stat-card--shows">
+    <div class="stat-card__label">Shows</div>
+    <div class="stat-pair">
+      <div>
+        <div class="stat-card__value"><%= showsCount %></div>
+        <div class="stat-card__sub">shows</div>
+      </div>
+      <div>
+        <div class="stat-card__value"><%= page_data.numberOfEpisodesWatched || 0 %></div>
+        <div class="stat-card__sub">episodes</div>
+      </div>
+    </div>
+    <div class="stat-card__sub">Time: <%= showsTime %></div>
+  </div>
+  <div class="stat-card stat-card--total">
+    <div class="stat-card__label">Total</div>
+    <div class="stat-card__value--sm">Movies: <%= moviesTime %></div>
+    <div class="stat-card__value--sm">Shows: <%= showsTime %></div>
+    <div class="stat-card__sub">Combined: <%= totalTimeText %></div>
+  </div>
+</div>

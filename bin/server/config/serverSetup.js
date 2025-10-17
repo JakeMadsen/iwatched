@@ -39,22 +39,26 @@ process.env['SERVER_DEV'] = true;
 /* Server view engine setup */
 app.set('view engine','ejs');
 app.set('views', path.join(__dirname, '../../../views'));
-app.use(express.static(__dirname + '../../../public'))
-app.use('/static', express.static('public'));
-app.use(express.static(path.join(__dirname + 'public')));
+// Serve static assets from public
+const publicDir = path.join(__dirname, '../../../public');
+app.use(express.static(publicDir));
+app.use('/static', express.static(publicDir));
 
 
 
 /* Server module setup*/
 app.use(fileUpload());
+// Metrics middleware: track RPS, latency, errors, auth failures
+try { app.use(require('../metrics').middleware); } catch (e) {}
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser())
 
 
 /* Server Database Connection  */
+const mongoUri = process.env.MONGO_URI || serverSettings._mongoDB;
 mongoose
-    .connect(serverSettings._mongoDB, { useCreateIndex: true, useNewUrlParser: true })
+    .connect(mongoUri, { useCreateIndex: true, useNewUrlParser: true })
     .catch(err => {
         console.log("Database connection failure: " + err)
     })
@@ -62,7 +66,7 @@ mongoose
 /* Server User Passport Setup  */
 require('../../../config/passport/passport')(passport)
 app.use(session({ 
-    secret: 'thisIsMySecretCat',
+    secret: process.env.SESSION_SECRET || 'thisIsMySecretCat',
     resave: false,
     saveUninitialized: false,
     store: new mongoStore ({ 
@@ -73,10 +77,18 @@ app.use(session({
         stringify: true,
 
     })
+    ,
+    cookie: {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: !!(process.env.NODE_ENV === 'production')
+    }
 }));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash());
+// Track authenticated sessions with lightweight metadata
+try { app.use(require('../../../routes/middleware/trackSession')); } catch (e) {}
 
 
 

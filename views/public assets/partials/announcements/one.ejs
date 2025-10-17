@@ -1,0 +1,200 @@
+<div class="container" style="margin-top: 20px;max-width: 900px;">
+  <div style="margin-bottom:10px;">
+    <a href="/announcements" class="btn btn-sm btn-secondary"><i class="fas fa-arrow-left"></i> Back to announcements</a>
+  </div>
+  <div id="ann_one"></div>
+  <div id="ann_comments" style="margin-top:16px;"></div>
+  <% if (typeof user != 'undefined') { %>
+  <div class="card" style="background:#151515;border:1px solid #2a2a2a;margin-top:12px;border-radius:10px;">
+    <div class="card-body" style="color:#ffff;">
+      <h5>Add a comment</h5>
+      <textarea id="ann_new_comment" class="form-control" rows="3" placeholder="Share your thoughts..."></textarea>
+      <button id="ann_send_comment" class="btn btn-primary" style="margin-top:8px;">Post</button>
+    </div>
+  </div>
+  <% } else { %>
+    <div style="margin-top:12px; opacity:.8;">Please <a style="color: lightblue;" href="/login">log in</a> to comment.</div>
+  <% } %>
+</div>
+
+<script>
+(function(){
+  var id = <%- JSON.stringify(page_data.id) %>;
+  function renderOne(a){
+    var el = document.getElementById('ann_one');
+    if(!a){ el.innerHTML = '<div>Announcement not found.</div>'; return; }
+    el.innerHTML = '<div class="card" style="background:#151515;border:1px solid #2a2a2a;border-radius:10px;">'
+      + '<div class="card-body" style="color:#ffff;">'
+      + '<h2>'+a.title+'</h2>'
+      + '<div style="opacity:.75; font-size:12px;">'+new Date(a.created_at).toLocaleString()+'</div>'
+      + '<div id="ann_body" style="margin-top:8px;"></div>'
+      + '<div style="margin-top:8px; display:flex; gap:8px; align-items:center;">'
+      + (function(){ try { if(<%- JSON.stringify(!!(typeof user != 'undefined' && user.permissions && user.permissions.level && user.permissions.level.admin)) %>){ return '<a class="btn btn-sm btn-secondary" href="/admin/announcements?edit='+a._id+'"><i class="fas fa-edit"></i> Edit</a>'; } } catch(_){ } return ''; })()
+      + '</div>'
+      + '</div></div>';
+    try { if(window.marked && window.DOMPurify){ document.getElementById('ann_body').innerHTML = DOMPurify.sanitize(marked.parse(a.text||'')); } else { document.getElementById('ann_body').innerHTML = (a.text||'').replace(/\n/g,'<br>'); } } catch(_){}
+    // impression
+    try { fetch('/api/v1/announcements/'+a._id+'/impression', { method:'POST', headers:{'Content-Type':'application/json'} }); } catch(_){ }
+  }
+  function buildCommentHTML(c, isReply){
+    var avatar = c.user_avatar || '/static/style/img/profile_images/users/default/picture_default.png';
+    var handle = c.user_handle || ('@'+(c.username||'user'));
+    var link = c.user_link || '#';
+    var edited = c.edited_at ? ' <em style="opacity:.8;">edited</em>' : '';
+    var content = c.deleted ? '<em style="opacity:.8;">-deleted-</em>' : '<div class="ann-comment" data-id="'+c._id+'" style="margin-top:6px;"></div>';
+    var actions = '';
+    var canEdit = <%- JSON.stringify(typeof user != 'undefined') %> && String(c.user_id||'') === <%- JSON.stringify(typeof user != 'undefined' ? String(user._id) : '') %>;
+    var isAdmin = <%- JSON.stringify(typeof user != 'undefined' && user.permissions && user.permissions.level && user.permissions.level.admin) %>;
+    var parentAttr = (c._root ? ' data-parent="'+c._root+'"' : '');
+    var handlePlain = (handle||'').replace(/^@/,'');
+    actions += !c.deleted ? '<button class="btn btn-sm btn-outline-secondary js-reply" data-id="'+c._id+'"'+parentAttr+' data-handle="'+handlePlain+'">Reply</button>' : '';
+    actions += (!c.deleted && canEdit) ? ' <button class="btn btn-sm btn-outline-secondary js-edit" data-id="'+c._id+'">Edit</button>' : '';
+    if (isAdmin) {
+      actions += ' <div class="btn-group" role="group">'
+        + '<button class="btn btn-sm btn-outline-danger js-delete" data-id="'+c._id+'" data-mode="soft">Delete</button>'
+        + '<button class="btn btn-sm btn-danger js-delete" data-id="'+c._id+'" data-mode="hard" title="Remove comment and its replies">Hard delete</button>'
+        + '</div>';
+    } else if (canEdit) {
+      actions += ' <button class="btn btn-sm btn-outline-danger js-delete" data-id="'+c._id+'" data-mode="soft">Delete</button>';
+    }
+    var upCls = c.user_vote==='up' ? 'btn-success' : 'btn-outline-secondary';
+    var downCls = c.user_vote==='down' ? 'btn-danger' : 'btn-outline-secondary';
+    var votes = '<div class="btn-group btn-group-sm" role="group" aria-label="Vote">'
+      + '<button class="btn '+upCls+' js-vote" data-id="'+c._id+'" data-action="up"><i class="fas fa-arrow-up"></i> <span class="js-up">'+(c.upvote_count||0)+'</span></button>'
+      + '<button class="btn '+downCls+' js-vote" data-id="'+c._id+'" data-action="down"><i class="fas fa-arrow-down"></i> <span class="js-down">'+(c.downvote_count||0)+'</span></button>'
+      + '</div>';
+    var controls = '<div style="margin-top:6px; display:flex; gap:8px; align-items:center;">'+votes+' <div class="flex-spacer" style="flex:1 1 auto;"></div> '+actions+' </div>';
+    var indent = isReply ? 'margin-left:44px; margin-top:10px;' : '';
+    return '<div class="cmt-row" style="'+indent+'">'
+        +   '<div style="display:flex; gap:10px; align-items:flex-start;">'
+        +     '<a href="'+link+'"><img src="'+avatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"></a>'
+        +     '<div style="flex:1 1 auto;">'
+        +       '<div><a href="'+link+'" style="color: lightblue; font-weight:600;">'+handle+'</a></div>'
+        +       '<div style="opacity:.75; font-size:12px;">'+new Date(c.created_at).toLocaleString()+edited+'</div>'
+        +       content
+        +       '<div class="reply-edit-holder" data-id="'+c._id+'" style="margin-top:6px; display:none;"></div>'
+        +       controls
+        +     '</div>'
+        +   '</div>'
+        + '</div>';
+  }
+
+  function renderComments(a){
+    var wrap = document.getElementById('ann_comments');
+    var list = (a && a.comments) || [];
+    list.sort(function(x,y){ return new Date(x.created_at)-new Date(y.created_at); });
+    var parentsAll = list.filter(function(c){ return !c.parent_id; });
+    var byParentAll = {};
+    list.forEach(function(c){ if(c.parent_id){ var k=String(c.parent_id); (byParentAll[k]=byParentAll[k]||[]).push(c);} });
+    // Do NOT hide deleted items for soft delete; they should render as "-deleted-"
+    // Keep all parents and replies; buildCommentHTML handles deleted presentation
+    var parents = parentsAll;
+    var byParent = {}; parents.forEach(function(p){ byParent[String(p._id)] = (byParentAll[String(p._id)]||[]); });
+    var visibleCount = parents.length + parents.reduce(function(acc,p){ return acc + (byParent[String(p._id)]||[]).length; }, 0);
+    var html = '<h4>Comments ('+visibleCount+')</h4>';
+    if(visibleCount===0){ html += '<div style="opacity:.75; color:#fff;">No comments yet.</div>'; }
+    parents.forEach(function(p){
+      // Parent card wrapper
+      html += '<div class="card" style="color:#fff; background:#151515;border:1px solid #2a2a2a;margin-top:8px;border-radius:10px;">'
+           +  '<div class="card-body">';
+      // Parent inner
+      html += buildCommentHTML(p,false);
+      // Replies in the same card, indented
+      var replies = byParent[String(p._id)]||[];
+      replies.forEach(function(r){ html += buildCommentHTML(Object.assign({ }, r, { _root: p._id }),true); });
+      html += '</div></div>';
+    });
+    wrap.innerHTML = html;
+    try {
+      if(window.marked && window.DOMPurify){
+        wrap.querySelectorAll('.ann-comment').forEach(function(n){
+          var id = n.getAttribute('data-id');
+          var item = list.find(function(x){ return String(x._id)===String(id); });
+          if(item) n.innerHTML = DOMPurify.sanitize(marked.parse(String(item.message||'')));
+        });
+      }
+    } catch(_){ }
+  }
+  function load(){
+    fetch('/api/v1/announcements/'+id).then(function(r){ return r.json(); }).then(function(d){
+      var a = d.announcement; renderOne(a); renderComments(a);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    load();
+    var btn = document.getElementById('ann_send_comment');
+    if(btn){ btn.addEventListener('click', function(){
+      var msg = document.getElementById('ann_new_comment').value.trim();
+      if(!msg) return;
+      fetch('/api/v1/announcements/'+id+'/comment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: msg }) })
+        .then(function(r){ return r.json(); }).then(function(){ document.getElementById('ann_new_comment').value=''; load(); });
+    }); }
+    // Event delegation for reply/edit/delete/vote
+    document.getElementById('ann_comments').addEventListener('click', function(e){
+      var target = e.target;
+      var btn = target.closest('.js-reply');
+      if(btn){
+        var cid = btn.getAttribute('data-id');
+        var parent = btn.getAttribute('data-parent') || cid;
+        var holder = document.querySelector('.reply-edit-holder[data-id="'+cid+'"]');
+        if(holder){
+          holder.style.display = holder.style.display==='none' || holder.style.display==='' ? 'block' : 'none';
+          if(holder.innerHTML==='') holder.innerHTML = '<textarea class="form-control" rows="2" placeholder="Write a reply...">@'+(btn.getAttribute('data-handle')||'')+' </textarea><button class="btn btn-sm btn-primary js-send-reply" data-id="'+cid+'" data-parent="'+parent+'" style="margin-top:6px;">Reply</button>';
+        }
+        return;
+      }
+      btn = target.closest('.js-send-reply');
+      if(btn){
+        var cid = btn.getAttribute('data-parent') || btn.getAttribute('data-id');
+        var holder = btn.parentElement; var ta = holder.querySelector('textarea'); var msg = (ta && ta.value||'').trim();
+        if(!msg) return; fetch('/api/v1/announcements/'+id+'/comment/'+cid+'/reply', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: msg, reply_to: btn.getAttribute('data-id') })})
+          .then(function(r){ return r.json(); }).then(function(){ load(); });
+        return;
+      }
+      btn = target.closest('.js-edit');
+      if(btn){
+        var cid = btn.getAttribute('data-id');
+        var holder = document.querySelector('.reply-edit-holder[data-id="'+cid+'"]');
+        if(holder){
+          var itemEl = document.querySelector('.ann-comment[data-id="'+cid+'"]');
+          var current = itemEl ? itemEl.textContent : '';
+          holder.style.display = 'block';
+          holder.innerHTML = '<textarea class="form-control" rows="3">'+current.replace(/</g,'&lt;')+'</textarea><button class="btn btn-sm btn-primary js-save-edit" data-id="'+cid+'" style="margin-top:6px;">Save</button>';
+        }
+        return;
+      }
+      btn = target.closest('.js-save-edit');
+      if(btn){
+        var cid = btn.getAttribute('data-id');
+        var holder = btn.parentElement; var ta = holder.querySelector('textarea'); var msg = (ta && ta.value||'').trim();
+        if(!msg) return; fetch('/api/v1/announcements/'+id+'/comment/'+cid+'/edit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ message: msg })})
+          .then(function(r){ return r.json(); }).then(function(){ load(); });
+        return;
+      }
+      btn = target.closest('.js-delete');
+      if(btn){
+        var cid = btn.getAttribute('data-id');
+        var mode = btn.getAttribute('data-mode') || 'soft';
+        var msg = mode==='hard' ? 'Hard delete this comment and its replies? This cannot be undone.' : 'Delete this comment?';
+        if(!confirm(msg)) return;
+        fetch('/api/v1/announcements/'+id+'/comment/'+cid+'/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mode: mode }) })
+          .then(function(r){ return r.json(); }).then(function(){ load(); });
+        return;
+      }
+      btn = target.closest('.js-vote');
+      if(btn){
+        var cid = btn.getAttribute('data-id');
+        var action = btn.getAttribute('data-action');
+        // toggle if already same vote
+        var isActive = btn.classList.contains('btn-success') || btn.classList.contains('btn-danger');
+        var send = isActive ? 'clear' : action;
+        fetch('/api/v1/announcements/'+id+'/comment/'+cid+'/vote', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action: send })})
+          .then(function(r){ return r.json(); }).then(function(){ load(); });
+        return;
+      }
+    });
+  });
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>

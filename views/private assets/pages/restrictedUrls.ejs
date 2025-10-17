@@ -28,52 +28,33 @@
     </div>
 </div>
 
-<div id="listUrls" style="margin-top:20px;">
-    <h3>LIST of restricted url's</h3>
-    <div class="row">
-        <div class="col-md-2">
-            <h4>URL ID</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>URL Name</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>URL Created by</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>URL Description</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>Creation Date</h4>
-        </div>
-        <div class="col-md-2">
-            <h4>Options</h4>
-        </div>
-    </div>
-    <hr>
-    
-    <% page_data.restrictedUrls.forEach(function(url){ %>
-        <div class="row">
-            <div class="col-md-2">
-                <p><%= url._id %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= url.restricted_url %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= url.created_by %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= url.info %></p>
-            </div>
-            <div class="col-md-2">
-                <p><%= url.creation_date %></p>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-primary">Edit</button>
-                <button type="button" class="btn btn-danger">Delete</button>
-            </div>
-        </div>
-        <hr>
-    <% }); %>
+<div style="margin-top:20px;">
+  <h3>Restricted URLs</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>URL</th>
+        <th>Created by</th>
+        <th>Description</th>
+        <th>Creation date</th>
+        <th style="width:160px;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% page_data.restrictedUrls.forEach(function(url){ %>
+        <tr>
+          <td><%= url._id %></td>
+          <td><%= url.restricted_url %></td>
+          <td><%= url.created_by %></td>
+          <td><%= url.info %></td>
+          <td><%= url.creation_date %></td>
+          <td>
+            <button type="button" class="btn btn-sm btn-primary">Edit</button>
+            <button type="button" class="btn btn-sm btn-danger">Delete</button>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
 </div>

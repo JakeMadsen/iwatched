@@ -13,11 +13,12 @@
     <!-- Includes Header -->
     <% include partials/standard/header.ejs %>
 
-    <main id="content-wrapper" class="">
+    <main id="content-wrapper" class="<%= page_file === 'profile' ? 'profile-page' : '' %>">
         <%- include(`pages/${page_file}.ejs`) %>
     </main>
     
     <% include partials/standard/footer.ejs %>
+    <% include partials/standard/recommend_modal.ejs %>
 </body>
 
    
