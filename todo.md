@@ -3,6 +3,8 @@
 ### Monitization 
 * Paid tier
     no ads
+    add how many times you have seen a movie / show
+    Access to fun stats
 * Free tier
     has ads
 

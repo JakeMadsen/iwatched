@@ -74,12 +74,21 @@ module.exports = (server) => {
 
         let watchedTime;
         let amountOfMovies;
+        let type = req.params.type;
 
 
-        if(req.params.type == "movies"){
+        if(type == "movies"){
             watchedTime = await userService.getTimeWatched(res.locals.user._id, "movies")
             amountOfMovies = await userService.getWatchedMovies(res.locals.user._id)
             amountOfMovies = amountOfMovies.movies_watched.length
+        } else if (type == 'shows') {
+            try {
+                const UserWatchedShows = require('../../../db/models/userWatchedShows');
+                const doc = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean();
+                watchedTime = (doc && doc.show_watch_time) || 0;
+                amountOfMovies = { movies_watched: [] };
+                amountOfMovies = (doc && Array.isArray(doc.shows_watched)) ? doc.shows_watched.length : 0;
+            } catch (_) { watchedTime = 0; amountOfMovies = 0; }
         }
 
         let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
@@ -91,6 +100,7 @@ module.exports = (server) => {
                 user: res.locals.user,
                 watchedTime: watchedTime,
                 amountOfMovies: amountOfMovies,
+                type: type,
                 friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
             },
             user: req.user
@@ -152,14 +162,107 @@ module.exports = (server) => {
             return next('route')
 
         let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        // Load user's badges for settings dropdown
+        let badgesDetailed = [];
+        try {
+            const Badge = require('../../../db/models/badge');
+            const badges = (res.locals.user.profile && res.locals.user.profile.user_badges) || [];
+            const ids = badges.map(b => b.badge_id).filter(Boolean);
+            if (ids.length) {
+                const details = await Badge.find({ _id: { $in: ids } }).lean();
+                const map = new Map(details.map(d => [String(d._id), d]));
+                badgesDetailed = badges.map(b => {
+                    const d = map.get(String(b.badge_id));
+                    return {
+                        id: String(b.badge_id),
+                        title: (d && d.title) || 'Badge',
+                        icon: d && d.icon ? ('/static/style/img/badges/' + d.icon) : null,
+                        level: b.level || 'single'
+                    };
+                });
+            }
+        } catch (_) {}
         res.render('public assets/template.ejs', {
             page_title: "iWatched.xyz - Home",
             page_file: "profile",
             page_subFile: "settings",
             page_data: {
                 user: res.locals.user,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
+                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0,
+                badges: badgesDetailed
             },
+            user: req.user
+        });
+    });
+
+    // Stats page (design/dummy data for now)
+    server.get('/:id/stats', getUser, enforceProfileVisibility, async (req, res, next) => {
+        if (res.locals.user == null) return next('route');
+        const dummy = {
+            most_watched_actor: { name: 'Alex Mercer', count: 42 },
+            most_seen_director: { name: 'Jamie Lin', count: 17 },
+            most_watched_genre: { name: 'Drama', count: 88 },
+            most_watched_decade: { label: '1990s', count: 36 },
+            top10_actors: [
+                { name: 'Alex Mercer', count: 42 }, { name: 'Sam Vega', count: 38 }, { name: 'Rin Okada', count: 35 },
+                { name: 'Maya Torres', count: 33 }, { name: 'Leo Park', count: 31 }, { name: 'Keira Ames', count: 29 },
+                { name: 'Owen Hale', count: 28 }, { name: 'Irene Cho', count: 27 }, { name: 'Tariq Aziz', count: 26 }, { name: 'Nia Patel', count: 25 }
+            ],
+            top10_directors: [
+                { name: 'Jamie Lin', count: 17 }, { name: 'Arun Desai', count: 15 }, { name: 'Clara Wilde', count: 14 },
+                { name: 'Diego Ramos', count: 14 }, { name: 'H. Takeda', count: 13 }, { name: 'Sofia Marin', count: 12 },
+                { name: 'Noah Quinn', count: 12 }, { name: 'Y. Chen', count: 11 }, { name: 'E. Novak', count: 11 }, { name: 'M. Duarte', count: 10 }
+            ],
+            top10_genres: [
+                { name: 'Drama', count: 88 }, { name: 'Action', count: 72 }, { name: 'Comedy', count: 65 },
+                { name: 'Thriller', count: 52 }, { name: 'Sci‑Fi', count: 47 }, { name: 'Crime', count: 45 },
+                { name: 'Romance', count: 39 }, { name: 'Adventure', count: 33 }, { name: 'Animation', count: 26 }, { name: 'Horror', count: 24 }
+            ],
+            rewatches_logged: 12,
+            oldest_movie_watched: { title: 'Metropolis', year: 1927 },
+            newest_release_watched: { title: 'Starfall', year: 2025 },
+            genre_diversity: { unique: 12, total: 143, ratio: Math.round((12/143)*100) },
+            old_vs_new: { pre2000: 58, post2000: 85 }
+        };
+
+        res.render('public assets/template.ejs', {
+            page_title: 'iWatched.xyz - Stats',
+            page_file: 'profile',
+            page_subFile: 'stats_page',
+            page_data: {
+                user: res.locals.user,
+                stats: dummy
+            },
+            user: req.user
+        });
+    });
+
+    // Badges page
+    server.get('/:id/badges', getUser, enforceProfileVisibility, async (req, res, next) => {
+        if (res.locals.user == null) return next('route');
+        const Badge = require('../../../db/models/badge');
+        const u = res.locals.user;
+        const badges = Array.isArray(u.profile && u.profile.user_badges) ? u.profile.user_badges : [];
+        const ids = badges.map(b => b.badge_id).filter(Boolean);
+        let details = [];
+        try { details = await Badge.find({ _id: { $in: ids } }).lean(); } catch (_) { details = []; }
+        const map = new Map(details.map(d => [String(d._id), d]));
+        const enriched = badges.map(b => {
+            const d = map.get(String(b.badge_id));
+            return {
+                id: String(b.badge_id),
+                level: b.level || 'single',
+                awarded_at: b.awarded_at || null,
+                title: d ? d.title : 'Badge',
+                description: d ? d.description : '',
+                icon: d && d.icon ? ('/static/style/img/badges/' + d.icon) : null
+            };
+        });
+        res.render('public assets/template.ejs', {
+            page_title: 'iWatched.xyz - Badges',
+            page_file: 'profile',
+            page_subFile: 'badges',
+            page_data: { user: u, badges: enriched },
             user: req.user
         });
     });

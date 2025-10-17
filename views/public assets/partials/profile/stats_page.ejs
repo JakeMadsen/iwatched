@@ -1,0 +1,102 @@
+<div class="container" style="margin-top:16px; max-width: 1100px;">
+  <h2>Viewing stats for <%= (page_data.user && page_data.user.local && page_data.user.local.username) || 'User' %></h2>
+  <div class="row" style="margin-top:10px;">
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-card__label">Most watched actor</div>
+        <div class="stat-card__value"><%= page_data.stats.most_watched_actor.name %></div>
+        <div class="stat-card__sub"><%= page_data.stats.most_watched_actor.count %> movies</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-card__label">Most seen director</div>
+        <div class="stat-card__value"><%= page_data.stats.most_seen_director.name %></div>
+        <div class="stat-card__sub"><%= page_data.stats.most_seen_director.count %> movies</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card">
+        <div class="stat-card__label">Most watched genre / decade</div>
+        <div class="stat-card__value"><%= page_data.stats.most_watched_genre.name %></div>
+        <div class="stat-card__sub"><%= page_data.stats.most_watched_decade.label %> · <%= page_data.stats.most_watched_decade.count %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div class="col-md-4">
+      <h4>Top 10 actors</h4>
+      <ol>
+        <% (page_data.stats.top10_actors||[]).forEach(function(x){ %>
+          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
+        <% }) %>
+      </ol>
+    </div>
+    <div class="col-md-4">
+      <h4>Top 10 directors</h4>
+      <ol>
+        <% (page_data.stats.top10_directors||[]).forEach(function(x){ %>
+          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
+        <% }) %>
+      </ol>
+    </div>
+    <div class="col-md-4">
+      <h4>Top 10 genres</h4>
+      <ol>
+        <% (page_data.stats.top10_genres||[]).forEach(function(x){ %>
+          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
+        <% }) %>
+      </ol>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Rewatches</div>
+        <div class="stat-card__value"><%= page_data.stats.rewatches_logged %></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Oldest movie watched</div>
+        <div class="stat-card__value"><%= page_data.stats.oldest_movie_watched.title %></div>
+        <div class="stat-card__sub"><%= page_data.stats.oldest_movie_watched.year %></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Newest release watched</div>
+        <div class="stat-card__value"><%= page_data.stats.newest_release_watched.title %></div>
+        <div class="stat-card__sub"><%= page_data.stats.newest_release_watched.year %></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Old vs. new (pre-2000/post-2000)</div>
+        <div class="stat-card__value"><%= page_data.stats.old_vs_new.pre2000 %> / <%= page_data.stats.old_vs_new.post2000 %></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:12px;">
+    <div class="col-md-6">
+      <div class="stat-card">
+        <div class="stat-card__label">Genre diversity score</div>
+        <div class="stat-card__value"><%= page_data.stats.genre_diversity.ratio %>%</div>
+        <div class="stat-card__sub"><%= page_data.stats.genre_diversity.unique %> unique / <%= page_data.stats.genre_diversity.total %> total</div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .stat-card{ background:#151515; border:1px solid #2a2a2a; border-radius:10px; padding:12px; color:#fff; margin-bottom:10px; }
+    .stat-card__label{ opacity:.85; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+    .stat-card__value{ font-size:20px; font-weight:700; }
+    .stat-card__value--sm{ font-size:16px; font-weight:600; }
+    .stat-card__sub{ opacity:.8; font-size:12px; }
+    .stat-pair{ display:flex; gap:16px; align-items:flex-end; }
+  </style>
+</div>
+

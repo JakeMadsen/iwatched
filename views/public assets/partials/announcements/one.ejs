@@ -69,7 +69,20 @@
         +   '<div style="display:flex; gap:10px; align-items:flex-start;">'
         +     '<a href="'+link+'"><img src="'+avatar+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"></a>'
         +     '<div style="flex:1 1 auto;">'
-        +       '<div><a href="'+link+'" style="color: lightblue; font-weight:600;">'+handle+'</a></div>'
+        +       (function(){
+                  var title = '';
+                  try {
+                    var bits = [];
+                    if (c.user_badge_title) bits.push(c.user_badge_title);
+                    if (c.user_badge_level && c.user_badge_level !== 'single') bits.push(c.user_badge_level);
+                    if (c.user_badge_awarded_at) bits.push('Awarded '+new Date(c.user_badge_awarded_at).toLocaleDateString());
+                    if (c.user_badge_desc) bits.push(c.user_badge_desc);
+                    title = bits.join(' — ');
+                  } catch(_){}
+                  return '<div><a href="'+link+'" style="color: lightblue; font-weight:600;">'+handle+'</a>'
+                    + (c.user_badge_icon ? ' <img src="'+c.user_badge_icon+'" alt="" title="'+title.replace(/"/g,'&quot;')+'" style="width:14px;height:14px;object-fit:contain;margin-left:6px;vertical-align:middle;">' : '')
+                    + '</div>';
+                })()
         +       '<div style="opacity:.75; font-size:12px;">'+new Date(c.created_at).toLocaleString()+edited+'</div>'
         +       content
         +       '<div class="reply-edit-holder" data-id="'+c._id+'" style="margin-top:6px; display:none;"></div>'

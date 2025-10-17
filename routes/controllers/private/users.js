@@ -66,7 +66,19 @@ module.exports = (server) => {
 
             // Account
             u.account = u.account || {};
-            if (req.body.plan) u.account.plan = req.body.plan;
+            if (req.body.plan) {
+                const prevPlan = u.account.plan || 'free';
+                const nextPlan = String(req.body.plan);
+                u.account.plan = nextPlan;
+                if (prevPlan !== 'premium' && nextPlan === 'premium') {
+                    u.account.premium_since = new Date();
+                    u.account.premium_until = null;
+                    try { u.profile.flags.premium = true; } catch(e){}
+                } else if (prevPlan === 'premium' && nextPlan !== 'premium') {
+                    u.account.premium_until = new Date();
+                    try { u.profile.flags.premium = false; } catch(e){}
+                }
+            }
 
             await u.save();
             return res.redirect(`/admin/users/${u._id}?ok=1`);

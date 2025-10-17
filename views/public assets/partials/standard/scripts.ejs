@@ -5,8 +5,163 @@
 <script src="/static/style/js/search_movies.js"></script>
 <script src="/static/style/js/search_shows.js"></script>
 <script src="/static/style/js/profile_movies.js"></script>
+<script src="/static/style/js/profile_shows.js"></script>
 <script src="/static/style/js/profile_settings.js"></script>
 <script src="/static/style/js/search_global.js"></script>
+<!-- Cookie Consent (vanilla-cookieconsent) -->
+<script defer src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@2.9.2/dist/cookieconsent.js" crossorigin="anonymous"></script>
+<script>
+  // Initialize cookie consent banner and wire to Google Consent Mode (v2 API)
+  (function(){
+    var CC = null; // instance from initCookieConsent()
+    function ensureCCAssets(){
+      try {
+        if (typeof initCookieConsent !== 'function'){
+          var s = document.createElement('script');
+          s.src = 'https://unpkg.com/vanilla-cookieconsent@2.9.2/dist/cookieconsent.js';
+          s.defer = true; document.head.appendChild(s);
+          var l = document.createElement('link');
+          l.rel = 'stylesheet'; l.href = 'https://unpkg.com/vanilla-cookieconsent@2.9.2/dist/cookieconsent.css';
+          document.head.appendChild(l);
+        }
+      } catch(_){}
+    }
+    function updateGtagConsent(){
+      try {
+        var prefs = CC && typeof CC.getUserPreferences === 'function' ? CC.getUserPreferences() : null;
+        var accepted = (prefs && prefs.accepted_categories) || [];
+        var analytics = accepted.indexOf('analytics') !== -1;
+        var marketing = accepted.indexOf('ads') !== -1 || accepted.indexOf('marketing') !== -1;
+        if (typeof gtag === 'function'){
+          gtag('consent', 'update', {
+            'analytics_storage': analytics ? 'granted' : 'denied',
+            'ad_storage':       marketing ? 'granted' : 'denied',
+            'ad_user_data':     marketing ? 'granted' : 'denied',
+            'ad_personalization': marketing ? 'granted' : 'denied'
+          });
+        }
+      } catch(_){}
+    }
+
+    function initCC(){
+      if (typeof initCookieConsent !== 'function') return false;
+      CC = initCookieConsent();
+      CC.run({
+        current_lang: 'en',
+        revision: 2,
+        mode: 'opt-in',
+        cookie_name: 'cc_cookie',
+        cookie_expiration: 182,
+        page_scripts: false,
+        gui_options: {
+          consent_modal: {
+            layout: 'box',
+            position: 'bottom-left',
+            transition: 'slide'
+          },
+          settings_modal: {
+            layout: 'box',
+            position: 'right',
+            transition: 'slide'
+          }
+        },
+        // We currently only use strictly necessary cookies (sessions).
+        // Prepare categories for future analytics/ads so users can opt-in later.
+        categories: {
+          necessary: { enabled: true, readonly: true },
+          analytics: { enabled: false },
+          ads:       { enabled: false }
+        },
+        languages: {
+          en: {
+            consent_modal: {
+              title: "Hello traveller, it's cookie time!",
+              description: 'We use cookies to ensure core site functionality (like sessions) and to improve your experience. You can accept all, accept only necessary cookies, or manage your preferences at any time.',
+              primary_btn: { text: 'Accept all', role: 'accept_all' },
+              secondary_btn: { text: 'Accept necessary', role: 'accept_necessary' }
+            },
+            settings_modal: {
+              title: 'Cookie preferences',
+              save_settings_btn: 'Save preferences',
+              accept_all_btn: 'Accept all',
+              reject_all_btn: 'Reject all',
+              close_btn_label: 'Close',
+              blocks: [
+                {
+                  title: 'Strictly necessary',
+                  description: 'Required for core functionality like login sessions and security. Always on.',
+                  toggle: { value: 'necessary', enabled: true, readonly: true }
+                },
+                {
+                  title: 'Analytics (optional)',
+                  description: 'Helps us understand usage to improve the site. Disabled by default.',
+                  toggle: { value: 'analytics', enabled: false }
+                },
+                {
+                  title: 'Marketing/Ads (optional)',
+                  description: 'Used for personalized or non-personalized ads. Disabled by default. You can change this anytime.',
+                  toggle: { value: 'ads', enabled: false }
+                },
+                {
+                  title: 'More information',
+                  description: 'Read our <a href="/policy/privacy" target="_blank" rel="noopener">Privacy Policy</a>.'
+                }
+              ]
+            }
+          }
+        },
+        onFirstAction: function(){ updateGtagConsent(); },
+        onAccept: function(){ updateGtagConsent(); },
+        onChange: function(){ updateGtagConsent(); }
+      });
+      // Inject bottom link bar and a third "Manage preferences" button to match the demo
+      try {
+        var attachLinks = function(){
+          var cm = document.getElementById('cm');
+          if(!cm) return false;
+          if(document.getElementById('cc-custom-links')) return true;
+          var links = document.createElement('div');
+          links.id = 'cc-custom-links';
+          links.innerHTML = '<a href="/policy/privacy" target="_blank" rel="noopener">Privacy Policy</a><a href="/policy/terms-of-service" target="_blank" rel="noopener">Terms and conditions</a>';
+          cm.appendChild(links);
+          return true;
+        };
+        var attachManageBtn = function(){
+          var bns = document.getElementById('c-bns');
+          if(!bns) return false;
+          if(document.getElementById('c-m-bn')) return true;
+          var btn = document.createElement('button');
+          btn.id = 'c-m-bn';
+          btn.className = 'c-bn';
+          btn.type = 'button';
+          btn.textContent = 'Manage preferences';
+          btn.addEventListener('click', function(){ try { CC.showSettings(0); } catch(_){} });
+          bns.appendChild(btn);
+          return true;
+        };
+        // try immediately and then retry a few times if DOM not ready yet
+        var okLinks = attachLinks();
+        var okBtn = attachManageBtn();
+        if(!okLinks || !okBtn){
+          var tries=0, h=setInterval(function(){
+            var all = true;
+            if(!okLinks) okLinks = attachLinks();
+            if(!okBtn) okBtn = attachManageBtn();
+            all = okLinks && okBtn;
+            if(all || ++tries > 30) clearInterval(h);
+          }, 150);
+        }
+      } catch(_){}
+      return true;
+    }
+    // Initialize on window load; retry if script not ready yet
+    window.addEventListener('load', function(){
+      ensureCCAssets();
+      if (initCC()) return;
+      var tries = 0, h = setInterval(function(){ if(initCC() || ++tries > 20) clearInterval(h); }, 250);
+    });
+  })();
+</script>
 <script>
   (function(){
     // Simple toast utility
@@ -138,6 +293,9 @@
 <script src="/static/style/js/toggle_watched_movies.js"></script>
 <script src="/static/style/js/toggle_favourited_movies.js"></script>
 <script src="/static/style/js/toggle_saved_movies.js"></script>
+<script src="/static/style/js/toggle_watched_shows.js"></script>
+<script src="/static/style/js/toggle_favourited_shows.js"></script>
+<script src="/static/style/js/toggle_saved_shows.js"></script>
 <script src="/static/style/js/signup_helper.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -212,6 +370,31 @@
         btn.style.cssText = 'position:fixed; right:16px; bottom:16px; z-index:1040; box-shadow:0 4px 14px rgba(0,0,0,.25)';
         document.body.appendChild(btn);
       }
+    });
+  })();
+  
+  // Fix id-only similar links on movie detail by adding slug client-side
+  (function(){
+    document.addEventListener('DOMContentLoaded', function(){
+      var pf = <%- JSON.stringify(typeof page_file !== 'undefined' ? page_file : '') %>;
+      var ps = <%- JSON.stringify(typeof page_subFile !== 'undefined' ? page_subFile : '') %>;
+      if (pf !== 'movies' || ps !== 'one') return;
+      function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
+      try {
+        var cards = document.querySelectorAll('.image-box a[href^="/movies/"]');
+        cards.forEach(function(a){
+          var href = a.getAttribute('href')||'';
+          // only id-only links
+          var m = href.match(/^\/movies\/(\d+)$/);
+          if(!m) return;
+          var id = m[1];
+          // grab title from sibling card text
+          var titleEl = a.parentElement && a.parentElement.querySelector('.movie-hover .movie-title, .movie-hover p');
+          var title = titleEl ? (titleEl.textContent||'') : '';
+          var slug = slugify(title);
+          if(slug){ a.setAttribute('href', '/movies/' + id + '-' + slug); }
+        });
+      } catch(_){}
     });
   })();
   </script>

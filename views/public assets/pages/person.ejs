@@ -48,7 +48,7 @@
     <div class="row">
       <% (page_data.cast_movies||[]).slice(0,24).forEach(function(m){ %>
         <div class="col-md-2 image-box">
-          <a href="/movies/<%= m.id %>">
+          <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (typeof user != 'undefined') { %>
               <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>"
                    onload="
@@ -102,11 +102,33 @@
     <div class="row">
       <% (page_data.cast_shows||[]).slice(0,24).forEach(function(s){ %>
         <div class="col-md-2 image-box">
-          <a href="/shows/<%= s.id %>">
+          <a href="/shows/<%= s.id %>-<%= (s.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (s.poster_path) { %>
-              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= s.poster_path %>" alt="<%= s.name %>">
+              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= s.poster_path %>" alt="<%= s.name %>"
+                <% if (typeof user != 'undefined') { %>
+                onload="checkIfFavouritedShow('<%= user._id %>', '<%= s.id %>'); checkIfWatchedShow('<%= user._id %>', '<%= s.id %>'); checkIfSavedShow('<%= user._id %>', '<%= s.id %>');"
+                <% } %>
+              >
             <% } %>
-            <div class="movie-hover image-box-description"><p><%= s.name %></p></div>
+            <div class="movie-hover image-box-description">
+              <p><%= s.name %></p>
+              <% if (typeof user != 'undefined') { %>
+              <div class="row">
+                <div class="col-md-4">
+                  <i  class="far fa-check-circle fa-2x icon-white" id="add_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i  class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                </div>
+                <div class="col-md-4">
+                  <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                </div>
+                <div class="col-md-4">
+                  <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                </div>
+              </div>
+              <% } %>
+            </div>
           </a>
         </div>
       <% }); %>
@@ -120,7 +142,7 @@
     <div class="row">
       <% (page_data.crew_movies||[]).slice(0,24).forEach(function(m){ %>
         <div class="col-md-2 image-box">
-          <a href="/movies/<%= m.id %>">
+          <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (typeof user != 'undefined') { %>
               <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>"
                    onload="

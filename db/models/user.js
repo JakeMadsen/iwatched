@@ -16,7 +16,8 @@ var userSchema = mongoose.Schema({
         private:            { type: Boolean, default: false }, 
         visibility:         { type: String, enum: ['public','friends','private'], default: 'public' },
         flags:              { 
-            beta_tester: { type: Boolean, default: false }
+            beta_tester: { type: Boolean, default: false },
+            premium: { type: Boolean, default: false }
         },
         inactive:           { type: Boolean, default: false },  
         banner_image:       { type: String, default: null },
@@ -25,6 +26,7 @@ var userSchema = mongoose.Schema({
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
         custom_url:         { type: String, default: hat(), index: {unique : true} },
+        featured_badge_id:  { type: mongoose.Schema.Types.ObjectId, default: null },
         user_badges:        { type: [
             new mongoose.Schema({
                 badge_id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Badge' },
@@ -99,6 +101,19 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
 
     if(this.profile.banner_image != profileBanner && profileBanner != "" && profileBanner != null)
         this.profile.banner_image = profileBanner;
+
+    // Featured badge selection (only allow if user owns it)
+    if (typeof body.featured_badge !== 'undefined') {
+        try {
+            const sel = String(body.featured_badge || '').trim();
+            if (!sel) {
+                this.profile.featured_badge_id = null;
+            } else {
+                const owns = Array.isArray(this.profile.user_badges) && this.profile.user_badges.some(b => String(b.badge_id) === sel);
+                if (owns) this.profile.featured_badge_id = sel;
+            }
+        } catch (_) {}
+    }
 
 };
 

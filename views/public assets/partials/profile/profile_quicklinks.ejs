@@ -10,10 +10,10 @@
     <span class="quick-card__text">Activity</span>
   </a>
   <a class="quick-card" href="<%= basePath %>/watched/movies">
-    <span class="quick-card__icon"><i class="fas fa-clapperboard"></i></span>
+    <span class="quick-card__icon"><i class="fas fa-film"></i></span>
     <span class="quick-card__text">Watched Movies</span>
   </a>
-  <a class="quick-card is-disabled" href="#" aria-disabled="true">
+  <a class="quick-card" href="<%= basePath %>/watched/shows">
     <span class="quick-card__icon"><i class="fas fa-tv"></i></span>
     <span class="quick-card__text">Watched Shows</span>
   </a>
@@ -25,8 +25,19 @@
     <span class="quick-card__icon"><i class="fas fa-bookmark"></i></span>
     <span class="quick-card__text">Saved Lists</span>
   </a>
-  <a class="quick-card is-disabled" href="<%= basePath %>/statistics" aria-disabled="true" title="Coming soon">
-    <span class="quick-card__icon"><i class="fas fa-chart-pie"></i></span>
-    <span class="quick-card__text">Stats <i class="fas fa-lock" style="margin-left:6px; font-size: 0.9em;"></i></span>
-  </a>
+  <% var isPremium = (page_data.user && (
+        (page_data.user.profile && page_data.user.profile.flags && page_data.user.profile.flags.premium) ||
+        (page_data.user.account && page_data.user.account.plan === 'premium')
+      )); %>
+  <% if (isPremium) { %>
+    <a class="quick-card" href="<%= basePath %>/stats" title="Stats">
+      <span class="quick-card__icon"><i class="fas fa-chart-pie"></i></span>
+      <span class="quick-card__text">Stats</span>
+    </a>
+  <% } else { %>
+    <a class="quick-card is-disabled" href="#" aria-disabled="true" title="Premium required">
+      <span class="quick-card__icon"><i class="fas fa-chart-pie"></i></span>
+      <span class="quick-card__text">Stats <i class="fas fa-lock" style="margin-left:6px; font-size: 0.9em;"></i></span>
+    </a>
+  <% } %>
 </div>

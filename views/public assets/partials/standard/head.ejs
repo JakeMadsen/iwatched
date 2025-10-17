@@ -11,6 +11,68 @@
 <link rel="stylesheet" type="text/css" href="/static/style/css/detail.css">
 <% } %>
 
+<!-- Cookie Consent (vanilla-cookieconsent) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@2.9.2/dist/cookieconsent.css" crossorigin="anonymous">
+
+<!-- Force dark theme for CookieConsent -->
+<style>
+  /* Apply the library's dark palette via CSS variables */
+  #cc--main{
+    --cc-bg:#181b1d; --cc-text:#d8e5ea;
+    --cc-btn-primary-bg:#a6c4dd; --cc-btn-primary-text:#000; --cc-btn-primary-hover-bg:#c2dff7; --cc-btn-primary-hover-text:#000;
+    --cc-btn-secondary-bg:#33383c; --cc-btn-secondary-text:var(--cc-text); --cc-btn-secondary-hover-bg:#3e454a; --cc-btn-secondary-hover-text:var(--cc-btn-secondary-text);
+    --cc-toggle-bg-off:#667481; --cc-toggle-bg-on:var(--cc-btn-primary-bg); --cc-toggle-bg-readonly:#454c54; --cc-toggle-knob-bg:var(--cc-cookie-category-block-bg); --cc-toggle-knob-icon-color:var(--cc-bg);
+    --cc-block-text:#b3bfc5; --cc-cookie-category-block-bg:#23272a; --cc-cookie-category-block-bg-hover:#2b3035; --cc-section-border:#292d31; --cc-cookie-table-border:#2b3035;
+  }
+  /* Make the settings button look like the dark demo */
+  .cc_div #c-bns .b-tl{ background: var(--cc-btn-secondary-bg); color: var(--cc-btn-secondary-text); }
+  .cc_div #c-bns .b-tl:hover{ background: var(--cc-btn-secondary-hover-bg); color: var(--cc-btn-secondary-hover-text); }
+  .cc_div a{ color: inherit; opacity: .9; border-bottom-color: rgba(255,255,255,.2); }
+  .cc_div a:hover{ opacity: 1; }
+  /* Slightly widen buttons for mobile ergonomics */
+  .cc_div .c-bn{ padding: .85em 1em; }
+  /* Bottom link bar (privacy + terms), matching the demo */
+  #cc-custom-links{ display:flex; gap:18px; padding: .6rem 1rem 1rem; font-size:.875rem; opacity:.9; }
+  #cc-custom-links a{ border:0; text-decoration:none; opacity:.9; }
+  #cc-custom-links a:hover{ opacity:1; }
+  /* Make first two buttons light (Accept/Reject), third button dark */
+  .cc_div #c-bns{ flex-direction: column !important; gap: .6rem; align-items: stretch !important; justify-content: flex-start !important; }
+  .cc_div #c-bns .c-bn{ width: 100% !important; flex: 0 0 auto !important; display: block !important; margin: 0 !important; box-sizing: border-box; }
+  #c-p-bn, #c-s-bn{
+    background: var(--cc-btn-primary-bg) !important;
+    color: var(--cc-btn-primary-text) !important;
+  }
+  #c-p-bn:hover, #c-s-bn:hover{
+    background: var(--cc-btn-primary-hover-bg) !important;
+    color: var(--cc-btn-primary-hover-text) !important;
+  }
+  #c-m-bn{
+    background: var(--cc-btn-secondary-bg) !important;
+    color: var(--cc-btn-secondary-text) !important;
+  }
+  #c-m-bn:hover{
+    background: var(--cc-btn-secondary-hover-bg) !important;
+    color: var(--cc-btn-secondary-hover-text) !important;
+  }
+  /* Force modal to bottom-left of viewport */
+  .cc_div #cm{ left: 1rem !important; right: auto !important; top: auto !important; bottom: 1rem !important; margin: 0 !important; }
+</style>
+
+<!-- Google Consent Mode defaults (advanced) -->
+<script>
+  // Prepare dataLayer/gtag early and default all storages to denied
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  // Default denied until user consents; keeps Google tags compliant when added later
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'analytics_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'wait_for_update': 500
+  });
+</script>
+
 <!-- Font Awesome JS -->
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
 

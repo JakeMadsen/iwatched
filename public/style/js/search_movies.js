@@ -179,8 +179,10 @@ function searchMovies(genre) {
     //------------------//
 
     var itemTemplateSrc = $('#movie-template').html();
-
+    
     function getItemHTML(movie) {
+        // ensure slug available for links
+        try { movie.slug = slugify(movie.title || movie.name || ''); } catch(_) { movie.slug = ''; }
         return microTemplate(itemTemplateSrc, movie);
     }
 
@@ -197,6 +199,10 @@ function searchMovies(genre) {
             });
             return value;
         });
+    }
+
+    function slugify(s){
+        return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80);
     }
 }
 

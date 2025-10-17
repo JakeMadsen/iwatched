@@ -1,34 +1,83 @@
 <div class="container" style="margin-top:16px;">
   <h1>Search</h1>
   <form action="/search" method="get" class="form-inline" style="margin:8px 0 16px 0;">
-    <input type="text" class="form-control mr-sm-2" name="q" value="<%= page_data.q %>" placeholder="Search for movies, shows, users..." style="width: 360px;">
+    <input type="text" class="form-control mr-sm-2" name="q" value="<%= page_data.q %>" placeholder="Search for movies, shows, people, users..." style="width: 360px;">
     <button class="btn btn-secondary" type="submit">Search</button>
   </form>
 
-  <div id="search_results"></div>
+  <div id="search_wrap" style="position:relative;">
+    <div id="search_nav" style="position:absolute; left:-120px; top:0; width:100px;">
+      <!-- populated by script -->
+    </div>
+    <div id="search_results"></div>
+  </div>
 </div>
 
 <script>
   (function(){
     var holder = document.getElementById('search_results');
+    var nav = document.getElementById('search_nav');
     var q = '<%- page_data.q.replace(/'/g, "&#39;") %>';
     if(!q){ holder.innerHTML = '<p style="opacity:.75;">Type a search above.</p>'; return; }
     fetch('/api/v1/search?q='+encodeURIComponent(q)+'&limit=20')
       .then(function(r){ return r.json(); })
       .then(function(data){
-        function section(title, itemsHtml){
+        function section(title, id, itemsHtml){
           if(!itemsHtml) return '';
-          return '<h3>'+title+'</h3><div class="dropdown-divider"></div>'+itemsHtml;
+          return '<a id="'+id+'"></a><h3 style="margin-top:8px;">'+title+'</h3><div class="dropdown-divider"></div>'+itemsHtml;
         }
+        function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
         function movieCard(m){
-          return '<div class="col-md-2 image-box"><a href="/movies/'+m.id+'">'
+          var slug = slugify(m.title);
+          return '<div class="col-md-2 image-box"><a href="/movies/'+m.id+'-'+slug+'">'
            + '<img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/'+(m.poster_path||'')+'" alt=""></a>'
            + '<div class="movie-hover image-box-description"><div class="movie-title">'+(m.title||'')+'</div></div></div>';
         }
         function showCard(s){
-          return '<div class="col-md-2 image-box"><a href="/shows/'+s.id+'">'
-           + '<img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/'+(s.poster_path||'')+'" alt=""></a>'
-           + '<div class="movie-hover image-box-description"><div class="movie-title">'+(s.name||'')+'</div></div></div>';
+          var slug = slugify(s.name);
+          var href = '/shows/'+s.id+'-'+slug;
+          var html = '<div class="col-md-2 image-box"><a href="'+href+'">'
+            + '<img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/'+(s.poster_path||'')+'" alt=""></a>'
+            + '<div class="movie-hover image-box-description"><div class="movie-title">'+(s.name||'')+'</div>';
+          <% if (typeof user != 'undefined') { %>
+          html += '<div class="movie-actions">'
+            + '<i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showAddWatched(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showRemoveWatched(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="far fa-heart fa-2x icon-white" id="add_favourited_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showAddFavourited(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showRemoveFavourited(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showAddSaved(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_'+(s.id||'')+'" onclick="event.stopPropagation(); showRemoveSaved(\'<%= user._id %>\', \'"+(s.id||"")+"\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '</div>';
+          <% } %>
+          html += '</div></div>';
+          return html;
+        }
+        function personCard(p){
+          var href = '/person/'+p.id;
+          var img = p.profile_path ? 'https://image.tmdb.org/t/p/w342/'+p.profile_path : '';
+          return '<a class="card" href="'+href+'" style="background:#1b1b1b;border-radius:10px;padding:8px;display:flex;align-items:center;gap:10px;color:#e0e0e0;text-decoration:none;margin-bottom:8px;">'
+            + (img?'<img src="'+img+'" style="width:42px;height:42px;border-radius:8px;object-fit:cover;">':'')
+            + '<div><div style="font-weight:700;">'+(p.name||'Person')+'</div></div>'
+            + '</a>';
+        }
+        function buildNav(items){
+          if(!nav) return;
+          var html = '';
+          var labs = [];
+          if(items.movies) labs.push({ id:'sec-movies', label:'Movies'});
+          if(items.shows) labs.push({ id:'sec-shows', label:'Series'});
+          if(items.persons) labs.push({ id:'sec-persons', label:'People'});
+          if(items.users) labs.push({ id:'sec-users', label:'Users'});
+          if(!labs.length){ nav.innerHTML=''; return; }
+          html += '<div style="position:sticky; top:12px;">';
+          html += '<div style="height:'+ (labs.length*60+20) +'px; border-left:3px solid rgba(255,255,255,.25); margin-left:30px; position:relative;">';
+          labs.forEach(function(it, idx){
+            var top = 10 + idx*60;
+            html += '<div style="position:absolute; left:-6px; top:'+top+'px; width:12px; height:12px; background:#fff; border-radius:50%;"></div>';
+            html += '<a href="#'+it.id+'" class="search-rail-link" data-target="'+it.id+'" style="position:absolute; left:20px; top:'+(top-6)+'px; color:#e0e0e0; text-decoration:none;">'+it.label+'</a>';
+          });
+          html += '</div></div>';
+          nav.innerHTML = html;
         }
         function userRow(u){
           var slug = u.slug ? '/'+u.slug : '/'+u.id;
@@ -41,14 +90,23 @@
         }
         var movies = (data.movies||[]).map(movieCard).join('');
         var shows = (data.shows||[]).map(showCard).join('');
+        var persons = (data.persons||[]).map(personCard).join('');
         var users = (data.users||[]).map(userRow).join('');
-        holder.innerHTML =
-          section('Movies', movies?'<div class="row">'+movies+'</div>':'')+
-          section('Shows', shows?'<div class="row">'+shows+'</div>':'')+
-          section('Users', users);
+        var html = '';
+        if (movies) html += section('Movies','sec-movies','<div class="row">'+movies+'</div>');
+        if (shows) html += section('Shows','sec-shows','<div class="row">'+shows+'</div>');
+        if (persons) html += section('People','sec-persons',persons);
+        if (users) html += section('Users','sec-users',users);
+        holder.innerHTML = html;
+        buildNav({ movies: !!movies, shows: !!shows, persons: !!persons, users: !!users });
         if(!holder.innerHTML){ holder.innerHTML = '<p style="opacity:.75;">No results for "'+q+'".</p>'; }
       })
       .catch(function(){ holder.innerHTML = '<p style="opacity:.75;">Search failed.</p>'; });
   })();
 </script>
 
+<style>
+  @media (max-width: 992px){ #search_nav { display:none; } #search_wrap { padding-left:0; } }
+  @media (min-width: 993px){ #search_wrap { padding-left: 0; } }
+  .search-rail-link:hover{ text-decoration: underline; }
+</style>

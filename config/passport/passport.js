@@ -67,6 +67,15 @@ module.exports = (passport) => {
                             newSaved.initial(newUser._id)
                             newSaved.save();
 
+                        try {
+                            const UserWatchedShows = require('../../db/models/userWatchedShows');
+                            const UserFavouritedShows = require('../../db/models/userFavouritedShows');
+                            const UserSavedShows = require('../../db/models/userSavedShows');
+                            let ws = new UserWatchedShows(); ws.initial(newUser._id); ws.save();
+                            let fs = new UserFavouritedShows(); fs.initial(newUser._id); fs.save();
+                            let ss = new UserSavedShows(); ss.initial(newUser._id); ss.save();
+                        } catch (_) {}
+
                         if (err)
                             throw err;
                         return done(null, newUser);

@@ -12,7 +12,7 @@
       <% } %>
     </div>
     <div class="col-md-3 text-right">
-      <a style="color:lightblue;" href="/shows/<%= (page_data.show||{}).id %>">Back to series</a>
+      <a style="color:lightblue;" href="/shows/<%= (page_data.show||{}).id %>-<%= ((page_data.show||{}).name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">Back to series</a>
     </div>
   </div>
 
@@ -89,4 +89,3 @@
   <% } %>
   <% } %>
 </div>
-

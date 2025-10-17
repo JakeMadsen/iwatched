@@ -1,8 +1,14 @@
 <div id="profile_lists">
     <div id="profile_movie_list">
         <div name="allMovies" class="row">
-            <h3 class="col-md-6" style="text-align: left;">All movies ive seen</h3>
-            <p class="col-md-6" style="text-align: right;"> Amount of movies: <%= page_data.amountOfMovies %></p>
+            <h3 class="col-md-6" style="text-align: left;">
+                <% if ((page_data.type||'movies') === 'shows') { %>
+                    All shows I've seen
+                <% } else { %>
+                    All movies I've seen
+                <% } %>
+            </h3>
+            <p class="col-md-6" style="text-align: right;"> Amount: <%= page_data.amountOfMovies %></p>
         </div>
 
         <div id="movies_holder" class="row">
@@ -29,8 +35,13 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function (event) {
-        profileWatchedMovies('<%= page_data.user._id%>')
+        if ('<%= page_data.type||'movies' %>' === 'shows') { profileWatchedShows('<%= page_data.user._id%>'); }
+        else { profileWatchedMovies('<%= page_data.user._id%>'); }
     });
 </script>
 
-<% include movie_template.ejs %>
+<% if ((page_data.type||'movies') === 'shows') { %>
+    <% include show_template.ejs %>
+<% } else { %>
+    <% include movie_template.ejs %>
+<% } %>

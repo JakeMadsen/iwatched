@@ -33,12 +33,15 @@
 
 <script>
 (function(){
+  function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
   function buildLink(){
     var modal = document.getElementById('recommendModal');
     var type = modal.getAttribute('data-content-type') || '';
     var id = modal.getAttribute('data-content-id') || '';
+    var title = modal.getAttribute('data-content-title') || '';
     if(!type || !id) return location.href;
-    var path = type === 'movie' ? '/movies/' + id : '/shows/' + id;
+    var slug = slugify(title);
+    var path = type === 'movie' ? '/movies/' + id + (slug?('-'+slug):'') : '/shows/' + id + (slug?('-'+slug):'');
     return location.origin + path + '?via=recommend';
   }
   $('#recommendModal').on('show.bs.modal', function (event) {
@@ -49,6 +52,7 @@
     var modal = $(this);
     modal.attr('data-content-type', type);
     modal.attr('data-content-id', id);
+    modal.attr('data-content-title', title||'');
     modal.find('#recommend_context').text('You are sharing "' + (title||'') + '"');
     modal.find('#recommend_copied_msg').hide();
   });
@@ -63,4 +67,3 @@
   });
 })();
 </script>
-

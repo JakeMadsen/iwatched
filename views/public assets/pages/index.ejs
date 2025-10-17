@@ -26,7 +26,7 @@
         <% page_data.popular.movies.forEach(function (movie, index){ %>
             <% if(index + 1 <= 18) { %>
                 <div class="col-md-2 image-box" >
-                    <a href="/movies/<%= movie.id %>">
+                    <a href="/movies/<%= movie.id %>-<%= (movie.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
                         <% if(typeof user != 'undefined') { %>
                             <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
                                 alt="" 

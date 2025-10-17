@@ -44,10 +44,24 @@ module.exports = function(server){
     }
   });
 
-  // Get one announcement
+  // Get one announcement (robust ID handling)
   server.get('/api/v1/announcements/:id', async (req, res) => {
     try {
-      let a = await Announcement.findById(req.params.id).lean();
+      const idParam = (req.params && req.params.id) || '';
+      let a = null;
+      try {
+        if (idParam && require('mongoose').Types.ObjectId.isValid(idParam)) {
+          a = await Announcement.findById(idParam).lean();
+        }
+      } catch (_) {}
+      // Fallback: some docs may (unexpectedly) have string _id values
+      if (!a) {
+        try { a = await Announcement.collection.findOne({ _id: idParam }); } catch (_) {}
+      }
+      // Last resort: allow lookup by slug if someone passed that as :id
+      if (!a) {
+        try { a = await Announcement.findOne({ slug: idParam }).lean(); } catch (_) {}
+      }
       if (!a) return res.status(404).json({ announcement: null });
       // Enrich comments with avatar + profile link
       try {
@@ -57,9 +71,19 @@ module.exports = function(server){
         if (uniq.length) {
           const User = require('../../../../db/models/user');
           const users = await User.find({ _id: { $in: uniq } })
-            .select('_id local.username profile.custom_url profile.profile_image')
+            .select('_id local.username profile.custom_url profile.profile_image profile.featured_badge_id profile.user_badges')
             .lean();
           const map = new Map(users.map(u => [String(u._id), u]));
+          // Preload featured badge metadata
+          let badgeMap = new Map();
+          try {
+            const badgeIds = Array.from(new Set((users||[]).map(u => u && u.profile && u.profile.featured_badge_id).filter(Boolean).map(String)));
+            if (badgeIds.length){
+              const Badge = require('../../../../db/models/badge');
+              const bdocs = await Badge.find({ _id: { $in: badgeIds } }).select('_id title description icon').lean();
+              badgeMap = new Map((bdocs||[]).map(b => [String(b._id), b]));
+            }
+          } catch(_){}
           a.comments = comments.map(c => {
             const u = c.user_id ? map.get(String(c.user_id)) : null;
             const username = u && u.local && u.local.username;
@@ -69,6 +93,22 @@ module.exports = function(server){
               : '/static/style/img/profile_images/users/default/picture_default.png';
             const link = slug ? `/${slug}` : (u ? `/${u._id}` : '#');
             const handle = slug ? `@${slug}` : (username ? `@${username}` : '@user');
+            // Featured badge
+            let badge_icon = null, badge_title = null, badge_desc = null, badge_awarded = null, badge_level = null;
+            try {
+              const fid = u && u.profile && u.profile.featured_badge_id ? String(u.profile.featured_badge_id) : null;
+              if (fid){
+                const bd = badgeMap.get(fid);
+                if (bd){
+                  badge_icon = bd.icon ? ('/static/style/img/badges/' + bd.icon) : null;
+                  badge_title = bd.title || null;
+                  badge_desc = bd.description || '';
+                  const owned = Array.isArray(u.profile.user_badges) ? u.profile.user_badges.find(b => String(b.badge_id) === fid) : null;
+                  badge_awarded = owned && owned.awarded_at || null;
+                  badge_level = owned && owned.level || 'single';
+                }
+              }
+            } catch(_){}
             const upCount = Array.isArray(c.upvotes) ? c.upvotes.length : 0;
             const downCount = Array.isArray(c.downvotes) ? c.downvotes.length : 0;
             let userVote = null;
@@ -79,7 +119,7 @@ module.exports = function(server){
                 else if ((c.downvotes||[]).map(String).includes(uid)) userVote = 'down';
               }
             } catch(_){}
-            return Object.assign({}, c, { user_avatar: img, user_link: link, user_handle: handle, upvote_count: upCount, downvote_count: downCount, user_vote: userVote });
+            return Object.assign({}, c, { user_avatar: img, user_link: link, user_handle: handle, user_badge_icon: badge_icon, user_badge_title: badge_title, user_badge_desc: badge_desc, user_badge_awarded_at: badge_awarded, user_badge_level: badge_level, upvote_count: upCount, downvote_count: downCount, user_vote: userVote });
           });
         }
       } catch(_) {}

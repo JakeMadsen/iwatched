@@ -24,16 +24,7 @@ module.exports = (server) => {
         const id = parseNumericId(rawId);
         let movie = await tmdService.movieInfo({ id: id, append_to_response: 'videos,similar' })
             .catch(() => ({}));
-        // Redirect to canonical slugged URL if needed
-        try {
-            const wantSlug = slugify(movie && movie.title ? movie.title : '');
-            if (wantSlug) {
-                const currentSlug = req.params.slug;
-                if (currentSlug !== wantSlug) {
-                    return res.redirect(302, `/movies/${id}-${wantSlug}`);
-                }
-            }
-        } catch(e) { /* ignore */ }
+        // No redirects: links are now generated with slugs across the app
 
         let credits = await tmdService.movieCredits(id).catch(() => ({ cast: [], crew: [] }));
         let runtime = getRunTime(movie.runtime || 0);

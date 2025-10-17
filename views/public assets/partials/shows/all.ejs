@@ -44,12 +44,25 @@
 
 <script type="text/html" id="show-template">
   <div class="col-md-2 image-box">
-    <a href="/shows/{{id}}">
-      <img class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}" alt="">
+    <a href="/shows/{{id}}-{{slug}}">
+      <img class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}" alt=""
+        <% if (typeof user != 'undefined') { %>
+        onload="checkIfFavouritedShow('<%= user._id %>', '{{id}}'); checkIfWatchedShow('<%= user._id %>', '{{id}}'); checkIfSavedShow('<%= user._id %>', '{{id}}');"
+        <% } %>
+      >
     </a>
     <div class="movie-hover image-box-description">
       <div class="movie-title" title="{{name}}">{{name}}</div>
-      <div class="movie-actions"></div>
+      <div class="movie-actions">
+        <% if (typeof user != 'undefined') { %>
+        <i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_{{id}}" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_{{id}}" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_{{id}}" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_{{id}}" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_{{id}}" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_{{id}}" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+        <% } %>
+      </div>
     </div>
   </div>
   </script>

@@ -143,6 +143,7 @@ function searchShows(genre) {
   var itemTemplateSrc = $('#show-template').html();
 
   function getItemHTML(show) {
+    try { show.slug = slugify(show.name || show.title || ''); } catch(_) { show.slug = ''; }
     return microTemplate(itemTemplateSrc, show);
   }
 
@@ -155,6 +156,10 @@ function searchShows(genre) {
       return value;
     });
   }
+}
+
+function slugify(s){
+  return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80);
 }
 
 function parseQueryString(url) {

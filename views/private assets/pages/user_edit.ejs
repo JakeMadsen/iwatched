@@ -76,9 +76,7 @@
         <div class="input-group">
           <input class="form-control" value="<%= page_data.user.permissions && page_data.user.permissions.user_private_key || '' %>" readonly>
           <div class="input-group-append">
-            <form method="POST" action="/admin/users/<%= page_data.user._id %>/reset_key" onsubmit="return confirm('Reset private key?');">
-              <button class="btn btn-outline-warning" type="submit">Reset</button>
-            </form>
+            <button class="btn btn-outline-warning" type="submit" formaction="/admin/users/<%= page_data.user._id %>/reset_key" formmethod="POST" onclick="return confirm('Reset private key?');">Reset</button>
           </div>
         </div>
       </div>
@@ -90,4 +88,3 @@
     </div>
   </form>
 </div>
-

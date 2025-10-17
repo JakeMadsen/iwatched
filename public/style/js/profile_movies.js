@@ -49,7 +49,7 @@ function profileWatchedMovies(user_id) {
     
     function getItemHTML(movie) {
         getPoster(movie.tmd_id)
-
+        try { movie.slug = slugify(movie.title || movie.name || movie.movie_title || ''); } catch(_) { movie.slug = ''; }
         return microTemplate(itemTemplateSrc, movie);
     }
 
@@ -86,6 +86,10 @@ function profileWatchedMovies(user_id) {
 
     }
 
+}
+
+function slugify(s){
+    return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80);
 }
 
 function profileFavouriteMovies(user_id){
@@ -139,7 +143,7 @@ function profileFavouriteMovies(user_id){
     
     function getItemHTML(movie) {
         getPoster(movie.tmd_id)
-
+        try { movie.slug = slugify(movie.movie_title || movie.title || movie.name || ''); } catch(_) { movie.slug = ''; }
         return microTemplate(itemTemplateSrc, movie);
     }
 
@@ -229,7 +233,7 @@ function profileSavedMovies(user_id){
     
     function getItemHTML(movie) {
         getPoster(movie.tmd_id)
-
+        try { movie.slug = slugify(movie.movie_title || movie.title || movie.name || ''); } catch(_) { movie.slug = ''; }
         return microTemplate(itemTemplateSrc, movie);
     }
 
@@ -319,7 +323,7 @@ function profileMoviesLatest(user_id) {
     
     function getItemHTML(movie) {
         getPoster(movie.tmd_id)
-
+        try { movie.slug = slugify(movie.movie_title || movie.title || movie.name || ''); } catch(_) { movie.slug = ''; }
         return microTemplate(itemTemplateSrc, movie);
     }
 

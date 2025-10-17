@@ -1,7 +1,7 @@
 <% if(typeof user != 'undefined') { %>
     <script type="text/html" id="movie-template">
         <div class="col-md-2 image-box" >
-            <a href="/movies/{{tmd_id}}">
+            <a href="/movies/{{tmd_id}}-{{slug}}">
                     <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif"
                         alt="" 
                         onload="    
@@ -51,7 +51,7 @@
 <% } else { %>
     <script type="text/html" id="movie-template">
         <div class="col-md-2 image-box" >
-            <a href="/movies/{{tmd_id}}">
+            <a href="/movies/{{tmd_id}}-{{slug}}">
                 <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif">
             </a>
             <div class="movie-hover image-box-description">

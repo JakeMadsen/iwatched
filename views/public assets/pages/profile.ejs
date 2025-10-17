@@ -17,7 +17,12 @@
                     : '/' + page_data.user._id;
                 %>
                 <% if (handle) { %>
-                    <div class="profile-hero__handle"><a class="profile-hero__handle-link" href="<%= handleBasePath %>">@<%= handle %></a></div>
+                    <div class="profile-hero__handle">
+                      <a class="profile-hero__handle-link" href="<%= handleBasePath %>">@<%= handle %></a>
+                      <% try { var fb = (page_data.user && page_data.user.profile && page_data.user.profile.featured_badge_info) || null; if (fb && fb.icon) { %>
+                        <img src="<%= fb.icon %>" alt="<%= fb.title %>" title="<%= fb.title %><% if (fb.level && fb.level!=='single') { %> — <%= fb.level %><% } %><% if (fb.awarded_at) { %> — Awarded <%= new Date(fb.awarded_at).toLocaleDateString() %><% } %>\n<%= fb.description %>" style="width:18px;height:18px;object-fit:contain;margin-left:6px;vertical-align:middle;">
+                      <% } } catch(_){} %>
+                    </div>
                 <% } %>
                 <% if (page_data.user.profile.description) { %>
                     <p class="profile-hero__bio"><%= page_data.user.profile.description %></p>
