@@ -57,11 +57,35 @@ app.use(cookieParser())
 
 /* Server Database Connection  */
 const mongoUri = process.env.MONGO_URI || serverSettings._mongoDB;
+
+if (!mongoUri || typeof mongoUri !== 'string' || !mongoUri.trim()) {
+    console.error('[Startup] Missing Mongo connection string. Set `MONGO_URI` env var.');
+}
+
+// Prefer modern connection options for stability
 mongoose
-    .connect(mongoUri, { useCreateIndex: true, useNewUrlParser: true })
-    .catch(err => {
-        console.log("Database connection failure: " + err)
+    .connect(mongoUri, {
+        useCreateIndex: true,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 10000
     })
+    .catch(err => {
+        console.error('[MongoDB] Connection error:', err && err.message ? err.message : err);
+    })
+
+// Helpful diagnostics during startup
+try {
+    mongoose.connection.on('error', (err) => {
+        console.error('[MongoDB] Connection event error:', err && err.message ? err.message : err);
+    });
+    mongoose.connection.on('connected', () => {
+        try { console.log('[MongoDB] Connected'); } catch (_) {}
+    });
+    mongoose.connection.on('disconnected', () => {
+        try { console.warn('[MongoDB] Disconnected'); } catch (_) {}
+    });
+} catch (_) {}
 
 /* Server User Passport Setup  */
 require('../../../config/passport/passport')(passport)
