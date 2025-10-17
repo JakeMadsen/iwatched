@@ -1,6 +1,7 @@
 const axios = require('axios')
 const url = "https://api.themoviedb.org/3";
-const key = process.env.TMDB_API_KEY || "ab4e974d12c288535f869686bd72e1da";
+const envKey = process.env.TMDB_API_KEY;
+const key = (envKey && !/^your-tmdb-api-key$/i.test(envKey)) ? envKey : "ab4e974d12c288535f869686bd72e1da";
 
 
 module.exports = {

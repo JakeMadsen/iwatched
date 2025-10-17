@@ -26,7 +26,12 @@ const startServer = () => {
 const failTimeout = setTimeout(() => {
   if (!started) {
     console.error('[Startup] Timed out waiting for MongoDB connection. Check MONGO_URI and network/IP allowlist.');
-    process.exit(1);
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    } else {
+      console.warn('[Startup] Continuing without DB connection (dev mode). Some features will not work.');
+      startServer();
+    }
   }
 }, 20000);
 
