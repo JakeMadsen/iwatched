@@ -40,7 +40,7 @@
     "passport-local": "^1.0.0",
     "password-generator": "^2.2.0",
     "portfinder": "^1.0.20",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.1",
     "twilio": "^3.30.3",
     "vanilla-cookieconsent": "^3.1.0"
   }
