@@ -44,10 +44,11 @@ module.exports = function(server){
     }
   });
 
-  // Get one announcement (robust ID handling)
-  server.get('/api/v1/announcements/:id', async (req, res) => {
+  // Core handler to get one announcement
+  async function handleGetOne(req, res){
     try {
-      const idParam = (req.params && req.params.id) || '';
+      const idParamRaw = (req.params && req.params.id) || '';
+      const idParam = String(idParamRaw).split('-')[0]; // tolerate id-slug format
       let a = null;
       try {
         if (idParam && require('mongoose').Types.ObjectId.isValid(idParam)) {
@@ -158,7 +159,12 @@ module.exports = function(server){
     } catch (e) {
       res.status(500).json({ ok:false });
     }
-  });
+  }
+  
+  // Get one announcement (robust ID handling)
+  server.get('/api/v1/announcements/:id', handleGetOne);
+  // Also support id-slug shape for resilience
+  server.get('/api/v1/announcements/:id-:slug', handleGetOne);
 
   // Create a reply (1-level nesting)
   server.post('/api/v1/announcements/:id/comment/:comment_id/reply', async (req, res) => {
