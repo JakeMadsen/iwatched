@@ -128,7 +128,7 @@ module.exports = function(server){
     } catch (e) {
       res.status(404).json({ announcement: null });
     }
-  });
+  }
 
   // Add a comment (auth required)
   // comment rate-limit map (per-process)
@@ -159,7 +159,7 @@ module.exports = function(server){
     } catch (e) {
       res.status(500).json({ ok:false });
     }
-  }
+  });
   
   // Get one announcement (robust ID handling)
   server.get('/api/v1/announcements/:id', handleGetOne);
