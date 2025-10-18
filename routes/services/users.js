@@ -1,10 +1,11 @@
-/*
+﻿/*
 *   Mongoose models
 **************************/
 const User                  = require('../../db/models/user');
 const UserWatchedMovies     = require('../../db/models/userWatchedMovies');
 const UserFavouritedMovies  = require('../../db/models/userFavouritedMovies');
 const UserSavedMovies       = require('../../db/models/userSavedMovies');
+const UserWatchedShows      = require('../../db/models/userWatchedShows');
 
 /*
 *   Services
@@ -234,7 +235,14 @@ module.exports = {
                 })
             }
             else if (type == "shows"){
-    
+                UserWatchedShows.findOne({ 'user_id': user_id }, (error, watchedShows) => {
+                    if(error)
+                        reject(error)
+                    if(watchedShows){
+                        let totalTime = getTimeWatched(watchedShows.show_watch_time)
+                        resolve(totalTime)
+                    }
+                })
             }
             
         })
@@ -291,3 +299,5 @@ function getTimeWatched(runtime) {
 
     return (`${days} ${text2} and ${hours} ${text} and ${minutes} minutes`);
 }
+
+

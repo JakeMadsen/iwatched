@@ -350,3 +350,144 @@ h1, h2, h3,h4,  a {
 /* .movie-hover, .movie-hover * {
   color: #ffffff !important;
 } */
+
+/* ========== Stats Page ========== */
+.stats-page {
+  --accent-1: #a06df2;
+  --accent-2: #f06c9b;
+  --accent-3: #62c4ff;
+  --accent-4: #ff9f43;
+  --accent-5: #48e0a4;
+  --surface: #161616;
+  --surface-2: #1b1b1b;
+  --border: #2a2a2a;
+  --text: #eaeaea;
+}
+
+.surface { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.25); color: var(--text); }
+
+.stats-header { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin:16px 0 10px; }
+.stats-title { margin:0; font-weight:800; }
+.stats-subtitle { margin:4px 0 0; color:#bcbcbc; }
+.stats-funfacts { display:flex; flex-wrap:wrap; gap:8px; }
+
+.chip { display:inline-flex; align-items:center; gap:8px; background:#1b1f26; color:#d8e5ea; border:1px solid #2d3742; padding:6px 10px; border-radius:999px; font-size:13px; }
+.chip--info i { color:#8faaf5; }
+.chip--trophy i { color:#f6c453; }
+
+.metric-card { display:flex; align-items:center; gap:12px; padding:14px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0)), var(--surface-2); border:1px solid var(--border); }
+.metric-card__icon { font-size:20px; color:#bdbdbd; }
+.metric-card__label { opacity:.8; font-size:12px; text-transform:uppercase; letter-spacing:.4px; }
+.metric-card__value { font-size:28px; font-weight:800; line-height:1; }
+.metric-card__hint { opacity:.7; font-size:12px; }
+
+.panel { padding:16px; border-radius:12px; }
+.panel__header { display:flex; align-items:center; justify-content:flex-start; gap:10px; margin-bottom:10px; }
+.panel__header--between { justify-content:space-between; }
+.muted { color:#a0a0a0; }
+
+.genre-list { display:flex; flex-direction:column; gap:10px; }
+.genre-row { display:grid; grid-template-columns: 120px 1fr auto; gap:10px; align-items:center; }
+.genre-row__label { color:#eaeaea; font-weight:600; }
+.genre-row__value { color:#cfcfcf; font-size:13px; }
+
+.progress { background:#2a2a2a; border-radius:999px; height:12px; overflow:hidden; }
+.progress-bar { height:100%; border-radius:999px; transform-origin:left center; animation: grow 700ms ease-out both; }
+.progress-bar.accent-1 { background: var(--accent-1); }
+.progress-bar.accent-2 { background: var(--accent-2); }
+.progress-bar.accent-3 { background: var(--accent-3); }
+.progress-bar.accent-4 { background: var(--accent-4); }
+.progress-bar.accent-5 { background: var(--accent-5); }
+
+.rewatch { display:flex; gap:14px; align-items:center; }
+.poster { width:96px; height:128px; border-radius:8px; background:#111; border:1px solid var(--border); object-fit:cover; }
+.ph-poster { background: linear-gradient(135deg, #1a1a1a, #121212); }
+.rewatch__title { font-weight:700; font-size:18px; }
+.rewatch__year { color:#bdbdbd; margin-top:2px; }
+.badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:12px; }
+.badge-accent { background: rgba(160,109,242,.18); color:#d9c7ff; border:1px solid rgba(160,109,242,.35); }
+
+.stacked-bar { display:flex; width:100%; height:18px; background:#2a2a2a; border-radius:999px; overflow:hidden; margin:8px 0 14px; }
+.stacked-bar__segment { display:flex; align-items:center; justify-content:center; color:#0b0b0b; font-weight:700; font-size:12px; }
+.stacked-bar__segment--a { background: var(--accent-3); color:#0e1b24; }
+.stacked-bar__segment--b { background: var(--accent-1); color:#1a0d2e; }
+
+.mini-card { padding:12px; border-radius:10px; }
+.mini-card__label { color:#bdbdbd; font-size:12px; margin-bottom:4px; }
+.mini-card__title { font-weight:700; }
+.mini-card__value { font-weight:800; font-size:22px; }
+
+.decade-bars { display:flex; align-items:flex-end; gap:14px; min-height:140px; }
+.decade { display:flex; flex-direction:column; align-items:center; gap:6px; width:80px; }
+.decade__bar { width:100%; height:110px; background:#1c1c1c; border:1px solid var(--border); border-radius:8px; display:flex; align-items:flex-end; overflow:hidden; }
+.decade__fill { width:100%; background: linear-gradient(180deg, rgba(160,109,242,.8), rgba(160,109,242,.35)); border-top-left-radius:6px; border-top-right-radius:6px; animation: growY 600ms ease-out both; }
+.decade__value { font-weight:700; }
+.decade__label { color:#cfcfcf; font-size:12px; }
+
+.ranked-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.ranked-item { display:grid; grid-template-columns: 28px 32px 1fr auto; gap:10px; align-items:center; }
+.ranked-item__rank { width:28px; height:28px; display:inline-grid; place-items:center; border-radius:999px; background:#222; color:#cfcfcf; font-weight:700; font-size:12px; }
+.avatar { width:32px; height:32px; border-radius:999px; display:inline-grid; place-items:center; background:#2a2a2a; color:#dcdcdc; font-weight:700; font-size:12px; }
+.ranked-item__name { font-weight:600; }
+.ranked-item__meta { color:#bdbdbd; font-size:12px; }
+
+.metric-large { padding:16px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0)), var(--surface-2); border:1px solid var(--border); }
+.metric-large__label { color:#cfcfcf; font-size:12px; margin-bottom:6px; }
+.metric-large__value { font-size:28px; font-weight:800; line-height:1; }
+.metric-large__hint { color:#bdbdbd; }
+
+.enter-fade { opacity:0; transform: translateY(6px); animation: fadeUp .5s ease-out forwards; animation-delay: var(--enter-delay, 0s); }
+
+@keyframes fadeUp { to { opacity:1; transform: translateY(0); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes growY { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+@media (max-width: 992px) {
+  .stats-header { flex-direction:column; align-items:flex-start; }
+  .genre-row { grid-template-columns: 100px 1fr auto; }
+  .decade { width:64px; }
+}
+@media (max-width: 576px) {
+  .genre-row { grid-template-columns: 80px 1fr auto; }
+  .stats-funfacts { gap:6px; }
+}
+
+/* Stats overrides per request */
+.section-row { margin-top: 0; }
+.stats-page .row.g-0 { --bs-gutter-x: 0; --bs-gutter-y: 0; }
+
+/* Stretch decade bars to fill container */
+.decade-bars { gap: 18px; justify-content: space-between; width: 100%; min-height: 180px; }
+.decade { flex: 1 1 0; width: auto; }
+.decade__bar { height: 160px; }
+
+/* Remove extra spacing between mini-cards inside timeline panel */
+.panel .row.g-0 > [class^="col-"],
+.panel .row.g-0 > [class*=" col-"] { padding-left: 0; padding-right: 0; }
+
+/* Spacing and hero */
+.section-row { margin-top: 16px; }
+.stats-page .row.g-3 { --bs-gutter-x: 16px; --bs-gutter-y: 16px; }
+
+.rewatch-hero { display:flex; gap:16px; padding:16px; border-radius:12px; border:1px solid var(--border); background: var(--surface-2); }
+.hero__media { position:relative; flex:0 0 auto; }
+.hero__poster { width:260px; height:150px; border-radius:10px; border:1px solid var(--border); background:#0f0f0f; }
+.hero__badge { position:absolute; top:8px; left:8px; background: rgba(160,109,242,.22); color:#e7dbff; border:1px solid rgba(160,109,242,.4); padding:4px 8px; border-radius:999px; font-size:12px; display:inline-flex; gap:6px; align-items:center; }
+.hero__content { flex: 1 1 auto; }
+.hero__eyebrow { color:#cfcfcf; font-size:13px; margin-bottom:4px; }
+.hero__title { font-size:24px; font-weight:800; line-height:1.2; }
+.hero__year { color:#bdbdbd; margin-left:6px; }
+.hero__meta-row { display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-top:12px; }
+.meta { background:#1b1b1b; border:1px solid var(--border); border-radius:8px; padding:10px 12px; display:grid; grid-template-columns: 18px 1fr auto; align-items:center; gap:8px; }
+.meta i { color:#bdbdbd; }
+.meta__label { color:#bdbdbd; font-size:12px; }
+.meta__value { font-weight:800; }
+
+@media (max-width: 768px) {
+  .hero__poster { width:180px; height:120px; }
+  .hero__title { font-size:20px; }
+}
+@media (max-width: 576px) {
+  .rewatch-hero { flex-direction:column; }
+  .hero__poster { width:100%; height:160px; }
+}

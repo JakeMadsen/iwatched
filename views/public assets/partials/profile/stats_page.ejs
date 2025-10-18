@@ -1,102 +1,348 @@
-<div class="container" style="margin-top:16px; max-width: 1100px;">
-  <h2>Viewing stats for <%= (page_data.user && page_data.user.local && page_data.user.local.username) || 'User' %></h2>
-  <div class="row" style="margin-top:10px;">
-    <div class="col-md-4">
-      <div class="stat-card">
-        <div class="stat-card__label">Most watched actor</div>
-        <div class="stat-card__value"><%= page_data.stats.most_watched_actor.name %></div>
-        <div class="stat-card__sub"><%= page_data.stats.most_watched_actor.count %> movies</div>
+﻿<div class="stats-page container">
+
+  
+
+  <div class="stats-header">
+    <div class="stats-header__titles">
+      <h2 class="stats-title">Your movie statistics</h2>
+      <p class="stats-subtitle">Deep insights into your movie watching habits</p>
+    </div>
+    
+
+    <!-- <div class="stats-funfacts">
+      <div class="chip chip--info">
+        <i class="far fa-info-circle"></i>
+        <span>You watch more Drama than 76% of users</span>
+      </div>
+      <div class="chip chip--trophy">
+        <i class="far fa-trophy"></i>
+        <span>You\'ve seen more Tom Hanks films than 98% of users</span>
+      </div>
+    </div> -->
+
+  </div>
+
+  <div class="row g-3 section-row">
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade">
+        <div class="metric-large__label"><i class="far fa-star"></i> My Favorite Movie</div>
+        <div class="metric-large__value" data-stat="fav-user-movie">Inception</div>
+        <div class="metric-large__hint" data-stat="fav-user-movie-year">2010</div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="stat-card">
-        <div class="stat-card__label">Most seen director</div>
-        <div class="stat-card__value"><%= page_data.stats.most_seen_director.name %></div>
-        <div class="stat-card__sub"><%= page_data.stats.most_seen_director.count %> movies</div>
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade" style="--enter-delay:.05s;">
+        <div class="metric-large__label"><i class="far fa-user"></i> My Favorite Actor</div>
+        <div class="metric-large__value" data-stat="fav-user-actor">Leonardo DiCaprio</div>
+        <div class="metric-large__hint" data-stat="fav-user-actor-note">12 movies watched</div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="stat-card">
-        <div class="stat-card__label">Most watched genre / decade</div>
-        <div class="stat-card__value"><%= page_data.stats.most_watched_genre.name %></div>
-        <div class="stat-card__sub"><%= page_data.stats.most_watched_decade.label %> · <%= page_data.stats.most_watched_decade.count %></div>
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade" style="--enter-delay:.1s;">
+        <div class="metric-large__label"><i class="fas fa-video"></i> My Favorite Director</div>
+        <div class="metric-large__value" data-stat="fav-user-director">Christopher Nolan</div>
+        <div class="metric-large__hint" data-stat="fav-user-director-note">5 movies</div>
+      </div>
+    </div>
+  </div>
+     <div class="row g-3 section-row">
+    <div class="col-12">
+      <div class="surface rewatch-hero enter-fade">
+        <div class="hero__media">
+          <div class="hero__poster ph-poster" aria-hidden="true"></div>
+          <div class="hero__badge"><i class="fas fa-redo"></i> Watched 7x</div>
+        </div>
+        <div class="hero__content">
+          <div class="hero__eyebrow">Most Rewatched Movie</div>
+          <div class="hero__title"><span data-stat="hero-movie-title">Inception</span> <span class="hero__year" data-stat="hero-movie-year">(2010)</span></div>
+          <div class="hero__meta-row">
+            <div class="meta"><i class="far fa-star"></i><span class="meta__label">Your Rating</span><span class="meta__value" data-stat="hero-movie-rating">9.2/10</span></div>
+            <div class="meta"><i class="far fa-clock"></i><span class="meta__label">Runtime</span><span class="meta__value" data-stat="hero-movie-runtime">2h 28m</span></div>
+            <div class="meta"><i class="fas fa-sync"></i><span class="meta__label">Watch Count</span><span class="meta__value" data-stat="hero-movie-count">5 times</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="row g-3 section-row">
+    <div class="col-12">
+      <div class="surface panel enter-fade">
+        <div class="panel__header"><h3>Most Viewed Genres</h3></div>
+        <div class="genre-list">
+          <div class="genre-row">
+            <div class="genre-row__label">Action</div>
+            <div class="progress"><div class="progress-bar accent-1" data-pct="86"></div></div>
+            <div class="genre-row__value">87 movies</div>
+          </div>
+          <div class="genre-row">
+            <div class="genre-row__label">Drama</div>
+            <div class="progress"><div class="progress-bar accent-2" data-pct="64"></div></div>
+            <div class="genre-row__value">65 movies</div>
+          </div>
+          <div class="genre-row">
+            <div class="genre-row__label">Sci-Fi</div>
+            <div class="progress"><div class="progress-bar accent-3" data-pct="52"></div></div>
+            <div class="genre-row__value">52 movies</div>
+          </div>
+          <div class="genre-row">
+            <div class="genre-row__label">Comedy</div>
+            <div class="progress"><div class="progress-bar accent-4" data-pct="48"></div></div>
+            <div class="genre-row__value">48 movies</div>
+          </div>
+          <div class="genre-row">
+            <div class="genre-row__label">Thriller</div>
+            <div class="progress"><div class="progress-bar accent-5" data-pct="42"></div></div>
+            <div class="genre-row__value">42 movies</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="row" style="margin-top:12px;">
-    <div class="col-md-4">
-      <h4>Top 10 actors</h4>
-      <ol>
-        <% (page_data.stats.top10_actors||[]).forEach(function(x){ %>
-          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
-        <% }) %>
-      </ol>
-    </div>
-    <div class="col-md-4">
-      <h4>Top 10 directors</h4>
-      <ol>
-        <% (page_data.stats.top10_directors||[]).forEach(function(x){ %>
-          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
-        <% }) %>
-      </ol>
-    </div>
-    <div class="col-md-4">
-      <h4>Top 10 genres</h4>
-      <ol>
-        <% (page_data.stats.top10_genres||[]).forEach(function(x){ %>
-          <li><%= x.name %> <span style="opacity:.75;">(<%= x.count %>)</span></li>
-        <% }) %>
-      </ol>
-    </div>
-  </div>
 
-  <div class="row" style="margin-top:12px;">
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="stat-card__label">Rewatches</div>
-        <div class="stat-card__value"><%= page_data.stats.rewatches_logged %></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="stat-card__label">Oldest movie watched</div>
-        <div class="stat-card__value"><%= page_data.stats.oldest_movie_watched.title %></div>
-        <div class="stat-card__sub"><%= page_data.stats.oldest_movie_watched.year %></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="stat-card__label">Newest release watched</div>
-        <div class="stat-card__value"><%= page_data.stats.newest_release_watched.title %></div>
-        <div class="stat-card__sub"><%= page_data.stats.newest_release_watched.year %></div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="stat-card">
-        <div class="stat-card__label">Old vs. new (pre-2000/post-2000)</div>
-        <div class="stat-card__value"><%= page_data.stats.old_vs_new.pre2000 %> / <%= page_data.stats.old_vs_new.post2000 %></div>
+
+  <div class="row g-3 section-row">
+    <div class="col-12">
+      <div class="surface panel enter-fade">
+        <div class="panel__header panel__header--between"><h3>Timeline Distribution</h3><div class="muted">Pre-2000 / Post-2000</div></div>
+        <div class="stacked-bar">
+          <div class="stacked-bar__segment stacked-bar__segment--a" data-pct="26"><span>26%</span></div>
+          <div class="stacked-bar__segment stacked-bar__segment--b" data-pct="74"><span>74%</span></div>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="mini-card surface">
+              <div class="mini-card__label"><i class="far fa-hourglass-start"></i> Oldest Watched</div>
+              <div class="mini-card__title" data-stat="oldest-title"><%= (page_data.stats.oldest_movie_watched && page_data.stats.oldest_movie_watched.title) || 'The Great Dictator' %></div>
+              <div class="mini-card__value" data-stat="oldest-year"><%= (page_data.stats.oldest_movie_watched && page_data.stats.oldest_movie_watched.year) || 1940 %></div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3">
+            <div class="mini-card surface">
+              <div class="mini-card__label"><i class="far fa-hourglass-end"></i> Newest Watched</div>
+              <div class="mini-card__title" data-stat="newest-title"><%= (page_data.stats.newest_release_watched && page_data.stats.newest_release_watched.title) || 'Oppenheimer' %></div>
+              <div class="mini-card__value" data-stat="newest-year"><%= (page_data.stats.newest_release_watched && page_data.stats.newest_release_watched.year) || 2023 %></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="row" style="margin-top:12px;">
-    <div class="col-md-6">
-      <div class="stat-card">
-        <div class="stat-card__label">Genre diversity score</div>
-        <div class="stat-card__value"><%= page_data.stats.genre_diversity.ratio %>%</div>
-        <div class="stat-card__sub"><%= page_data.stats.genre_diversity.unique %> unique / <%= page_data.stats.genre_diversity.total %> total</div>
+  <div class="row g-3 section-row">
+    <div class="col-12">
+      <div class="surface panel enter-fade">
+        <div class="panel__header"><h3>Movies by Decade</h3></div>
+        <div class="decade-bars">
+          <div class="decade">
+            <div class="decade__bar"><div class="decade__fill" data-height="35"></div></div>
+            <div class="decade__value">12</div>
+            <div class="decade__label">1980s</div>
+          </div>
+          <div class="decade">
+            <div class="decade__bar"><div class="decade__fill" data-height="50"></div></div>
+            <div class="decade__value">35</div>
+            <div class="decade__label">1990s</div>
+          </div>
+          <div class="decade">
+            <div class="decade__bar"><div class="decade__fill" data-height="70"></div></div>
+            <div class="decade__value">78</div>
+            <div class="decade__label">2000s</div>
+          </div>
+          <div class="decade">
+            <div class="decade__bar"><div class="decade__fill" data-height="100"></div></div>
+            <div class="decade__value">142</div>
+            <div class="decade__label">2010s</div>
+          </div>
+          <div class="decade">
+            <div class="decade__bar"><div class="decade__fill" data-height="60"></div></div>
+            <div class="decade__value">75</div>
+            <div class="decade__label">2020s</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6 section-row">
+      <div class="surface panel enter-fade">
+        <div class="panel__header"><h3>Top Directors</h3></div>
+        <ol class="ranked-list">
+          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">CN</span><span class="ranked-item__name">Christopher Nolan</span><span class="ranked-item__meta">12 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">QT</span><span class="ranked-item__name">Quentin Tarantino</span><span class="ranked-item__meta">9 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">MS</span><span class="ranked-item__name">Martin Scorsese</span><span class="ranked-item__meta">8 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">SS</span><span class="ranked-item__name">Steven Spielberg</span><span class="ranked-item__meta">7 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">DF</span><span class="ranked-item__name">David Fincher</span><span class="ranked-item__meta">6 movies</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6 section-row">
+      <div class="surface panel enter-fade">
+        <div class="panel__header"><h3>Top Actors</h3></div>
+        <ol class="ranked-list">
+          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">LD</span><span class="ranked-item__name">Leonardo DiCaprio</span><span class="ranked-item__meta">15 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">TH</span><span class="ranked-item__name">Tom Hanks</span><span class="ranked-item__meta">12 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">RDN</span><span class="ranked-item__name">Robert De Niro</span><span class="ranked-item__meta">11 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">CB</span><span class="ranked-item__name">Christian Bale</span><span class="ranked-item__meta">9 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">MF</span><span class="ranked-item__name">Morgan Freeman</span><span class="ranked-item__meta">8 movies</span></li>
+        </ol>
       </div>
     </div>
   </div>
 
-  <style>
-    .stat-card{ background:#151515; border:1px solid #2a2a2a; border-radius:10px; padding:12px; color:#fff; margin-bottom:10px; }
-    .stat-card__label{ opacity:.85; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
-    .stat-card__value{ font-size:20px; font-weight:700; }
-    .stat-card__value--sm{ font-size:16px; font-weight:600; }
-    .stat-card__sub{ opacity:.8; font-size:12px; }
-    .stat-pair{ display:flex; gap:16px; align-items:flex-end; }
-  </style>
+  <div class="row g-3 section-row">
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade">
+        <div class="metric-large__label"><i class="far fa-ruler-vertical"></i> Longest Movie</div>
+        <div class="metric-large__value" data-stat="longest-runtime">238 min</div>
+        <div class="metric-large__hint" data-stat="longest-title">Gone with the Wind</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade" style="--enter-delay:.05s;">
+        <div class="metric-large__label"><i class="far fa-stopwatch"></i> Shortest Movie</div>
+        <div class="metric-large__value" data-stat="shortest-runtime">64 min</div>
+        <div class="metric-large__hint" data-stat="shortest-title">Sherlock Jr.</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="metric-large surface enter-fade" style="--enter-delay:.1s;">
+        <div class="metric-large__label"><i class="fas fa-chart-line"></i> Favorite Decade</div>
+        <div class="metric-large__value" data-stat="fav-decade">2010s</div>
+        <div class="metric-large__hint" data-stat="fav-decade-count">142 movies watched</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      document.querySelectorAll('.progress-bar[data-pct]').forEach(function(el){
+        var pct = parseFloat(el.getAttribute('data-pct')) || 0;
+        el.style.width = Math.max(0, Math.min(100, pct)) + '%';
+      });
+      document.querySelectorAll('.stacked-bar__segment[data-pct]').forEach(function(seg){
+        var pct = parseFloat(seg.getAttribute('data-pct')) || 0;
+        seg.style.width = Math.max(0, Math.min(100, pct)) + '%';
+      });
+      document.querySelectorAll('.decade__fill[data-height]').forEach(function(el){
+        var h = parseFloat(el.getAttribute('data-height')) || 0;
+        el.style.height = Math.max(10, Math.min(100, h)) + '%';
+      });
+    })();
+  </script>
 </div>
 
+
+
+<!-- Shows Section -->
+<!-- <div class="stats-header" style="margin-top:28px;">
+  <div class="stats-header__titles">
+    <h2 class="stats-title">Your show statistics</h2>
+    <p class="stats-subtitle">Insights into your TV/series watching</p>
+  </div>
+</div>
+
+<div class="row g-3 section-row">
+  <div class="col-12">
+    <div class="surface panel enter-fade">
+      <div class="panel__header"><h3>Most Viewed Genres</h3></div>
+      <div class="genre-list">
+        <div class="genre-row">
+          <div class="genre-row__label">Drama</div>
+          <div class="progress"><div class="progress-bar accent-1" data-pct="72"></div></div>
+          <div class="genre-row__value">120 episodes</div>
+        </div>
+        <div class="genre-row">
+          <div class="genre-row__label">Comedy</div>
+          <div class="progress"><div class="progress-bar accent-4" data-pct="58"></div></div>
+          <div class="genre-row__value">96 episodes</div>
+        </div>
+        <div class="genre-row">
+          <div class="genre-row__label">Sci-Fi</div>
+          <div class="progress"><div class="progress-bar accent-3" data-pct="46"></div></div>
+          <div class="genre-row__value">76 episodes</div>
+        </div>
+        <div class="genre-row">
+          <div class="genre-row__label">Thriller</div>
+          <div class="progress"><div class="progress-bar accent-5" data-pct="40"></div></div>
+          <div class="genre-row__value">66 episodes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 section-row">
+  <div class="col-12">
+    <div class="surface panel enter-fade">
+      <div class="panel__header panel__header--between"><h3>Timeline Distribution</h3><div class="muted">Old / Recent</div></div>
+      <div class="stacked-bar">
+        <div class="stacked-bar__segment stacked-bar__segment--a" data-pct="41"><span>41%</span></div>
+        <div class="stacked-bar__segment stacked-bar__segment--b" data-pct="59"><span>59%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 section-row">
+  <div class="col-12">
+    <div class="surface panel enter-fade">
+      <div class="panel__header"><h3>Shows by Decade</h3></div>
+      <div class="decade-bars">
+        <div class="decade"><div class="decade__bar"><div class="decade__fill" data-height="30"></div></div><div class="decade__value">18</div><div class="decade__label">1990s</div></div>
+        <div class="decade"><div class="decade__bar"><div class="decade__fill" data-height="55"></div></div><div class="decade__value">44</div><div class="decade__label">2000s</div></div>
+        <div class="decade"><div class="decade__bar"><div class="decade__fill" data-height="100"></div></div><div class="decade__value">88</div><div class="decade__label">2010s</div></div>
+        <div class="decade"><div class="decade__bar"><div class="decade__fill" data-height="70"></div></div><div class="decade__value">62</div><div class="decade__label">2020s</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="surface panel enter-fade">
+      <div class="panel__header"><h3>Top Directors</h3></div>
+      <ol class="ranked-list">
+        <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">VG</span><span class="ranked-item__name">Vince Gilligan</span><span class="ranked-item__meta">10 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">DL</span><span class="ranked-item__name">David Lynch</span><span class="ranked-item__meta">7 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">RS</span><span class="ranked-item__name">Ryan Murphy</span><span class="ranked-item__meta">6 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">SD</span><span class="ranked-item__name">Shonda Rhimes</span><span class="ranked-item__meta">6 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">NT</span><span class="ranked-item__name">Noah Hawley</span><span class="ranked-item__meta">5 shows</span></li>
+      </ol>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="surface panel enter-fade">
+      <div class="panel__header"><h3>Top Actors</h3></div>
+      <ol class="ranked-list">
+        <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">BC</span><span class="ranked-item__name">Bryan Cranston</span><span class="ranked-item__meta">9 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">JG</span><span class="ranked-item__name">Giancarlo Esposito</span><span class="ranked-item__meta">8 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">EC</span><span class="ranked-item__name">Elisabeth Moss</span><span class="ranked-item__meta">7 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">SD</span><span class="ranked-item__name">Sarah Paulson</span><span class="ranked-item__meta">6 shows</span></li>
+        <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">PM</span><span class="ranked-item__name">Pedro Pascal</span><span class="ranked-item__meta">6 shows</span></li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 section-row">
+  <div class="col-12 col-md-4">
+    <div class="metric-large surface enter-fade">
+      <div class="metric-large__label"><i class="far fa-ruler-vertical"></i> Longest Episode</div>
+      <div class="metric-large__value">132 min</div>
+      <div class="metric-large__hint">Special (Series X)</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="metric-large surface enter-fade" style="--enter-delay:.05s;">
+      <div class="metric-large__label"><i class="far fa-stopwatch"></i> Shortest Episode</div>
+      <div class="metric-large__value">18 min</div>
+      <div class="metric-large__hint">Pilot (Series Y)</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="metric-large surface enter-fade" style="--enter-delay:.1s;">
+      <div class="metric-large__label"><i class="fas fa-chart-line"></i> Favorite Decade</div>
+      <div class="metric-large__value">2010s</div>
+      <div class="metric-large__hint">88 shows watched</div>
+    </div>
+  </div>
+</div> -->
