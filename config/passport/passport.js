@@ -1,8 +1,5 @@
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../../db/models/user');
-var UserWatchedMovies = require('../../db/models/userWatchedMovies');
-var UserFavouritedMovies = require('../../db/models/userFavouritedMovies');
-var UserSavedMovies = require('../../db/models/userSavedMovies');
 
 
 module.exports = (passport) => {
@@ -54,30 +51,7 @@ module.exports = (passport) => {
                         try { newUser.profile = newUser.profile || {}; newUser.profile.flags = newUser.profile.flags || {}; newUser.profile.flags.beta_tester = true; } catch (e) {}
 
                     newUser.save((err) => {
-
-                        let newWatched = new UserWatchedMovies()
-                            newWatched.initial(newUser._id)
-                            newWatched.save();
-
-                        let newFavourited = new UserFavouritedMovies()
-                            newFavourited.initial(newUser._id)
-                            newFavourited.save();
-
-                        let newSaved = new UserSavedMovies()
-                            newSaved.initial(newUser._id)
-                            newSaved.save();
-
-                        try {
-                            const UserWatchedShows = require('../../db/models/userWatchedShows');
-                            const UserFavouritedShows = require('../../db/models/userFavouritedShows');
-                            const UserSavedShows = require('../../db/models/userSavedShows');
-                            let ws = new UserWatchedShows(); ws.initial(newUser._id); ws.save();
-                            let fs = new UserFavouritedShows(); fs.initial(newUser._id); fs.save();
-                            let ss = new UserSavedShows(); ss.initial(newUser._id); ss.save();
-                        } catch (_) {}
-
-                        if (err)
-                            throw err;
+                        if (err) throw err;
                         return done(null, newUser);
                     });
                 }

@@ -1,0 +1,44 @@
+/* Admin dashboard dark theme */
+
+body.admin-app { background: #0b0f1a; color: #e6ebff; font-family: Inter, Poppins, 'Segoe UI', sans-serif; }
+
+/* Sidebar */
+#sidebar { background: #0e1322; color: #c8d1ff; border-right: 1px solid rgba(90,100,150,.25); box-shadow: 8px 0 24px rgba(2,4,12,.2); }
+#sidebar .sidebar-header { background: transparent; border-bottom: 1px solid rgba(90,100,150,.18); }
+#sidebar .components li > a { color: #aab4e3; }
+#sidebar .components li > a:hover { color: #e6ebff; background: rgba(64,76,140,.24); }
+#sidebar .components .collapse a { padding-left: 38px; }
+
+/* Top nav */
+.admin-navbar { background: linear-gradient(180deg, rgba(12,17,32,.95), rgba(12,17,32,.85)); border-bottom: 1px solid rgba(90,100,150,.25); box-shadow: 0 10px 24px rgba(4,6,16,.3); }
+.admin-navbar .navbar-brand, .admin-navbar .nav-link { color: #cbd5ff !important; }
+.admin-navbar .btn { border-radius: 10px; }
+
+/* Content wrapper */
+#content { background: transparent; }
+
+/* Cards / stat blocks */
+.stat-card { background: linear-gradient(140deg, rgba(28,34,62,.8), rgba(18,22,40,.9)); border: 1px solid rgba(90,100,150,.28); border-radius: 14px; padding: 16px; color:#e8ecff; box-shadow: 0 12px 30px rgba(8,10,20,.35); }
+.stat-card__label { opacity: .9; margin-bottom: 6px; font-weight: 700; letter-spacing: .02em; }
+.stat-card__value { font-size: 28px; font-weight: 800; }
+.stat-card__value--sm { font-size: 20px; font-weight: 700; }
+.stat-card__sub { opacity: .8; font-size: 13px; margin-top: 2px; }
+.stat-pair { display:flex; justify-content:space-between; gap:12px; align-items:baseline; margin-top: 2px; }
+
+/* Buttons */
+.btn-secondary, .btn-info { background: rgba(64,76,140,.3); border: 1px solid rgba(110,120,180,.45); color: #e6ebff; }
+.btn-secondary:hover, .btn-info:hover { background: rgba(64,76,140,.45); color:#fff; }
+.btn-danger { background: #e5484d; border-color: #e5484d; }
+.btn-primary { background: #6366f1; border-color: #6366f1; }
+
+/* Tables / cards */
+.card { background: rgba(16,22,40,.9); border: 1px solid rgba(78,90,140,.35); border-radius: 12px; }
+.card .card-body { color: #e6ebff; }
+
+/* Forms */
+.form-control { background: #161c30; color: #e6ebff; border: 1px solid rgba(78,90,140,.45); border-radius: 10px; }
+.form-control:focus { background: #162040; border-color: #6b74d6; box-shadow: 0 0 0 2px rgba(99,102,241,.25); }
+
+/* Misc */
+.mt-3 { margin-top: 1rem !important; }
+

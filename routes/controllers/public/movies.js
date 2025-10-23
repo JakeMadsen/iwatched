@@ -29,7 +29,30 @@ module.exports = (server) => {
         let credits = await tmdService.movieCredits(id).catch(() => ({ cast: [], crew: [] }));
         let runtime = getRunTime(movie.runtime || 0);
         const videos = (movie.videos && movie.videos.results) ? movie.videos.results : [];
-        const similar = (movie.similar && movie.similar.results) ? movie.similar.results : [];
+        async function pickSimilarMovies(){
+            try {
+                const base = movie || {};
+                const baseGenres = Array.isArray(base.genres) ? base.genres.map(g=>g.id) : [];
+                const lang = base.original_language || '';
+                let rec = await tmdService.movieRecommendations({ id: id }).catch(()=>({ results: [] }));
+                let items = Array.isArray(rec && rec.results) && rec.results.length ? rec.results : ((movie.similar && movie.similar.results) ? movie.similar.results : []);
+                items = items.filter(it => {
+                    if (!it) return false;
+                    if ((it.vote_count||0) < 200) return false;
+                    if (lang && it.original_language && it.original_language !== lang) return false;
+                    const overlap = Array.isArray(it.genre_ids) ? it.genre_ids.filter(g => baseGenres.includes(g)).length : 0;
+                    return overlap >= 1;
+                });
+                items.forEach(it => {
+                    const overlap = Array.isArray(it.genre_ids) ? it.genre_ids.filter(g => baseGenres.includes(g)).length : 0;
+                    const score = (overlap*2) + ((it.vote_average||0)/2) + (it.popularity||0)/100;
+                    it.__score = score;
+                });
+                items.sort((a,b)=> (b.__score||0) - (a.__score||0));
+                return items.slice(0, 12);
+            } catch (_) { return (movie.similar && movie.similar.results) ? movie.similar.results.slice(0,12) : []; }
+        }
+        const similar = await pickSimilarMovies();
         const cast = credits.cast || [];
         const crew = credits.crew || [];
         const directors = crew.filter(c => (c.job === 'Director'));

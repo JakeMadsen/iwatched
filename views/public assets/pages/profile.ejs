@@ -61,10 +61,10 @@
 <div id="profile_section" style="padding-top:px;">
     
     <div class="container">
-    <% if (page_subFile !== 'settings') { %>
         <% include ../partials/profile/profile_stats.ejs %>
-        <% include ../partials/profile/profile_quicklinks.ejs %>
-    <% } %>
+        <% if (page_subFile !== 'settings') { %>
+            <% include ../partials/profile/profile_quicklinks.ejs %>
+        <% } %>
         <%- include(`../partials/profile/${page_subFile}.ejs`) %>
     </div>
 </div>

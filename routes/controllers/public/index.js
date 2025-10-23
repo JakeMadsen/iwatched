@@ -1,5 +1,5 @@
-const tmdMovies = require('../../services/movies')
-const tmdShows = require('../../services/shows')
+const tmdMovies = require('../../services/movies');
+const tmdShows = require('../../services/shows');
 
 module.exports = function (server) {
     console.log('* Index Routes Loaded Into Server');
@@ -24,4 +24,22 @@ module.exports = function (server) {
             });
         }
     );
+
+    server.get('/temp-home', async function(req, res) {
+        res.render('public assets/template.ejs', {
+            page_title: "iWatched.xyz - Temp Home",
+            page_file: "temp_home",
+            user: req.user
+        });
+    });
+
+    server.get('/temp-user', async function(req, res) {
+        res.render('public assets/template.ejs', {
+            page_title: "iWatched.xyz - Temp User",
+            page_file: "temp_user",
+            user: req.user
+        });
+    });
+
+    // (Removed: /ap shortcut was unnecessary)
 }

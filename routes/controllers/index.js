@@ -13,6 +13,10 @@ module.exports = (server) => {
     require("./api/v1/friends")(server);
     require("./api/v1/support")(server);
     require("./api/v1/announcements")(server);
+    require("./api/v1/userMovies")(server);
+    require("./api/v1/userShows")(server);
+    require("./api/v1/recommendations")(server);
+    require("./api/v1/reports")(server);
 
     console.log('======== Loading Private Routes ========')
     /* PRIVATE ROUTES */
@@ -41,6 +45,9 @@ module.exports = (server) => {
     require("./public/support")(server);
     require("./public/login")(server);
     require("./public/profile")(server);
+    require("./public/recommendations")(server);
+    // Temporary profile (new user_movies-backed views)
+    try { require("./public/profile_temp")(server); } catch (_) {}
     require("./public/person")(server);
     require("./public/announcements")(server);
 

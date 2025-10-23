@@ -1,31 +1,33 @@
-<div style="background-color: dimgrey; background-repeat: no-repeat; background-size: cover; background-image: url(https://image.tmdb.org/t/p/original/<%= page_data.show.backdrop_path %>)">
+<div class="show-hero" style="background-image: url(https://image.tmdb.org/t/p/original/<%= page_data.show.backdrop_path %>)">
     <div class="container">
-        <% if (page_data.show_videos.length != '0' ) { %>
+        <% var __hasYT = !!page_data.youtube_key; %>
+        <% if (__hasYT) { %>
         <div class="embed-responsive embed-responsive-16by9">
-            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/<%= page_data.show_videos[0].key %>"
+            <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/<%= page_data.youtube_key %>"
                 allowfullscreen></iframe>
         </div>
+        <% } else { %>
+        <div class="show-hero__spacer"></div>
         <% } %>
     </div>
 </div>
 
 
 <div class="container">
-    <!-- Show tag line -->
-    <div class="row">
-        <div class="col-md-12">
-            <p class="text-center">
-                <b>
-                    <%= page_data.show.tagline %></b>
-            </p>
+    <!-- Show tag line + Report link on same row -->
+    <div class="row align-items-center">
+        <div class="col-md-9">
+            <p class="m-0"><b><%= page_data.show.tagline %></b></p>
         </div>
-
+        <div class="col-md-3 text-right">
+            <a style="color:lightblue;" href="https://www.themoviedb.org/tv/<%= page_data.show.id %>">Report</a>
+        </div>
     </div>
 
     <!-- Show Information -->
     <div class="row">
         <!-- If there is a video, show full width layout -->
-        <% if ((page_data.show_videos||[]).length != '0' ) { %>
+        <% if (__hasYT) { %>
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-10">
@@ -67,7 +69,6 @@
                             </div>
                           </div>
                         <% } %>
-                        <div style="margin-top:6px;"><a style="color:lightblue;" href="https://www.themoviedb.org/tv/<%= page_data.show.id %>">Report</a></div>
                     </div>
                 </div>
             </div>
@@ -150,8 +151,48 @@
         <!-- If no video, keep 3-column layout -->
         <div class="col-md-12">
             <div class="row">
-                <div class="col-md-9">
-                    <h1><%= page_data.show.name %></h1>
+                <div class="col-md-12">
+                    
+                    <div class="d-flex justify-content-between align-items-start">
+                      <h1 class="mb-0"><%= page_data.show.name %></h1>
+                      <% if (typeof user != 'undefined') { %>
+                      <div class="text-right" style="margin-top:8px;">
+                        <div class="row" style="min-width: 220px;">
+                          <div class="col-sm-4 col-md-4">
+                              <i  class="far fa-check-circle fa-2x icon-white" title="Add a show that you have watched"
+                                  id="add_watched_show_<%= page_data.show.id %>"
+                                  onclick="showAddWatched('<%= user._id %>', '<%= page_data.show.id %>', '', '<%= user.permissions.user_private_key %>')" >
+                              </i>
+                              <i  class="fas fa-check-circle fa-2x icon-green" title="Remove a show from watched"
+                                  id="remove_watched_show_<%= page_data.show.id %>"  
+                                  onclick="showRemoveWatched('<%= user._id %>', '<%= page_data.show.id %>', '', '<%= user.permissions.user_private_key %>')">
+                              </i>
+                          </div>
+                          <div class="col-sm-4 col-md-4">
+                              <i  class="far fa-heart fa-2x icon-white" 
+                                  id="add_favourited_show_<%= page_data.show.id %>" 
+                                  onclick="showAddFavourited('<%= user._id %>', '<%= page_data.show.id %>', '<%= user.permissions.user_private_key %>')">
+                              </i>
+                              <i  class="fas fa-heart fa-2x icon-red" 
+                                  id="remove_favourited_show_<%= page_data.show.id %>" 
+                                  onclick="showRemoveFavourited('<%= user._id %>', '<%= page_data.show.id %>', '<%= user.permissions.user_private_key %>')">
+                              </i>
+                          </div>
+                          <div class="col-sm-4 col-md-4">
+                              <i  class="far fa-bookmark fa-2x icon-white"
+                                  id="add_saved_show_<%= page_data.show.id %>" 
+                                  onclick="showAddSaved('<%= user._id %>', '<%= page_data.show.id %>', '<%= user.permissions.user_private_key %>')">
+                              </i>
+                              <i class="fas fa-bookmark fa-2x icon-blue"
+                                  id="remove_saved_show_<%= page_data.show.id %>" 
+                                  onclick="showRemoveSaved('<%= user._id %>', '<%= page_data.show.id %>', '<%= user.permissions.user_private_key %>')">
+                              </i>
+                          </div>
+                        </div>
+                      </div>
+                      <% } %>
+                    </div>
+                    
                     <div style="color: #fff; margin:6px 0 10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                         <% var year2 = (page_data.show.first_air_date||'').toString().slice(0,4); %>
                         <% if (year2) { %><span style="opacity:.85;"> <%= year2 %> </span><% } %>
@@ -211,29 +252,11 @@
                             </div>
                         </div>
                     </div>
-                    <div style="opacity:.9;">
+                    <div style="color:#fff; opacity:.9;">
                         <%= page_data.show.overview %>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="text-right" style="margin-top:8px;">
-                        <a style="color:lightblue;" href="https://www.themoviedb.org/tv/<%= page_data.show.id %>">Report</a>
-                    </div>
-                    <% if ((page_data.creators||[]).length) { %>
-                    <div style="margin-top:12px;">
-                        <h1>Creator<%= page_data.creators.length>1 ? 's' : '' %></h1>
-                        <hr>
-                        <% page_data.creators.forEach(function(c){ %>
-                            <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-                                <% if (c.profile_path) { %>
-                                    <a href="/person/<%= c.id %>"><img src="https://image.tmdb.org/t/p/w185/<%= c.profile_path %>" style="width:42px;height:42px;border-radius:50%;object-fit:cover;"></a>
-                                <% } %>
-                                <a href="/person/<%= c.id %>" style="color: lightblue;"><%= c.name %></a>
-                            </div>
-                        <% }); %>
-                    </div>
-                    <% } %>
-                </div>
+                <!-- right column removed; report moved next to tagline -->
             </div>
         </div>
         <% } %>
@@ -271,11 +294,21 @@
             <div class="col-md-2 image-box">
                 <a href="/shows/<%= page_data.show.id %>/season/<%= season.season_number %>">
                     <img class="img-fluid image-box-hover" style="margin-bottom: 20px;" src="https://image.tmdb.org/t/p/w500/<%= season.poster_path %>"
-                        alt="">
+                        alt=""
+                        <% if (typeof user != 'undefined') { %>
+                        onload="checkIfSeasonWatched('<%= user._id %>', '<%= page_data.show.id %>', '<%= season.season_number %>')"
+                        <% } %>
+                    >
                     <div class="movie-hover">
-                        <h2>
-                            <%= season.name %>
-                        </h2>
+                        <h2><%= season.name %></h2>
+                        <% if (typeof user != 'undefined') { %>
+                        <div class="movie-actions">
+                            <i class="far fa-check-circle fa-2x icon-white" id="add_watched_season_<%= page_data.show.id %>_<%= season.season_number %>"
+                               onclick="event.preventDefault(); event.stopPropagation(); showSeasonComplete('<%= user._id %>', '<%= page_data.show.id %>', '<%= season.season_number %>', '<%= user.permissions.user_private_key %>')"></i>
+                            <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_season_<%= page_data.show.id %>_<%= season.season_number %>"
+                               onclick="event.preventDefault(); event.stopPropagation(); showSeasonUncomplete('<%= user._id %>', '<%= page_data.show.id %>', '<%= season.season_number %>', '<%= user.permissions.user_private_key %>')"></i>
+                        </div>
+                        <% } %>
                     </div>
                 </a>
             </div>
@@ -298,11 +331,51 @@
                         <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= s.poster_path %>" alt="">
                     </a>
                     <div class="movie-hover image-box-description">
-                        <p><%= s.name %></p>
+                        <div class="movie-title" title="<%= s.name %>"><%= s.name %></div>
+                        <div class="movie-actions">
+                          <% if (typeof user != 'undefined') { %>
+                          <i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <% } %>
+                        </div>
                     </div>
                 </div>
             <% } }); %>
         </div>
+
+        <% if ((page_data.similar_all||[]).length > 12) { %>
+        <div class="text-center" style="margin:10px 0;">
+            <button id="similar_toggle_btn" class="btn btn-secondary btn-sm">Show more similar shows</button>
+        </div>
+        <div id="similar_more" style="display:none;">
+            <div class="row">
+                <% page_data.similar_all.forEach(function (s, index){ if(index >= 12) { %>
+                <div class="col-md-2 image-box">
+                    <a href="/shows/<%= s.id %>-<%= (s.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
+                        <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= s.poster_path %>" alt="">
+                    </a>
+                    <div class="movie-hover image-box-description">
+                        <div class="movie-title" title="<%= s.name %>"><%= s.name %></div>
+                        <div class="movie-actions">
+                          <% if (typeof user != 'undefined') { %>
+                          <i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '<%= s.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_<%= s.id %>" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '<%= s.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                          <% } %>
+                        </div>
+                    </div>
+                </div>
+                <% } }); %>
+            </div>
+        </div>
+        <% } %>
     </div>
     <% } %>
 </div>
@@ -329,7 +402,50 @@
       checkIfFavouritedShow('<%= user._id %>', String(id));
       checkIfWatchedShow('<%= user._id %>', String(id));
       checkIfSavedShow('<%= user._id %>', String(id));
+
+      // Initialize action state for similar shows (first 12) immediately
+      (function(){
+        var ids = <%- JSON.stringify((page_data.similar||[]).map(function(s){ return s && s.id; }).filter(Boolean)) %>;
+        ids.forEach(function(sid){
+          checkIfFavouritedShow('<%= user._id %>', String(sid));
+          checkIfWatchedShow('<%= user._id %>', String(sid));
+          checkIfSavedShow('<%= user._id %>', String(sid));
+        });
+      })();
       <% } %>
+    } catch(_){}
+
+    // Toggle for "Similar Shows" section
+    try {
+      var btn = document.getElementById('similar_toggle_btn');
+      var more = document.getElementById('similar_more');
+      if (btn && more) {
+        var didInitMore = false;
+        btn.addEventListener('click', function(){
+          var visible = more.style.display !== 'none';
+          if (visible) {
+            more.style.display = 'none';
+            btn.textContent = 'Show more similar shows';
+          } else {
+            more.style.display = '';
+            btn.textContent = 'Show fewer similar shows';
+            <% if (typeof user != 'undefined') { %>
+            // Initialize action state for the extra items just once
+            if (!didInitMore) {
+              didInitMore = true;
+              try {
+                var moreIds = <%- JSON.stringify((page_data.similar_all||[]).slice(12).map(function(s){ return s && s.id; }).filter(Boolean)) %>;
+                moreIds.forEach(function(sid){
+                  checkIfFavouritedShow('<%= user._id %>', String(sid));
+                  checkIfWatchedShow('<%= user._id %>', String(sid));
+                  checkIfSavedShow('<%= user._id %>', String(sid));
+                });
+              } catch(_){}
+            }
+            <% } %>
+          }
+        });
+      }
     } catch(_){}
   });
 })();

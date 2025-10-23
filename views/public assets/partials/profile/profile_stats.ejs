@@ -9,9 +9,9 @@
     var moviesTime = page_data.movie_watch_time || '-';
     var showsCount = page_data.numberOfShowsWatched || 0;
     var showsTime = page_data.show_watch_time || '-';
-    var totalTimeText = (moviesTime !== '-' && showsTime !== '-')
+    var totalTimeText = page_data.total_watch_time_text || ((moviesTime !== '-' && showsTime !== '-')
       ? (moviesTime + ' + ' + showsTime)
-      : moviesTime;
+      : moviesTime);
   %>
 
   <div class="stat-card stat-card--movies">
@@ -26,6 +26,10 @@
       <div>
         <div class="stat-card__value"><%= showsCount %></div>
         <div class="stat-card__sub">shows</div>
+      </div>
+      <div>
+        <div class="stat-card__value"><%= page_data.numberOfSeasonsWatched || 0 %></div>
+        <div class="stat-card__sub">seasons</div>
       </div>
       <div>
         <div class="stat-card__value"><%= page_data.numberOfEpisodesWatched || 0 %></div>

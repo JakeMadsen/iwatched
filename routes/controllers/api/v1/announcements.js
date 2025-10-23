@@ -138,6 +138,11 @@ module.exports = function(server){
       const id = req.params.id;
       const user = req.user;
       if(!user) return res.status(401).json({ ok:false });
+      try {
+        const mod = (user.profile && user.profile.moderation) || {};
+        if (mod.permanently_muted) return res.status(403).json({ ok:false, error:'muted' });
+        if (mod.muted_until && new Date(mod.muted_until) > new Date()) return res.status(403).json({ ok:false, error:'muted' });
+      } catch(_){}
       const msg = (req.body && req.body.message || '').toString().trim();
       if(!msg) return res.status(400).json({ ok:false, error:'empty' });
       if(msg.length > 2000) return res.status(400).json({ ok:false, error:'too_long' });
@@ -170,6 +175,11 @@ module.exports = function(server){
   server.post('/api/v1/announcements/:id/comment/:comment_id/reply', async (req, res) => {
     try {
       const user = req.user; if(!user) return res.status(401).json({ ok:false });
+      try {
+        const mod = (user.profile && user.profile.moderation) || {};
+        if (mod.permanently_muted) return res.status(403).json({ ok:false, error:'muted' });
+        if (mod.muted_until && new Date(mod.muted_until) > new Date()) return res.status(403).json({ ok:false, error:'muted' });
+      } catch(_){}
       const msg = (req.body && req.body.message || '').toString().trim();
       if(!msg) return res.status(400).json({ ok:false, error:'empty' });
       const a = await Announcement.findById(req.params.id);

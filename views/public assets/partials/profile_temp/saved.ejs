@@ -1,0 +1,62 @@
+<div id="profile_lists">
+  <div id="profile_movie_list">
+    <div name="allMovies" class="row">
+      <h3 class="col-md-6" style="text-align: left;">Movies to watch later (new)</h3>
+      <p class="col-md-6" style="text-align: right;"> Amount of movies: <span id="saved-count">-</span></p>
+    </div>
+    <div id="movies_holder" class="row"></div>
+    <div id="view_more" style="display: none;">
+      <div class="page-load-status">
+        <div class="loader-ellips infinite-scroll-request">
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+          <span class="loader-ellips__dot"></span>
+        </div>
+        <p class="infinite-scroll-last">End of content</p>
+        <p class="infinite-scroll-error">No more pages to load</p>
+      </div>
+      <p><button type="button" class="btn btn-primary  view-more-button">View more</button></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    tempProfileSavedMovies('<%= page_data.user._id%>')
+  });
+
+  function tempProfileSavedMovies(user_id){
+    $('#view_more').show()
+    var link = `/api/v1/user-movies/saved/${user_id}/`;
+    var host = location.origin;
+    var posterlink = `/api/v1/movies/get_poster/`;
+    var total = 0;
+
+    var $container = $('#movies_holder').infiniteScroll({
+        path: function () { return link + this.pageIndex; },
+        responseType: 'text', loadOnScroll: false, status: '.page-load-status', history: true,
+    });
+
+    var $viewMoreButton = $('.view-more-button');
+    $viewMoreButton.on('click', function () { $container.infiniteScroll('loadNextPage'); $container.infiniteScroll('option', { loadOnScroll: true }); $viewMoreButton.hide(); });
+
+    $container.on('load.infiniteScroll', function (event, response) {
+        var data = JSON.parse(response);
+        if (data && typeof data.total_results === 'number') { total = data.total_results; document.getElementById('saved-count').innerText = total; }
+        var itemsHTML = data.results.map(getItemHTML).join('');
+        var $items = $(itemsHTML);
+        $container.infiniteScroll('appendItems', $items);
+    });
+    $container.infiniteScroll('loadNextPage');
+
+    var itemTemplateSrc = $('#movie-template').html();
+    function getItemHTML(movie) { getPoster(movie.tmd_id); try { movie.slug = slugify(movie.movie_title || movie.title || movie.name || ''); } catch(_) { movie.slug = ''; } return microTemplate(itemTemplateSrc, movie); }
+    function microTemplate(src, data) { return src.replace(/\{\{([\w\-_\.]+)\}\}/gi, function (m, key) { var v = data; key.split('.').forEach(function (p) { v = v[p]; }); return v; }); }
+    function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
+    function getPoster(movie_id) { let url = host + posterlink + movie_id; let tmdImageLink= "https://image.tmdb.org/t/p/w500/"; fetch(url).then(r=>r.json()).then(d=>{ $(`[name='movie_id_${movie_id}']`).attr("src", tmdImageLink+d.poster_path); }).catch(console.log); }
+  }
+</script>
+
+<% include ../profile/movie_template.ejs %>
+

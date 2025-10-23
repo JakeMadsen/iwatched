@@ -1,5 +1,65 @@
 <div class="container" style="margin-top:10px;">
   <h3>Reports</h3>
-  <p style="opacity:.75;">Coming soon: user/content reports overview.</p>
+  <div id="rep_list" class="mt-3"></div>
+  <hr>
+  <div id="rep_detail" class="mt-3"></div>
 </div>
 
+<script>
+(function(){
+  function el(html){ var d=document.createElement('div'); d.innerHTML=html; return d.firstChild; }
+  function loadList(){
+    fetch('/api/v1/admin/reports?status=open').then(function(r){ return r.json(); }).then(function(d){
+      var list = document.getElementById('rep_list'); list.innerHTML='';
+      (d.results||[]).forEach(function(r){
+        var a = r.reported||{}; var b = r.reporter||{};
+        var row = el('<div class="card" style="background:#151515;border:1px solid #2a2a2a;margin-bottom:8px;border-radius:10px;">'
+          + '<div class="card-body" style="color:#fff; display:flex; justify-content:space-between; align-items:center; gap:8px;">'
+          +   '<div><strong>'+ (a.name||'user') +'</strong> reported by <em>'+ (b.name||'user') +'</em> <span style="opacity:.7">('+ new Date(r.created_at).toLocaleString() +')</span></div>'
+          +   '<button class="btn btn-sm btn-secondary js-open" data-id="'+r._id+'">Open</button>'
+          + '</div></div>');
+        list.appendChild(row);
+      });
+    });
+  }
+  function openOne(id){
+    fetch('/api/v1/admin/reports/'+id).then(function(r){ return r.json(); }).then(function(d){
+      var box = document.getElementById('rep_detail'); var r=d.report; if(!r){ box.innerHTML='Not found'; return; }
+      var mut = '<div class="form-inline" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">'
+        + '<label style="margin:0 6px 0 0;">Mute until:</label> <input type="datetime-local" id="rep_until">'
+        + '<label style="margin:0 6px 0 12px;"><input type="checkbox" id="rep_perm"> Permanently mute</label>'
+        + '<button class="btn btn-sm btn-danger" id="rep_apply">Apply</button>'
+        + '<button class="btn btn-sm btn-secondary" id="rep_resolve">Resolve</button>'
+        + '</div>';
+      var notes = '<div style="margin-top:10px;"><textarea id="rep_note" class="form-control" rows="3" placeholder="Moderator note..."></textarea>'
+        + '<button class="btn btn-sm btn-primary" id="rep_save_note" style="margin-top:6px;">Add note</button></div>';
+      box.innerHTML = '<div class="card" style="background:#151515;border:1px solid #2a2a2a;border-radius:10px;">'
+        + '<div class="card-body" style="color:#fff;">'
+        +   '<div><strong>Context:</strong> '+ (r.context||'-') +'</div>'
+        +   '<div><strong>Reason:</strong> '+ (r.reason||'-') +'</div>'
+        +   '<div style="opacity:.75;"><strong>Created:</strong> '+ new Date(r.created_at).toLocaleString() +'</div>'
+        +   '<hr>'
+        +   mut
+        +   notes
+        + '</div></div>';
+      document.getElementById('rep_apply').onclick = function(){
+        var permanently = document.getElementById('rep_perm').checked;
+        var until = document.getElementById('rep_until').value || null;
+        fetch('/api/v1/admin/reports/'+id+'/action/mute', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ permanently: permanently, until: until }) })
+          .then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(){ loadList(); alert('Action applied'); });
+      };
+      document.getElementById('rep_resolve').onclick = function(){
+        fetch('/api/v1/admin/reports/'+id+'/resolve', { method:'POST', headers:{'Content-Type':'application/json'} })
+          .then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(){ loadList(); alert('Resolved'); });
+      };
+      document.getElementById('rep_save_note').onclick = function(){
+        var text = document.getElementById('rep_note').value.trim(); if(!text) return;
+        fetch('/api/v1/admin/reports/'+id+'/comment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text: text }) })
+          .then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(){ document.getElementById('rep_note').value=''; alert('Saved'); });
+      };
+    });
+  }
+  document.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('.js-open'); if(b){ openOne(b.getAttribute('data-id')); }});
+  document.addEventListener('DOMContentLoaded', loadList);
+})();
+</script>

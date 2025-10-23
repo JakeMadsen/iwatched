@@ -1,0 +1,56 @@
+<div id="profile_lists">
+  <div class="d-flex align-items-center justify-content-between">
+    <h3>Bookmarked</h3>
+    <div>
+      <div class="btn-group" role="group" aria-label="Switch media">
+        <button id="tab_movies" type="button" class="btn btn-sm btn-outline-light">Movies</button>
+        <button id="tab_shows" type="button" class="btn btn-sm btn-outline-light">Shows</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="movies_holder" class="row mt-3"></div>
+
+  <div id="view_more" style="display: none; margin-top:10px;">
+    <div class="page-load-status">
+      <div class="loader-ellips infinite-scroll-request">
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+        <span class="loader-ellips__dot"></span>
+      </div>
+      <p class="infinite-scroll-last">End of content</p>
+      <p class="infinite-scroll-error">No more pages to load</p>
+    </div>
+    <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
+  </div>
+</div>
+
+<% include movie_template.ejs %>
+<% include show_template.ejs %>
+
+<script>
+  (function(){
+    document.addEventListener('DOMContentLoaded', function(){
+      var userId = <%- JSON.stringify(page_data.user && page_data.user._id) %>;
+      var tab = <%- JSON.stringify(page_data.media_tab || 'movies') %>;
+      var btnMovies = document.getElementById('tab_movies');
+      var btnShows = document.getElementById('tab_shows');
+      function setActive(){
+        [btnMovies, btnShows].forEach(function(b){ if(!b) return; b.classList.remove('active'); });
+        if (tab === 'shows') btnShows && btnShows.classList.add('active');
+        else btnMovies && btnMovies.classList.add('active');
+      }
+      function load(){
+        $('#movies_holder').empty();
+        if (tab === 'shows') { profileSavedShows(userId); }
+        else { profileSavedMovies(userId); }
+        setActive();
+      }
+      if (btnMovies) btnMovies.addEventListener('click', function(){ tab='movies'; load(); });
+      if (btnShows) btnShows.addEventListener('click', function(){ tab='shows'; load(); });
+      load();
+    });
+  })();
+  </script>
+

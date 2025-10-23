@@ -2,10 +2,9 @@
 *   Mongoose models
 **************************/
 const User                  = require('../../db/models/user');
-const UserWatchedMovies     = require('../../db/models/userWatchedMovies');
-const UserFavouritedMovies  = require('../../db/models/userFavouritedMovies');
-const UserSavedMovies       = require('../../db/models/userSavedMovies');
-const UserWatchedShows      = require('../../db/models/userWatchedShows');
+const UserMovie             = require('../../db/models/userMovie');
+const UserMovieTotals       = require('../../db/models/userMovieTotals');
+const UserShowTotals        = require('../../db/models/userShowTotals');
 
 /*
 *   Services
@@ -30,24 +29,28 @@ module.exports = {
     },
     getOne: (user_id) => {
         return new Promise((resolve, reject) => {
-            if(mongoose.Types.ObjectId.isValid(user_id) === true){
-                User.findOne({ '_id': user_id }, (error, user) => {
-                    if (error)
-                        reject(error)
-                    if (!user)
-                        resolve(null)
-                    if (user)
-                        resolve(user)
+            const id = String(user_id || '');
+            if (mongoose.Types.ObjectId.isValid(id) === true){
+                User.findOne({ '_id': id }, (error, user) => {
+                    if (error) return reject(error);
+                    if (user) return resolve(user);
+                    return resolve(null);
                 });
-            }
-            else {
-                User.findOne({ 'profile.custom_url': user_id }, (error, user) => {
-                    if (error)
-                        reject(error)
-                    if (!user)
-                        resolve(null)
-                    if (user)
-                        resolve(user)
+            } else {
+                // Try exact match first
+                User.findOne({ 'profile.custom_url': id }, (error, user) => {
+                    if (error) return reject(error);
+                    if (user) return resolve(user);
+                    // Fallback: case-insensitive match for legacy/casual links
+                    try {
+                        const rx = new RegExp('^' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+                        User.findOne({ 'profile.custom_url': rx }, (e2, u2) => {
+                            if (e2) return reject(e2);
+                            return resolve(u2 || null);
+                        });
+                    } catch (e) {
+                        return resolve(null);
+                    }
                 });
             }
         })
@@ -111,142 +114,52 @@ module.exports = {
         })
     },
     checkIfUserWatchedMovie: async(user_id, movie_id) => {
-        return new Promise((resolve, reject) => {
-            UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
-                let check = false;
-
-                if(error)
-                    reject(error)
-
-                if(!watchedMovies) {
-                    let newEntry = new UserWatchedMovies()
-                        newEntry.initial(user_id)
-                        newEntry.save();
-
-                    resolve(false)
-                }
-                
-                else
-                {
-                    watchedMovies.movies_watched.forEach(movie => {
-                        if( movie.id == movie_id)
-                            check = true;
-                    });
-                    resolve(check)
-                }
-            })
-        })
+        try {
+            const doc = await UserMovie.findOne({ user_id: user_id, movie_id: String(movie_id) }).lean();
+            return !!(doc && (((doc.movie_watched_count||0) > 0) || !!doc.movie_watched));
+        } catch (_) { return false; }
     },
     checkIfUserFavouritedMovie: async(user_id, movie_id) => {
-        return new Promise((resolve, reject) => {
-            UserFavouritedMovies.findOne({ 'user_id': user_id }, (error, favouritedMovies) => {
-                let check = false;
-
-                if(error)
-                    reject(error)
-
-                if(!favouritedMovies) {
-                    let newEntry = new UserFavouritedMovies()
-                        newEntry.initial(user_id)
-                        newEntry.save();
-
-                    resolve(false)
-                }
-                
-                else
-                {
-                    favouritedMovies.movies_favourited.forEach(movie => {
-                        if( movie.id == movie_id)
-                            check = true;
-                    });
-                    resolve(check)
-                }
-            })
-        })
+        try { const doc = await UserMovie.findOne({ user_id: user_id, movie_id: String(movie_id) }).lean(); return !!(doc && !!doc.movie_favorite); } catch (_) { return false; }
     },
     checkIfUserSavedMovie: async(user_id, movie_id) => {
-        return new Promise((resolve, reject) => {
-            UserSavedMovies.findOne({ 'user_id': user_id }, (error, savedMovies) => {
-                let check = false;
-
-                if(error)
-                    reject(error)
-
-                if(!savedMovies) {
-                    let newEntry = new UserSavedMovies()
-                        newEntry.initial(user_id)
-                        newEntry.save();
-
-                    resolve(false)
-                }
-                
-                else
-                {
-                    savedMovies.movies_saved.forEach(movie => {
-                        if( movie.id == movie_id)
-                            check = true;
-                    });
-                    resolve(check)
-                }
-            })
-        })
+        try { const doc = await UserMovie.findOne({ user_id: user_id, movie_id: String(movie_id) }).lean(); return !!(doc && !!doc.movie_bookmarked); } catch (_) { return false; }
     },
     getWatchedMovies: async(user_id) => {
-        return new Promise((resolve, reject) => {
-            UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
-                if(error)
-                    reject(error)
-                if(watchedMovies)
-                    resolve(watchedMovies)
-            })
-        })
+        try {
+            const count = await UserMovie.countDocuments({ user_id: user_id, movie_watched_count: { $gt: 0 } });
+            return { user_id: user_id, movies_watched: Array.from({ length: count }).map(()=>({ id: null })) };
+        } catch (_) { return { user_id: user_id, movies_watched: [] }; }
     },
     getFavouritedMovies: async(user_id) => {
-        return new Promise((resolve, reject) => {
-            UserFavouritedMovies.findOne({ 'user_id': user_id }, (error, favouritedMovies) => {
-                if(error)
-                    reject(error)
-                if(favouritedMovies)
-                    resolve(favouritedMovies)
-            })
-        })
+        try { const ids = await UserMovie.find({ user_id: user_id, movie_favorite: { $ne: null } }).select('movie_id').lean(); return { user_id: user_id, movies_favourited: ids.map(d=>({ id: d.movie_id })) }; } catch (_) { return { user_id: user_id, movies_favourited: [] }; }
     },
     getSavedMovies: async(user_id) => {
-        return new Promise((resolve, reject) => {
-            UserSavedMovies.findOne({ 'user_id': user_id }, (error, savedMovies) => {
-                if(error)
-                    reject(error)
-                if(savedMovies)
-                    resolve(savedMovies)
-            })
-        })
+        try { const ids = await UserMovie.find({ user_id: user_id, movie_bookmarked: { $ne: null } }).select('movie_id').lean(); return { user_id: user_id, movies_saved: ids.map(d=>({ id: d.movie_id })) }; } catch (_) { return { user_id: user_id, movies_saved: [] }; }
     },
     getTimeWatched: async(user_id, type) => {
         return new Promise((resolve, reject) => {
+            function asText(mins){
+                try { return getTimeWatched(Number(mins)||0); } catch(_) { return getTimeWatched(0); }
+            }
             if(type == "movies"){
                 UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
-                    if(error)
-                        reject(error)
-                    if(watchedMovies){
-                        let totalTime = getTimeWatched(watchedMovies.movie_watch_time)
-                        resolve(totalTime)
-                    }
-                        
+                    if(error) return reject(error);
+                    if(watchedMovies) return resolve(asText(watchedMovies.movie_watch_time));
+                    // No doc yet → zero time
+                    return resolve(asText(0));
                 })
             }
             else if (type == "shows"){
                 UserWatchedShows.findOne({ 'user_id': user_id }, (error, watchedShows) => {
-                    if(error)
-                        reject(error)
-                    if(watchedShows){
-                        let totalTime = getTimeWatched(watchedShows.show_watch_time)
-                        resolve(totalTime)
-                    }
+                    if(error) return reject(error);
+                    if(watchedShows) return resolve(asText(watchedShows.show_watch_time));
+                    return resolve(asText(0));
                 })
+            } else {
+                return resolve(asText(0));
             }
-            
         })
-        
     }
 }
 

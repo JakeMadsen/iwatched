@@ -1,0 +1,88 @@
+<div class="container" style="margin-top: 16px;">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 style="margin: 0 0 12px;">Recommendations</h1>
+      <p style="opacity:.85;">Incoming and sent recommendations between you and friends.</p>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 8px;">
+    <div class="col-md-12">
+      <h3>Incoming</h3>
+      <hr>
+      <% if ((page_data.received||[]).length === 0) { %>
+        <div style="opacity:.8;">No recommendations yet.</div>
+      <% } %>
+      <% (page_data.received||[]).forEach(function(r){ %>
+        <div class="rec-card" style="display:flex; gap:12px; background:#1b1b1b; border-radius:12px; padding:12px; margin-bottom:12px; color:#eaeaea;">
+          <div style="flex:0 0 auto; width:92px;">
+            <% if (r._content && r._content.poster) { %>
+              <a href="<%= r._content.url %>"><img src="https://image.tmdb.org/t/p/w185/<%= r._content.poster %>" style="width:92px;height:138px;border-radius:6px;object-fit:cover;"></a>
+            <% } %>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+              <div style="font-weight:800; font-size:20px; color:#fff;"> <%= (r._content && r._content.title) || (r.content_type==='movie'?'Movie':'Show') %> </div>
+              <div style="opacity:.95; color:#cfd7df;">From: <%= r._sender_name %></div>
+            </div>
+            <% if (r._content && r._content.tagline) { %>
+              <div style="opacity:.95; margin-top:2px; color:#cfcfcf;">“<%= r._content.tagline %>”</div>
+            <% } %>
+            <% if (r.sender_note) { %>
+              <div style="opacity:.85; margin-top:6px;">“<%= r.sender_note %>”</div>
+            <% } %>
+            <div style="margin-top:10px;">
+              <button class="btn btn-sm btn-outline-light js-rec-status" data-id="<%= r._id %>" data-status="watched">Watched</button>
+              <button class="btn btn-sm btn-success js-rec-status" data-id="<%= r._id %>" data-status="liked">Liked</button>
+              <button class="btn btn-sm btn-secondary js-rec-status" data-id="<%= r._id %>" data-status="disliked">Disliked</button>
+              <button class="btn btn-sm btn-link js-rec-status" data-id="<%= r._id %>" data-status="pending">Reset</button>
+              <span style="opacity:.95; margin-left:8px; color:#cfd7df;">Current: <%= r.receiver_status %></span>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+
+      <h3 style="margin-top:18px;">Sent</h3>
+      <hr>
+      <% if ((page_data.sent||[]).length === 0) { %>
+        <div style="opacity:.8;">You haven’t sent any yet.</div>
+      <% } %>
+      <% (page_data.sent||[]).forEach(function(r){ %>
+        <div class="rec-card" style="display:flex; gap:12px; background:#1b1b1b; border-radius:12px; padding:12px; margin-bottom:12px; color:#eaeaea;">
+          <div style="flex:0 0 auto; width:92px;">
+            <% if (r._content && r._content.poster) { %>
+              <a href="<%= r._content.url %>"><img src="https://image.tmdb.org/t/p/w185/<%= r._content.poster %>" style="width:92px;height:138px;border-radius:6px;object-fit:cover;"></a>
+            <% } %>
+          </div>
+          <div style="flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px;">
+              <div style="font-weight:800; font-size:20px; color:#fff;"> <%= (r._content && r._content.title) || (r.content_type==='movie'?'Movie':'Show') %> </div>
+              <div style="opacity:.95; color:#cfd7df;">To: <%= r._receiver_name %></div>
+            </div>
+            <% if (r._content && r._content.tagline) { %>
+              <div style="opacity:.95; margin-top:2px; color:#cfcfcf;">“<%= r._content.tagline %>”</div>
+            <% } %>
+            <% if (r.sender_note) { %>
+              <div style="opacity:.95; margin-top:6px;">“<%= r.sender_note %>”</div>
+            <% } %>
+            <div style="margin-top:10px; opacity:.8;">Their status: <%= r.receiver_status %></div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest && e.target.closest('.js-rec-status');
+        if(!btn) return;
+        e.preventDefault();
+        var id = btn.getAttribute('data-id');
+        var status = btn.getAttribute('data-status');
+        fetch('/api/v1/recommendations/status', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: '<%= user && user._id %>', user_key: '<%= user && user.permissions && user.permissions.user_private_key %>', recommendation_id: id, receiver_status: status }) })
+          .then(function(){ location.reload(); });
+      });
+    })();
+  </script>
+</div>

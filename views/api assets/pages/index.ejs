@@ -1,4 +1,21 @@
-<div class="">
+<style>
+  .api-container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+  .sticky-nav { position: sticky; top: 0; z-index: 50; border-radius: 8px; }
+  .filter-bar { position: sticky; top: 64px; z-index: 40; background: #101010; padding: 12px 0; border-bottom: 1px solid #2a2a2a; }
+  .route_info h1 { font-weight: 700; letter-spacing: .5px; }
+  .api-container .table { margin-bottom: 2rem; }
+  .api-container table thead th { position: sticky; top: 118px; background: #1b1b1b; z-index: 30; box-shadow: inset 0 -1px 0 #2a2a2a; }
+  .api-container .table tbody tr:nth-child(odd) { background: #121212; }
+  .api-container .table tbody tr:nth-child(even) { background: #151515; }
+  .api-container .table tbody tr:hover { background: #1e1e1e; }
+  .api-container td a { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: #cfe7ff; }
+  .api-container td, .api-container th { vertical-align: middle !important; }
+  .api-container .badge { font-size: 85%; }
+  .api-container .copy-btn { padding: .15rem .5rem; line-height: 1.1; }
+  @media (max-width: 768px){ .api-container table thead th { top: 134px; } }
+</style>
+
+<div class="api-container">
     <!-- Route info -->
     <div class="route_info">
         <h1 class="text-center">iWatched.xyz API information</h1>
@@ -7,7 +24,7 @@
 
         <h2>Quick links</h2>
 
-        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #1b1b1b; border-radius:8px;">
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-nav" style="background-color: #1b1b1b; border-radius:8px;">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -25,14 +42,46 @@
                         <a class="nav-link" href="#movie_routes">Movie Routes</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#shows_routes">Show Routes</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#search_routes">Search Routes</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#profile_routes">Profile Routes</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#friends_routes">Friends Routes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#announcements_routes">Announcements</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#sessions_routes">Sessions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#support_routes">Support</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#user_movies_routes">User Movies (New)</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#recommendations_routes">Recommendations</a>
+                    </li>
                 </ul>
             </div>
         </nav>
+
+        <div class="filter-bar">
+          <div class="form-row align-items-center">
+            <div class="col-sm-8 my-1">
+              <input id="route-filter" type="search" class="form-control form-control-lg" placeholder="Filter routes by path, type, or info...">
+            </div>
+            <div class="col-sm-4 my-1 text-right">
+              <small class="text-muted">Filters all sections below</small>
+            </div>
+          </div>
+        </div>
 
         <hr>
 
@@ -84,6 +133,67 @@
         </div>
     </div>
 
+    <!-- User Shows (New) Routes -->
+    <div class="route_list">
+        <a name="user_shows_routes">
+            <h2>User Shows (New)</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/watch/add</td><td>Body: { user_id, user_key, show_id, season_number?, episode_runtime? } increments episode count</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/watch/remove</td><td>Body: { user_id, user_key, show_id, season_number?, episode_runtime? } decrements episode count</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/bookmark/add</td><td>Body: { user_id, user_key, show_id } sets bookmark</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/bookmark/remove</td><td>Body: { user_id, user_key, show_id } clears bookmark</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/favourited/add</td><td>Body: { user_id, user_key, show_id } sets favourite</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/favourited/remove</td><td>Body: { user_id, user_key, show_id } clears favourite</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/note/set</td><td>Body: { user_id, user_key, show_id, personal_note }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>user-shows/rating/set</td><td>Body: { user_id, user_key, show_id, personal_rating }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/watched/123/:page?">user-shows/watched/:profile_id/:page?</a></td><td>List watched shows</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/favourited/123/:page?">user-shows/favourited/:profile_id/:page?</a></td><td>List favourited shows</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/saved/123/:page?">user-shows/saved/:profile_id/:page?</a></td><td>List saved shows</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/latest/123">user-shows/latest/:profile_id</a></td><td>Latest watched shows</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/totals/123">user-shows/totals/:profile_id</a></td><td>Totals: unique_shows, episodes, runtime</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/check/watched/123/456">user-shows/check/watched/:profile_id/:show_id</a></td><td>Boolean if watched</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/check/favourited/123/456">user-shows/check/favourited/:profile_id/:show_id</a></td><td>Boolean if favourited</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/user-shows/check/saved/123/456">user-shows/check/saved/:profile_id/:show_id</a></td><td>Boolean if saved</td><td>No</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Recommendations Routes -->
+    <div class="route_list">
+        <a name="recommendations_routes">
+            <h2>Recommendations</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">Public</th><td>GET</td><td><a href="/user/recommendations">/user/recommendations</a></td><td>Recommendations page for logged-in user</td><td>Yes (login)</td></tr>
+                <tr><th scope="row">Public</th><td>GET</td><td><a href="/JakeTheDane/recommendations">/:id/recommendations</a></td><td>Recommendations page for profile owner</td><td>Yes (owner)</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/recommendations/received/:profile_id</td><td>List received recommendations</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/recommendations/sent/:profile_id</td><td>List sent recommendations</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/recommendations/send</td><td>Body: { user_id, user_key, receiver_id, content_type, content_id, sender_note? }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/recommendations/status</td><td>Body: { user_id, user_key, recommendation_id, receiver_status, receiver_note? }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/recommendations/remove</td><td>Body: { user_id, user_key, recommendation_id } (soft-delete)</td><td>Yes</td></tr>
+            </tbody>
+        </table>
+    </div>
     <!-- User Routes -->
     <div class="route_list">
         <a name="user_routes">
@@ -150,6 +260,13 @@
                     <td>Search movies.":search_genre" is the genre name ":page" is where you put the page number</td>
                     <td>false</td>
                 </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/movies/get_poster/:id">movies/get_poster/:id</a></td>
+                    <td>Gets poster path for a movie</td>
+                    <td>false</td>
+                </tr>
             </tbody>
         </table>
     </div>
@@ -181,10 +298,10 @@
         </table>
     </div>
 
-    <!-- Profile Routes -->
+    <!-- Shows Routes -->
     <div class="route_list">
-        <a name="profile_routes">
-            <h2>Profile API Routes</h2>
+        <a name="shows_routes">
+            <h2>Show API Routes</h2>
         </a>
         <table class="table table-dark" style="border-radius:8px;">
             <thead>
@@ -199,18 +316,83 @@
             <tbody>
                 <tr>
                     <th scope="row">/v1/</th>
-                    <td>POST</td>
-                    <td><a href="/api/v1/profile/movies/watched/add/">profile/movies/add/</a></td>
-                    <td>Accepts body with movie_id and movie_runtime (minutes)</td>
-                    <td>Personal profile key</td>
+                    <td>GET</td>
+                    <td><a href="/api/v1/shows/search/:search_param?/:page?">shows/search/:search_param/:page</a></td>
+                    <td>Search TV shows. ":page" is where you put the page number</td>
+                    <td>false</td>
                 </tr>
                 <tr>
                     <th scope="row">/v1/</th>
                     <td>GET</td>
-                    <td><a href="/api/v1/profile/movies/get/:page?">profile/movies/get/:page?</a></td>
-                    <td>Gets all movies that a profile has watched. ":page" is the page number</td>
+                    <td><a href="/api/v1/shows/search_genre/:genre/:page?">shows/search_genre/:genre/:page</a></td>
+                    <td>Search TV shows by genre</td>
                     <td>false</td>
                 </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/shows/get_poster/:id">shows/get_poster/:id</a></td>
+                    <td>Gets poster path for a TV show</td>
+                    <td>false</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Profile Routes -->
+    <div class="route_list">
+        <a name="profile_routes">
+            <h2>Profile API Routes</h2>
+        </a>
+        <h4 class="mt-3">Movies</h4>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/watched/add/</td><td>Add watched movie (body: user_id, user_key, movie_id)</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/watched/remove/</td><td>Remove watched movie</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/favourited/add/</td><td>Add to favourites</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/favourited/remove/</td><td>Remove from favourites</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/saved/add/</td><td>Add to saved</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/movies/saved/remove/</td><td>Remove from saved</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/watched/:profile_id/:page?</td><td>List watched movies</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/favourited/:profile_id/:page?</td><td>List favourited movies</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/latest/:profile_id</td><td>Latest watched (up to 12)</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/check/watched/:profile_id/:movie_id</td><td>Check watched</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/check/favourited/:profile_id/:movie_id</td><td>Check favourited</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/movies/check/saved/:profile_id/:movie_id</td><td>Check saved</td><td>No</td></tr>
+            </tbody>
+        </table>
+
+        <h4 class="mt-3">Shows</h4>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/watched/add/</td><td>Add watched show</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/watched/remove/</td><td>Remove watched show</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/favourited/add/</td><td>Add show to favourites</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/favourited/remove/</td><td>Remove show from favourites</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/saved/add/</td><td>Add show to saved</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>profile/shows/saved/remove/</td><td>Remove show from saved</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/shows/check/watched/:profile_id/:show_id</td><td>Check watched</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/shows/check/favourited/:profile_id/:show_id</td><td>Check favourited</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/shows/check/saved/:profile_id/:show_id</td><td>Check saved</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>profile/shows/watched/:profile_id/:page?</td><td>List watched shows</td><td>No</td></tr>
             </tbody>
         </table>
     </div>
@@ -235,7 +417,7 @@
                     <th scope="row">/v1/</th>
                     <td>POST</td>
                     <td>friends/request</td>
-                    <td>Body: { user_id, user_key, to_user_id } — sends a request.</td>
+                    <td>Body: { user_id, user_key, to_user_id } â€” sends a request.</td>
                     <td>Yes (sender)</td>
                 </tr>
                 <tr>
@@ -249,7 +431,7 @@
                     <th scope="row">/v1/</th>
                     <td>POST</td>
                     <td>friends/remove</td>
-                    <td>Body: { user_id, user_key, friend_user_id } — removes both sides.</td>
+                    <td>Body: { user_id, user_key, friend_user_id } â€” removes both sides.</td>
                     <td>Yes</td>
                 </tr>
                 <tr>
@@ -259,7 +441,299 @@
                     <td>Lists friends for a user.</td>
                     <td>No</td>
                 </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/friends/requests/123">friends/requests/:user_id</a></td>
+                    <td>Lists pending friend requests</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/friends/requests/count/123">friends/requests/count/:user_id</a></td>
+                    <td>Count of incoming pending requests</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/friends/status?user_id=123&other_id=456">friends/status?user_id=&other_id=</a></td>
+                    <td>Relationship status between two users</td>
+                    <td>No</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Sessions Routes -->
+    <div class="route_list">
+        <a name="sessions_routes">
+            <h2>User Sessions</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/user/sessions</td><td>List your sessions</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/user/sessions/revoke</td><td>Body: { sid } revoke one</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/user/sessions/revoke_others</td><td>Revoke all except current</td><td>Logged-in</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Support Routes -->
+    <div class="route_list">
+        <a name="support_routes">
+            <h2>Support</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/support/notifications/:user_id</td><td>Latest unseen replies</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/support/notifications/mark</td><td>Body: { case_id } mark seen</td><td>No</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Announcements Routes -->
+    <div class="route_list">
+        <a name="announcements_routes">
+            <h2>Announcements</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/announcements/latest</td><td>Latest announcement</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/announcements?page=&size=</td><td>List announcements</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/announcements/:id</td><td>Get one announcement</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td>/api/v1/announcements/:id-:slug</td><td>Get one (id-slug format)</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/announcements/:id/comment/:comment_id/reply</td><td>Reply to comment</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/announcements/:id/comment/:comment_id/edit</td><td>Edit your comment</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/announcements/:id/comment/:comment_id/delete</td><td>Delete comment (soft/hard)</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/announcements/:id/comment/:comment_id/vote</td><td>Up/down-vote comment</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/announcements/:id/impression</td><td>Record view (unique)</td><td>Logged-in</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/admin/announcements</td><td>Create announcement</td><td>Admin</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>/api/v1/admin/announcements/:id</td><td>Update announcement</td><td>Admin</td></tr>
+                <tr><th scope="row">/v1/</th><td>DELETE</td><td>/api/v1/admin/announcements/:id</td><td>Delete announcement</td><td>Admin</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- User Movies (New) Routes -->
+    <div class="route_list">
+        <a name="user_movies_routes">
+            <h2>User Movies (New)</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/watch/add</td>
+                    <td>Body: { user_id, user_key, movie_id, movie_runtime? } increments watch count, updates totals</td>
+                    <td>Yes (profile key)</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/watch/remove</td>
+                    <td>Body: { user_id, user_key, movie_id, movie_runtime? } decrements watch count, updates totals</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/bookmark/add</td>
+                    <td>Body: { user_id, user_key, movie_id } sets bookmark timestamp</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/bookmark/remove</td>
+                    <td>Body: { user_id, user_key, movie_id } clears bookmark</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/favourited/add</td>
+                    <td>Body: { user_id, user_key, movie_id } sets favourite timestamp</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/favourited/remove</td>
+                    <td>Body: { user_id, user_key, movie_id } clears favourite</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/note/set</td>
+                    <td>Body: { user_id, user_key, movie_id, personal_note }</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>POST</td>
+                    <td>user-movies/rating/set</td>
+                    <td>Body: { user_id, user_key, movie_id, personal_rating }</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/watched/123/:page?">user-movies/watched/:profile_id/:page?</a></td>
+                    <td>Gets watched movies using new per-movie entries</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/favourited/123/:page?">user-movies/favourited/:profile_id/:page?</a></td>
+                    <td>Gets favourited movies using new per-movie entries</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/saved/123/:page?">user-movies/saved/:profile_id/:page?</a></td>
+                    <td>Gets saved/bookmarked movies using new entries</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/latest/123">user-movies/latest/:profile_id</a></td>
+                    <td>Returns up to 12 latest watched (new entries)</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/totals/123">user-movies/totals/:profile_id</a></td>
+                    <td>Returns totals: unique, total, runtime (minutes)</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/check/watched/123/550">user-movies/check/watched/:profile_id/:movie_id</a></td>
+                    <td>Boolean if watched (new entries)</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/check/favourited/123/550">user-movies/check/favourited/:profile_id/:movie_id</a></td>
+                    <td>Boolean if favourited (new entries)</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-movies/check/saved/123/550">user-movies/check/saved/:profile_id/:movie_id</a></td>
+                    <td>Boolean if saved/bookmarked (new entries)</td>
+                    <td>No</td>
+                </tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+  (function(){
+    function applyBadges(){
+      document.querySelectorAll('.route_list table tbody tr').forEach(function(tr){
+        var ver = tr.children[0];
+        var typ = tr.children[1];
+        var linkCell = tr.children[2];
+        if (ver && !ver.querySelector('.badge')) {
+          var v = (ver.textContent || '').trim();
+          ver.innerHTML = '<span class="badge badge-secondary">' + (v || '') + '</span>';
+        }
+        if (typ && !typ.querySelector('.badge')) {
+          var t = (typ.textContent || '').trim().toUpperCase();
+          var cls = (t === 'GET') ? 'info' : (t === 'POST' ? 'success' : 'secondary');
+          typ.innerHTML = '<span class="badge badge-' + cls + '">' + (t || 'N/A') + '</span>';
+        }
+        if (linkCell && linkCell.querySelector('a') && !linkCell.querySelector('.copy-btn')){
+          var a = linkCell.querySelector('a');
+          var route = a.getAttribute('href') || a.textContent;
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn btn-sm btn-outline-secondary ml-2 copy-btn';
+          btn.textContent = 'Copy';
+          btn.addEventListener('click', function(){
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(route).then(function(){
+                btn.textContent = 'Copied';
+                setTimeout(function(){ btn.textContent = 'Copy'; }, 900);
+              });
+            }
+          });
+          linkCell.appendChild(btn);
+        }
+      });
+    }
+
+    function setupFilter(){
+      var input = document.getElementById('route-filter');
+      if(!input) return;
+      var filter = function(){
+        var q = (input.value || '').toLowerCase().trim();
+        document.querySelectorAll('.route_list').forEach(function(section){
+          var rows = Array.prototype.slice.call(section.querySelectorAll('tbody tr'));
+          var anyVisible = false;
+          rows.forEach(function(tr){
+            var text = (tr.innerText || tr.textContent || '').toLowerCase();
+            var match = q === '' || text.indexOf(q) !== -1;
+            tr.style.display = match ? '' : 'none';
+            if (match) anyVisible = true;
+          });
+          section.style.display = (q === '' || anyVisible) ? '' : 'none';
+        });
+      };
+      input.addEventListener('input', filter);
+    }
+
+    if (document.readyState === 'loading')
+      document.addEventListener('DOMContentLoaded', function(){ applyBadges(); setupFilter(); });
+    else { applyBadges(); setupFilter(); }
+  })();
+</script>

@@ -1,7 +1,7 @@
 function profileWatchedMovies(user_id) {
     $('#view_more').show()
 
-    var link = `/api/v1/profile/movies/watched/${user_id}/`;
+    var link = `/api/v1/user-movies/watched/${user_id}/`;
     var host = location.origin;
     var posterlink = `/api/v1/movies/get_poster/`;
 
@@ -95,7 +95,7 @@ function slugify(s){
 function profileFavouriteMovies(user_id){
     $('#view_more').show()
 
-    var link = `/api/v1/profile/movies/favourited/${user_id}/`;
+    var link = `/api/v1/user-movies/favourited/${user_id}/`;
     var host = location.origin;
     var posterlink = `/api/v1/movies/get_poster/`;
 
@@ -185,7 +185,7 @@ function profileFavouriteMovies(user_id){
 function profileSavedMovies(user_id){
     $('#view_more').show()
 
-    var link = `/api/v1/profile/movies/saved/${user_id}/`;
+    var link = `/api/v1/user-movies/saved/${user_id}/`;
     var host = location.origin;
     var posterlink = `/api/v1/movies/get_poster/`;
 
@@ -275,7 +275,7 @@ function profileSavedMovies(user_id){
 function profileMoviesLatest(user_id) {
     $('#view_more').show()
 
-    var link = `/api/v1/profile/movies/latest/${user_id}`;
+    var link = `/api/v1/user-movies/latest/${user_id}`;
     var host = location.origin;
     var posterlink = `/api/v1/movies/get_poster/`;
 

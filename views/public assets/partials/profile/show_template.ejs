@@ -3,7 +3,11 @@
         <div class="col-md-2 image-box" >
             <a href="/shows/{{tmd_id}}-{{slug}}">
                     <img name="show_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif"
-                        alt="">
+                        alt=""
+                        <% if (typeof user != 'undefined') { %>
+                        onload="checkIfFavouritedShow('<%= user._id %>', '{{tmd_id}}'); checkIfWatchedShow('<%= user._id %>', '{{tmd_id}}'); checkIfSavedShow('<%= user._id %>', '{{tmd_id}}');"
+                        <% } %>
+                    >
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{show_title}}</p>

@@ -3,7 +3,7 @@ module.exports = function(server){
   server.get('/announcements', (req, res) => {
     res.render('public assets/template.ejs', {
       page_title: 'Announcements',
-      page_file: 'announcements',
+      page_file: 'temp_announcements',
       page_subFile: 'list',
       page_data: {},
       user: req.user
@@ -18,7 +18,7 @@ module.exports = function(server){
     const safeId = raw.split('-')[0];
     res.render('public assets/template.ejs', {
       page_title: 'Announcement',
-      page_file: 'announcements',
+      page_file: 'temp_announcements',
       page_subFile: 'one',
       page_data: { id: safeId },
       user: req.user

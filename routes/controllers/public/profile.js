@@ -4,6 +4,37 @@ const getUser = require('../../middleware/getUser');
 const createError = require('http-errors');
 const isCorrectUser = require('../../middleware/isCorrectUser');
 const enforceProfileVisibility = require('../../middleware/enforceProfileVisibility');
+const UserShowTotals = require('../../../db/models/userShowTotals');
+const UserMovieTotals = require('../../../db/models/userMovieTotals');
+const UserMovie = require('../../../db/models/userMovie');
+
+async function __buildHeaderStats(u){
+    const userId = u && u._id ? u._id : u;
+    // Movies (unified)
+    let movieTotals = null; try { movieTotals = await UserMovieTotals.findOne({ user_id: userId }).lean(); } catch(_){}
+    let moviesCount = 0; try { moviesCount = await UserMovie.countDocuments({ user_id: userId, movie_watched_count: { $gt: 0 } }); } catch(_){}
+    const movieMins = movieTotals && typeof movieTotals.total_runtime === 'number' ? movieTotals.total_runtime : 0;
+    function minsToText(mins){ mins = Math.max(0, Math.floor(Number(mins||0))); const d=Math.floor(mins/1440); const h=Math.floor((mins%1440)/60); const m=mins%60; return d+" "+(d===1?"day":"days")+" and "+h+" "+(h===1?"hour":"hours")+" and "+m+" minutes"; }
+    const movie_watch_time = movieMins ? minsToText(movieMins) : '-';
+
+    // Shows (unified)
+    let totals = null; try { totals = await UserShowTotals.findOne({ user_id: userId }).lean(); } catch(_){}
+    const showsCount = totals && typeof totals.unique_shows_watched === 'number' ? totals.unique_shows_watched : 0;
+    const seasonsCount = totals && typeof totals.total_seasons_watched === 'number' ? totals.total_seasons_watched : 0;
+    const episodesCount = totals && typeof totals.total_episodes_watched === 'number' ? totals.total_episodes_watched : 0;
+    const showMins = totals && typeof totals.total_runtime === 'number' ? totals.total_runtime : 0;
+    const show_watch_time = showMins ? minsToText(showMins) : '-';
+    const total_watch_time_text = minsToText((movieMins||0)+(showMins||0));
+    return {
+        movie_watch_time,
+        numberOfMoviesWatched: moviesCount,
+        numberOfShowsWatched: showsCount,
+        numberOfSeasonsWatched: seasonsCount,
+        numberOfEpisodesWatched: episodesCount,
+        show_watch_time,
+        total_watch_time_text
+    };
+}
 
 
 module.exports = (server) => {
@@ -14,24 +45,18 @@ module.exports = (server) => {
         if (res.locals.user == null)
             return next('route')
 
-        let totalMoviesWatched = await userService.getTimeWatched(res.locals.user._id, "movies")
-        let numberOfMoviesWatched = await userService.getWatchedMovies(res.locals.user._id)
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        const headerStats = await __buildHeaderStats(res.locals.user);
+
+        let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
 
         res.render('public assets/template.ejs', {
             page_title: "iWatched.xyz - Home",
             page_file: "profile",
             page_subFile: "main",
-            page_data: {
+            page_data: Object.assign({
                 user: res.locals.user,
-                movie_watch_time: totalMoviesWatched,
-                numberOfMoviesWatched: numberOfMoviesWatched.movies_watched.length,
                 friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
-            },
+            }, headerStats),
             user: req.user
         });
     });
@@ -40,12 +65,9 @@ module.exports = (server) => {
         if (res.locals.user == null)
             return next('route')
 
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
         const friends = friendsDoc ? friendsDoc.friends : [];
+        const headerStats2 = await __buildHeaderStats(res.locals.user);
         // Enrich to show immediately on first paint
         const enriched = await Promise.all((friends || []).map(async f => {
             try {
@@ -67,11 +89,7 @@ module.exports = (server) => {
             page_title: "iWatched.xyz - Friends",
             page_file: "profile",
             page_subFile: "friends",
-            page_data: {
-                user: res.locals.user,
-                friends: friendsList,
-                friends_count: friendsList.length
-            },
+            page_data: Object.assign({ user: res.locals.user, friends: friendsList, friends_count: friendsList.length }, headerStats2),
             user: req.user
         });
     });
@@ -86,93 +104,84 @@ module.exports = (server) => {
 
 
         if(type == "movies"){
-            watchedTime = await userService.getTimeWatched(res.locals.user._id, "movies")
-            amountOfMovies = await userService.getWatchedMovies(res.locals.user._id)
-            amountOfMovies = amountOfMovies.movies_watched.length
+            try {
+                const mt = await UserMovieTotals.findOne({ user_id: res.locals.user._id }).lean();
+                watchedTime = (mt && typeof mt.total_runtime === 'number') ? mt.total_runtime : 0;
+            } catch(_) { watchedTime = 0; }
+            try {
+                amountOfMovies = await UserMovie.countDocuments({ user_id: res.locals.user._id, movie_watched_count: { $gt: 0 } });
+            } catch(_) { amountOfMovies = 0; }
         } else if (type == 'shows') {
             try {
-                const UserWatchedShows = require('../../../db/models/userWatchedShows');
-                const doc = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean();
-                watchedTime = (doc && doc.show_watch_time) || 0;
-                amountOfMovies = { movies_watched: [] };
-                amountOfMovies = (doc && Array.isArray(doc.shows_watched)) ? doc.shows_watched.length : 0;
+                const UserShow = require('../../../db/models/userShow');
+                const totals = await UserShowTotals.findOne({ user_id: res.locals.user._id }).lean();
+                watchedTime = (totals && typeof totals.total_runtime === 'number') ? totals.total_runtime : 0;
+                const entries = await UserShow.find({
+                    user_id: res.locals.user._id,
+                    $or: [
+                        { show_watched_count: { $gt: 0 } },
+                        { show_watched: { $ne: null } },
+                        { seasons: { $elemMatch: { date_completed: { $ne: null } } } }
+                    ]
+                }).lean();
+                amountOfMovies = Array.from(new Set((entries||[]).map(e => String(e.show_id)))).length;
             } catch (_) { watchedTime = 0; amountOfMovies = 0; }
         }
 
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        const headerStats3 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
             page_title: "iWatched.xyz - Home",
             page_file: "profile",
             page_subFile: "watched",
-            page_data: {
-                user: res.locals.user,
-                watchedTime: watchedTime,
-                amountOfMovies: amountOfMovies,
-                type: type,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
-            },
+            page_data: Object.assign({ user: res.locals.user, watchedTime: watchedTime, amountOfMovies: amountOfMovies, type: type, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats3),
             user: req.user
         });
     });
 
     server.get('/:id/favourite/:type', getUser, enforceProfileVisibility, async (req, res, next) => {
-        if (res.locals.user == null)
-            return next('route')
-        let amountOfMovies;
+        if (res.locals.user == null) return next('route');
+        try {
+            const tab = req.params.type && String(req.params.type).toLowerCase()==='shows' ? 'shows' : 'movies';
+            const basePath = (res.locals.user.profile && res.locals.user.profile.custom_url) ? ('/'+res.locals.user.profile.custom_url) : ('/'+res.locals.user._id);
+            return res.redirect(basePath + '/favourites?tab=' + tab);
+        } catch(_) { return next('route'); }
+    });
 
-        if(req.params.type == "movies"){
-            amountOfMovies = await userService.getFavouritedMovies(res.locals.user._id)
-            amountOfMovies = amountOfMovies.movies_favourited.length
-        }
+    server.get('/:id/saved/:type', getUser, enforceProfileVisibility, async (req, res, next) => {
+        if (res.locals.user == null) return next('route');
+        try {
+            const tab = req.params.type && String(req.params.type).toLowerCase()==='shows' ? 'shows' : 'movies';
+            const basePath = (res.locals.user.profile && res.locals.user.profile.custom_url) ? ('/'+res.locals.user.profile.custom_url) : ('/'+res.locals.user._id);
+            return res.redirect(basePath + '/bookmarked?tab=' + tab);
+        } catch(_) { return next('route'); }
+    });
 
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+    // Consolidated pages
+    server.get('/:id/favourites', getUser, enforceProfileVisibility, async (req, res) => {
+        if (res.locals.user == null) return;
+        const headerStats = await __buildHeaderStats(res.locals.user);
+        const friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        const tab = (req.query.tab && String(req.query.tab).toLowerCase()==='shows') ? 'shows' : 'movies';
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
-            page_file: "profile",
-            page_subFile: "favourited",
-            page_data: {
-                user: res.locals.user,
-                amount: amountOfMovies,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
-            },
+            page_title: 'iWatched.xyz - Favourites',
+            page_file: 'profile',
+            page_subFile: 'favourites',
+            page_data: Object.assign({ user: res.locals.user, media_tab: tab, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats),
             user: req.user
         });
     });
 
-    server.get('/:id/saved/:type', getUser, enforceProfileVisibility, async (req, res, next) => {
-        if (res.locals.user == null)
-            return next('route')
-
-        let amountOfMovies;
-
-
-        if(req.params.type == "movies"){
-            amountOfMovies = await userService.getSavedMovies(res.locals.user._id)
-            amountOfMovies = amountOfMovies.movies_saved.length
-        }
-        
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+    server.get('/:id/bookmarked', getUser, enforceProfileVisibility, async (req, res) => {
+        if (res.locals.user == null) return;
+        const headerStats = await __buildHeaderStats(res.locals.user);
+        const friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        const tab = (req.query.tab && String(req.query.tab).toLowerCase()==='shows') ? 'shows' : 'movies';
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
-            page_file: "profile",
-            page_subFile: "saved",
-            page_data: {
-                user: res.locals.user,
-                amountOfMovies: amountOfMovies,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
-            },
+            page_title: 'iWatched.xyz - Bookmarked',
+            page_file: 'profile',
+            page_subFile: 'bookmarked',
+            page_data: Object.assign({ user: res.locals.user, media_tab: tab, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats),
             user: req.user
         });
     });
@@ -181,11 +190,7 @@ module.exports = (server) => {
         if (res.locals.user == null)
             return next('route')
 
-                // header stats for profile cards
-        let moviesTimeHeader = await userService.getTimeWatched(res.locals.user._id, "movies");
-        let showsTimeHeader = await userService.getTimeWatched(res.locals.user._id, "shows");
-        let numberOfMoviesHeader = 0; try { const wm = await userService.getWatchedMovies(res.locals.user._id); numberOfMoviesHeader = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0; } catch(_){}
-        let numberOfShowsHeader = 0; try { const UserWatchedShows = require('../../../db/models/userWatchedShows'); const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean(); numberOfShowsHeader = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0; } catch(_){}let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+        let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
         // Load user's badges for settings dropdown
         let badgesDetailed = [];
         try {
@@ -206,15 +211,12 @@ module.exports = (server) => {
                 });
             }
         } catch (_) {}
+        const headerStats6 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
             page_title: "iWatched.xyz - Home",
             page_file: "profile",
             page_subFile: "settings",
-            page_data: {
-                user: res.locals.user,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0,
-                badges: badgesDetailed
-            },
+            page_data: Object.assign({ user: res.locals.user, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0, badges: badgesDetailed }, headerStats6),
             user: req.user
         });
     });
@@ -225,16 +227,16 @@ module.exports = (server) => {
                 // Gather live counters for profile_stats cards
         let moviesTime = 0; let showsTime = 0; let numberOfMovies = 0; let numberOfShows = 0; let episodesCount = 0;
         try {
-            moviesTime = await userService.getTimeWatched(res.locals.user._id, "movies");
-            const wm = await userService.getWatchedMovies(res.locals.user._id);
-            numberOfMovies = (wm && Array.isArray(wm.movies_watched)) ? wm.movies_watched.length : 0;
+            const mt = await UserMovieTotals.findOne({ user_id: res.locals.user._id }).lean();
+            moviesTime = (mt && typeof mt.total_runtime === 'number') ? mt.total_runtime : 0;
+            numberOfMovies = await UserMovie.countDocuments({ user_id: res.locals.user._id, movie_watched_count: { $gt: 0 } });
         } catch (_) {}
         try {
-            const UserWatchedShows = require('../../../db/models/userWatchedShows');
-            const sw = await UserWatchedShows.findOne({ user_id: res.locals.user._id }).lean();
-            numberOfShows = (sw && Array.isArray(sw.shows_watched)) ? sw.shows_watched.length : 0;
+            const st = await UserShowTotals.findOne({ user_id: res.locals.user._id }).lean();
+            numberOfShows = (st && typeof st.unique_shows_watched === 'number') ? st.unique_shows_watched : 0;
+            showsTime = (st && typeof st.total_runtime === 'number') ? st.total_runtime : 0;
         } catch (_) {}
-        try { showsTime = await userService.getTimeWatched(res.locals.user._id, "shows"); } catch(_) { showsTime = '-'; }const dummy = {
+        const dummy = {
             most_watched_actor: { name: 'Alex Mercer', count: 42 },
             most_seen_director: { name: 'Jamie Lin', count: 17 },
             most_watched_genre: { name: 'Drama', count: 88 },
@@ -261,24 +263,24 @@ module.exports = (server) => {
             old_vs_new: { pre2000: 58, post2000: 85 }
         };
 
+        const headerStats7 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
             page_title: 'iWatched.xyz - Stats',
             page_file: 'profile',
             page_subFile: 'stats_page',
-            page_data: {
-                user: res.locals.user,
-                stats: dummy,
-                movie_watch_time: moviesTime || '-',
-                numberOfMoviesWatched: numberOfMovies,
-                numberOfShowsWatched: numberOfShows,
-                show_watch_time: showsTime || '-',
-                numberOfEpisodesWatched: episodesCount
-            },
+            page_data: Object.assign({ user: res.locals.user, stats: dummy }, headerStats7),
             user: req.user
         });
     });
 
     // Badges page
+    server.get('/user/badges', async (req, res) => {
+        try {
+            if (!req.user) return res.redirect('/login');
+            const slug = (req.user && req.user.profile && req.user.profile.custom_url) ? req.user.profile.custom_url : String(req.user._id);
+            return res.redirect('/' + slug + '/badges');
+        } catch (_) { return res.redirect('/login'); }
+    });
     server.get('/:id/badges', getUser, enforceProfileVisibility, async (req, res, next) => {
         if (res.locals.user == null) return next('route');
         const Badge = require('../../../db/models/badge');

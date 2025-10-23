@@ -46,31 +46,31 @@
                                 <div class="col-md-4">
                                         <i  class="far fa-check-circle fa-2x icon-white" 
                                         id="add_watched_movie_<%= movie.id %>"
-                                        onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>'); return false;" >
+                                        onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;" >
                                     </i>
                                     <i  class="fas fa-check-circle fa-2x icon-green" 
                                         id="remove_watched_movie_<%= movie.id %>"  
-                                        onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.myKey %>'); return false;">
+                                        onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;">
                                     </i>
                                 </div>
                                 <div class="col-md-4">
                                     <i  class="far fa-heart fa-2x icon-white" 
                                         id="add_favourited_movie_<%= movie.id %>" 
-                                        onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
+                                        onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= movie.id %>', '', '<%= user.permissions.user_private_key %>'); return false;">
                                     </i>
                                     <i  class="fas fa-heart fa-2x icon-red" 
                                         id="remove_favourited_movie_<%= movie.id %>" 
-                                        onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
+                                        onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>', '', '<%= user.permissions.user_private_key %>'); return false;">
                                     </i>
                                 </div>
                                 <div class="col-md-4">
                                     <i  class="far fa-bookmark fa-2x icon-white"
                                         id="add_saved_movie_<%= movie.id %>" 
-                                        onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
+                                        onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= movie.id %>', '', '<%= user.permissions.user_private_key %>'); return false;">
                                     </i>
                                     <i class="fas fa-bookmark fa-2x icon-blue"
                                         id="remove_saved_movie_<%= movie.id %>" 
-                                        onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
+                                        onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= movie.id %>', '', '<%= user.permissions.user_private_key %>'); return false;">
                                     </i>
                                 </div>
                             </div>

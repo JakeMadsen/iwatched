@@ -33,7 +33,11 @@ var userSchema = mongoose.Schema({
                 level: { type: String, default: 'single' }, // for multi-level badges, store level name; for single, 'single'
                 awarded_at: { type: Date, default: Date.now }
             }, { _id: false })
-        ], default: [] }
+        ], default: [] },
+        moderation: {
+            muted_until: { type: Date, default: null },
+            permanently_muted: { type: Boolean, default: false }
+        }
     },
     permissions: {
         user_private_key: { type: String, default: hat()},

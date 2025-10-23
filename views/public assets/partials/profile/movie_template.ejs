@@ -5,9 +5,9 @@
                     <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif"
                         alt="" 
                         onload="    
-                            checkIfFavourited('<%= user._id %>', '{{tmd_id}}')
-                            checkIfWatched('<%= user._id %>', '{{tmd_id}}')
-                            checkIfSaved('<%= user._id %>', '{{tmd_id}}')
+                            checkIfFavourited('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
+                            checkIfWatched('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
+                            checkIfSaved('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
                         ">
             </a>
             <div class="movie-hover image-box-description">
@@ -17,31 +17,31 @@
                     <div class="col-md-4">
                         <i  class="far fa-check-circle fa-2x icon-white" 
                             id="add_watched_movie_{{tmd_id}}"
-                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>'); return false;" >
+                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;" >
                         </i>
                         <i  class="fas fa-check-circle fa-2x icon-green" 
                             id="remove_watched_movie_{{tmd_id}}"  
-                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.myKey %>'); return false;">
+                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;">
                         </i>
                     </div>
                     <div class="col-md-4">
                         <i  class="far fa-heart fa-2x icon-white" 
                             id="add_favourited_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{tmd_id}}'); return false;">
+                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
                         </i>
                         <i  class="fas fa-heart fa-2x icon-red" 
                             id="remove_favourited_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}'); return false;">
+                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
                         </i>
                     </div>
                     <div class="col-md-4">
                         <i  class="far fa-bookmark fa-2x icon-white"
                             id="add_saved_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{tmd_id}}'); return false;">
+                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
                         </i>
                         <i class="fas fa-bookmark fa-2x icon-blue"
                             id="remove_saved_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{tmd_id}}'); return false;">
+                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
                         </i>
                     </div>
                 </div>

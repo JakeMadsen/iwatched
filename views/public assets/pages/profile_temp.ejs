@@ -1,0 +1,50 @@
+
+
+<div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
+    <div class="container">
+        <div class="container profile-hero__inner">
+        <div class="profile-hero__left">
+            <img class="profile-hero__avatar" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>" alt="">
+            <div class="profile-hero__meta">
+                <h1 class="profile-hero__name"><%= page_data.user.local.username %></h1>
+                <% 
+                  const handle = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
+                    ? page_data.user.profile.custom_url
+                    : (page_data.user.local.username || '');
+                %>
+                <% if (handle) { %>
+                    <div class="profile-hero__handle">
+                      <span class="profile-hero__handle-link">@<%= handle %></span>
+                      <% try { var fb = (page_data.user && page_data.user.profile && page_data.user.profile.featured_badge_info) || null; if (fb && fb.icon) { %>
+                        <img src="<%= fb.icon %>" alt="<%= fb.title %>" title="<%= fb.title %><% if (fb.level && fb.level!=='single') { %> – <%= fb.level %><% } %><% if (fb.awarded_at) { %> – Awarded <%= new Date(fb.awarded_at).toLocaleDateString() %><% } %>\n<%= fb.description %>" style="width:18px;height:18px;object-fit:contain;margin-left:6px;vertical-align:middle;">
+                      <% } } catch(_){} %>
+                    </div>
+                <% } %>
+                <% if (page_data.user.profile.description) { %>
+                    <p class="profile-hero__bio"><%= page_data.user.profile.description %></p>
+                <% } %>
+            </div>
+        </div>
+        <div class="profile-hero__actions">
+            <a class="profile-hero__friends" href="#" title="Friends (temp)">
+                <% if (typeof page_data.friends_count !== 'undefined' && page_data.friends_count !== null) { %>
+                    <span><%= page_data.friends_count %></span>
+                <% } %>
+                <i class="fas fa-user-friends"></i>
+            </a>
+        </div>
+    </div>
+    <div class="profile-hero__overlay"></div>
+
+    </div>
+</div>
+
+
+<div id="profile_section" style="padding-top:px;">
+    <div class="container">
+        <% include ../partials/profile/profile_stats.ejs %>
+        <% include ../partials/profile_temp/profile_quicklinks.ejs %>
+        <%- include(`../partials/profile_temp/${page_subFile}.ejs`) %>
+    </div>
+</div>
+

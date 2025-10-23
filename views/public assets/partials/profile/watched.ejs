@@ -8,7 +8,19 @@
                     All movies I've seen
                 <% } %>
             </h3>
-            <p class="col-md-6" style="text-align: right;"> Amount: <%= page_data.amountOfMovies %></p>
+            <div class="col-md-6" style="text-align: right;">
+                <% if ((page_data.type||'movies') === 'shows') { %>
+                    <label for="shows_sort_select" style="margin-right:8px;">Sort:</label>
+                    <select id="shows_sort_select" class="custom-select custom-select-sm" style="width:auto; display:inline-block;">
+                        <option value="" selected>Default (A→Z)</option>
+                        <option value="seasons_desc">Seasons: many → few</option>
+                        <option value="seasons_asc">Seasons: few → many</option>
+                        <option value="first_air_desc">First air date: new → old</option>
+                        <option value="first_air_asc">First air date: old → new</option>
+                    </select>
+                <% } %>
+                <span style="margin-left:12px;">Amount: <%= page_data.amountOfMovies %></span>
+            </div>
         </div>
 
         <div id="movies_holder" class="row">
@@ -35,7 +47,16 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function (event) {
-        if ('<%= page_data.type||'movies' %>' === 'shows') { profileWatchedShows('<%= page_data.user._id%>'); }
+        if ('<%= page_data.type||'movies' %>' === 'shows') {
+            var sel = document.getElementById('shows_sort_select');
+            function run(){
+                var sort = sel ? sel.value : '';
+                $('#movies_holder').empty();
+                profileWatchedShows('<%= page_data.user._id%>', sort);
+            }
+            if (sel) sel.addEventListener('change', run);
+            run();
+        }
         else { profileWatchedMovies('<%= page_data.user._id%>'); }
     });
 </script>

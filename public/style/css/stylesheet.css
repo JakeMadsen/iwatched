@@ -1,4 +1,9 @@
 * {
+/* ===== Landing Page (temp-home) ===== */
+.show-hero { position: relative; background-repeat: no-repeat; background-size: cover; background-position: center; }
+.show-hero__spacer { height: 280px; }
+.show-hero .embed-responsive { box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+* {
   margin: 0;
   padding: 0;
   border: 0;
@@ -491,3 +496,10 @@ h1, h2, h3,h4,  a {
   .rewatch-hero { flex-direction:column; }
   .hero__poster { width:100%; height:160px; }
 }
+
+/* Temp preview embed */
+.temp-embed { position: relative; width: 100%; height: calc(100vh - 180px); background:#0f0f0f; border:1px solid #2a2a2a; border-radius: 12px; overflow:hidden; }
+.temp-embed iframe { position:absolute; inset:0; width:100%; height:100%; border:0; background:#0f0f0f; }
+@media (max-width: 576px){ .temp-embed { height: calc(100vh - 220px); } }
+
+/* ===== Landing Page (temp-home) ===== */

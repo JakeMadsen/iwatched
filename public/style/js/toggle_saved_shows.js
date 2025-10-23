@@ -1,12 +1,12 @@
 function checkIfSavedShow(user_id, show_id){
     $(`#add_saved_show_${show_id}`).hide();
     $(`#remove_saved_show_${show_id}`).hide();
-    var link = `/api/v1/profile/shows/check/saved/${user_id}/${show_id}`;
+    var link = `/api/v1/user-shows/check/saved/${user_id}/${show_id}`;
     if(user_id){ fetch(link).then(r=>r.json()).then(d=>{ if(d===true) $(`#remove_saved_show_${show_id}`).show(); else $(`#add_saved_show_${show_id}`).show(); }).catch(()=>{}); }
 }
 
 function showAddSaved(user_id, show_id, user_key){
-    var link = `/api/v1/profile/shows/saved/add/`;
+    var link = `/api/v1/user-shows/bookmark/add`;
     let headers = new Headers(); headers.append('Content-Type','application/json');
     var init = { method:'POST', headers, body:`{ "user_id":"${user_id}", "user_key":"${user_key}", "show_id":"${show_id}" }`, cache:'no-cache', mode:'cors' };
     fetch(new Request(link, init)).catch(()=>{});
@@ -15,11 +15,10 @@ function showAddSaved(user_id, show_id, user_key){
 }
 
 function showRemoveSaved(user_id, show_id, user_key){
-    var link = `/api/v1/profile/shows/saved/remove/`;
+    var link = `/api/v1/user-shows/bookmark/remove`;
     let headers = new Headers(); headers.append('Content-Type','application/json');
     var init = { method:'POST', headers, body:`{ "user_id":"${user_id}", "user_key":"${user_key}", "show_id":"${show_id}" }`, cache:'no-cache', mode:'cors' };
     fetch(new Request(link, init)).catch(()=>{});
     $(`#add_saved_show_${show_id}`).show();
     $(`#remove_saved_show_${show_id}`).hide();
 }
-

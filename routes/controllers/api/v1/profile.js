@@ -25,6 +25,10 @@ const createError           = require("http-errors");
 
 module.exports = (server) => {
     console.log('* Profile Routes Loaded Into Server');
+    // Disable all legacy profile endpoints in favor of unified user-movies/user-shows
+    server.all('/api/v1/profile/*', (req, res, next) => {
+        return res.status(410).send({ status: 410, message: 'Deprecated. Use /api/v1/user-movies and /api/v1/user-shows.' });
+    });
     
     /*  Watched routes
     *   Add and remove movies watched
@@ -495,12 +499,35 @@ module.exports = (server) => {
     // Listing watched shows (paginated)
     server.get('/api/v1/profile/shows/watched/:profile_id/:page?', async (req, res) => {
         var perPage = 18, page = Math.max(0, req.params.page || 1);
+        const sort = String(req.query.sort || '').toLowerCase();
         try {
             const user = await userService.getOne(req.params.profile_id);
             if(!user) return res.send(createError(404, { error: 'No user found' }));
             const watched = await UserWatchedShows.findOne({ user_id: user._id }).lean();
             const list = watched ? (watched.shows_watched||[]).map(o=>o.id) : [];
-            const items = await Show.find({ 'tmd_id': { $in: list } }).collation({locale:'en',strength:2}).sort({ show_title:1 }).lean();
+            let items = await Show.find({ 'tmd_id': { $in: list } }).collation({locale:'en',strength:2}).sort({ show_title:1 }).lean();
+
+            // Optional enrichment for sorting by seasons or first air date
+            if (sort) {
+                const details = await Promise.all(items.map(s => tmdService.tvInfo(s.tmd_id).catch(()=>null)));
+                const byId = new Map();
+                items.forEach((s, idx) => {
+                    const d = details[idx] || {};
+                    const seasons = Array.isArray(d.seasons) ? d.seasons.filter(x => Number(x.season_number) !== 0).length : (d.number_of_seasons || 0);
+                    byId.set(String(s.tmd_id), {
+                        seasons: seasons || 0,
+                        first_air_date: d.first_air_date || null,
+                        first_air_year: d.first_air_date ? String(d.first_air_date).slice(0,4) : null
+                    });
+                });
+                items = items.map(s => Object.assign({}, s, byId.get(String(s.tmd_id)) || {}));
+                const cmp = (a,b,k,dir) => { const av = a[k] || 0; const bv = b[k] || 0; return dir==='desc' ? ((bv>av)-(bv<av)) : ((av>bv)-(av<bv)); };
+                if (sort === 'seasons_desc') items.sort((a,b)=>cmp(a,b,'seasons','desc'));
+                else if (sort === 'seasons_asc') items.sort((a,b)=>cmp(a,b,'seasons','asc'));
+                else if (sort === 'first_air_desc') items.sort((a,b)=>cmp(a,b,'first_air_year','desc'));
+                else if (sort === 'first_air_asc') items.sort((a,b)=>cmp(a,b,'first_air_year','asc'));
+            }
+
             const total = items.length; const pageItems = paginateArray(items, perPage, page);
             res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems });
         } catch (e) { res.send(createError(400, e)); }
