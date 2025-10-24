@@ -2,7 +2,10 @@ require('dotenv').config();
 const app = require('./config/serverSetup');
 const server = require('http').createServer(app)
 const serverSettings = JSON.parse(process.env['SERVER_SETTINGS']);
-const serverPort = process.env.PORT || serverSettings._serverPort;
+// Prefer Fly's PORT, then config, then sensible default
+const serverPort = process.env.PORT || serverSettings._serverPort || 3000;
+// Bind to IPv6 unspecified by default so Fly's IPv6 network can reach us
+const bindHost = process.env.BIND || '::';
 const mongoose = require('mongoose');
 
 //=================== Server initialisation ===================//
@@ -12,7 +15,8 @@ const startServer = () => {
   if (started) return; started = true;
   console.clear()
   const maskedMongo = '[redacted]';
-  server.listen(serverPort, () => {
+  // Explicitly bind so it listens on all interfaces (IPv6/IPv4)
+  server.listen(serverPort, bindHost, () => {
     console.log(`======== \x1b[32m SERVER - RUNNING \x1b[0m ======= \n` +
                 `Website name   : \x1b[33m ${serverSettings._websiteName} \x1b[0m \n` +
                 `Server name    : \x1b[33m ${serverSettings._serverName} \x1b[0m \n` +
@@ -35,11 +39,13 @@ const failTimeout = setTimeout(() => {
   }
 }, 20000);
 
-if (mongoose.connection.readyState === 1) {
-  startServer();
-  clearTimeout(failTimeout);
-} else {
-  mongoose.connection.once('open', () => { startServer(); clearTimeout(failTimeout); });
+// Start listening immediately so the platform health checks can connect.
+// DB readiness is handled independently via logs and feature-level errors.
+startServer();
+
+// Still report DB readiness for visibility
+if (mongoose.connection.readyState !== 1) {
+  mongoose.connection.once('open', () => { /* DB ready */ });
   mongoose.connection.on('error', (err) => {
     console.error('[Startup] MongoDB connection failed:', err && err.message ? err.message : err);
   });
