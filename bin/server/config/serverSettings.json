@@ -1,6 +1,6 @@
 {
     "serverName": "iWatched-server",
-    "serverPort": 3001,
+    "serverPort": 3000,
     "websiteName": "iWatched",
     "mongoDB": "mongodb+srv://iWatchedAdmin:0O3oWOIjZCGlyRq4@iwatched.xnu9gz8.mongodb.net/iwatched?retryWrites=true&w=majority"
 }
