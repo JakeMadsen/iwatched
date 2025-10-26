@@ -3,8 +3,8 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'iwatched-wild-rain-1410'
-primary_region = 'arn'
+app = 'iwatched'
+primary_region = 'ams'
 
 [build]
 

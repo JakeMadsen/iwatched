@@ -27,14 +27,24 @@ module.exports = function (server) {
           .lean()
       ]);
 
-      const movies = (movieRes.results || []).slice(0, limit).map(m => ({
+      const movies = (movieRes.results || [])
+        .filter(m => (m && m.release_date) && Number(m.vote_count||0) > 0)
+        .slice(0, limit).map(m => ({
         id: m.id,
         title: m.title,
         release_date: m.release_date,
         poster_path: m.poster_path,
       }));
 
-      const shows = (tvRes.results || []).slice(0, limit).map(s => ({
+      const shows = (tvRes.results || [])
+        .filter(s => {
+          const ids = Array.isArray(s && s.genre_ids) ? s.genre_ids : [];
+          const notReality = !ids.includes(10764);
+          const hasDate = !!(s && s.first_air_date);
+          const hasVotes = Number(s && s.vote_count || 0) > 0;
+          return notReality && hasDate && hasVotes;
+        })
+        .slice(0, limit).map(s => ({
         id: s.id,
         name: s.name,
         first_air_date: s.first_air_date,

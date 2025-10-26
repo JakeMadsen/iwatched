@@ -17,6 +17,17 @@ module.exports = function (server) {
       .searchTv(parameters)
       .then(async results => {
         try {
+          // Filter out reality shows from search results (genre 10764 = Reality)
+          if (results && Array.isArray(results.results)) {
+            results.results = results.results.filter(r => {
+              const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
+              const notReality = !ids.includes(10764);
+              // Also drop empty shells (no votes, no first_air_date)
+              const hasDate = !!(r && r.first_air_date);
+              const hasVotes = (r && Number(r.vote_count)) > 0;
+              return notReality && hasDate && hasVotes;
+            });
+          }
           if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
             const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
             const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));
@@ -54,6 +65,15 @@ module.exports = function (server) {
         .discoverTv(parameters)
         .then(async results => {
           try {
+            if (results && Array.isArray(results.results)) {
+              results.results = results.results.filter(r => {
+                const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
+                const notReality = !ids.includes(10764);
+                const hasDate = !!(r && r.first_air_date);
+                const hasVotes = (r && Number(r.vote_count)) > 0;
+                return notReality && hasDate && hasVotes;
+              });
+            }
             if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
               const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
               const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));

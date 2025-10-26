@@ -13,10 +13,28 @@ module.exports = function (server) {
         tmdService.personTvCredits(id).catch(()=>({ cast: [], crew: [] })),
       ]);
 
-      const castMovies = (movieCredits.cast||[]).sort((a,b)=> (b.popularity||0)-(a.popularity||0));
-      const castShows = (tvCredits.cast||[]).sort((a,b)=> (b.popularity||0)-(a.popularity||0));
-      const crewMovies = (movieCredits.crew||[]).filter(c=>c.job==='Director');
-      const crewShows = (tvCredits.crew||[]);
+      const castMovies = (movieCredits.cast||[])
+        .filter(m => (m && m.release_date) && Number(m.vote_count||0) > 0)
+        .sort((a,b)=> (b.popularity||0)-(a.popularity||0));
+      const castShows = (tvCredits.cast||[])
+        .filter(s => {
+          const ids = Array.isArray(s && s.genre_ids) ? s.genre_ids : [];
+          const notReality = !ids.includes(10764);
+          const hasDate = !!(s && s.first_air_date);
+          const hasVotes = Number(s && s.vote_count || 0) > 0;
+          return notReality && hasDate && hasVotes;
+        })
+        .sort((a,b)=> (b.popularity||0)-(a.popularity||0));
+      const crewMovies = (movieCredits.crew||[])
+        .filter(c=>c.job==='Director' && (c && c.release_date) && Number(c.vote_count||0) > 0);
+      const crewShows = (tvCredits.crew||[])
+        .filter(s => {
+          const ids = Array.isArray(s && s.genre_ids) ? s.genre_ids : [];
+          const notReality = !ids.includes(10764);
+          const hasDate = !!(s && s.first_air_date);
+          const hasVotes = Number(s && s.vote_count || 0) > 0;
+          return notReality && hasDate && hasVotes;
+        });
 
       res.render('public assets/template.ejs', {
         page_title: `iWatched - ${info && (info.name||'Person')}`,
@@ -35,4 +53,3 @@ module.exports = function (server) {
     }
   });
 }
-

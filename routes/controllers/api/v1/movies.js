@@ -17,6 +17,16 @@ module.exports = function (server) {
             .searchMovie(parameters)
             .then(async results => {
                 try {
+                    // Filter out rumored/unreleased-ish items from search results
+                    // TMDb search response does not include status; approximate by
+                    // requiring a release_date and some voting activity.
+                    if (results && Array.isArray(results.results)) {
+                        results.results = results.results.filter(r => {
+                            const hasDate = !!(r && r.release_date);
+                            const hasVotes = (r && Number(r.vote_count)) > 0;
+                            return hasDate && hasVotes;
+                        });
+                    }
                     if (String(req.query.hide_watched||'') === '1' && req.query.profile_id) {
                         const watchedDocs = await UserMovie.find({ user_id: String(req.query.profile_id), $or: [ { movie_watched_count: { $gt: 0 } }, { movie_watched: { $ne: null } } ] }).select('movie_id').lean();
                         const watchedSet = new Set((watchedDocs||[]).map(d => String(d.movie_id)));
@@ -49,6 +59,14 @@ module.exports = function (server) {
             .genreMovies(parameters)
             .then(async results => {
                 try {
+                    // Filter out rumored/unreleased-ish items
+                    if (results && Array.isArray(results.results)) {
+                        results.results = results.results.filter(r => {
+                            const hasDate = !!(r && r.release_date);
+                            const hasVotes = (r && Number(r.vote_count)) > 0;
+                            return hasDate && hasVotes;
+                        });
+                    }
                     if (String(req.query.hide_watched||'') === '1' && req.query.profile_id) {
                         const watchedDocs = await UserMovie.find({ user_id: String(req.query.profile_id), $or: [ { movie_watched_count: { $gt: 0 } }, { movie_watched: { $ne: null } } ] }).select('movie_id').lean();
                         const watchedSet = new Set((watchedDocs||[]).map(d => String(d.movie_id)));

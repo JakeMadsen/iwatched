@@ -28,6 +28,19 @@ module.exports = function (server) {
             .catch(() => ({}));
         // No redirects: links are now generated with slugs across the app
 
+        // Ignore reality or rumored-like series
+        try {
+            const status = String(show && show.status || '').toLowerCase();
+            const isRumored = (status === 'rumored');
+            const genres = Array.isArray(show && show.genres) ? show.genres : [];
+            const hasRealityGenre = genres.some(g => String(g && g.name || '').toLowerCase() === 'reality' || Number(g && g.id) === 10764);
+            const type = String(show && show.type || '').toLowerCase();
+            const isReality = hasRealityGenre || type === 'reality';
+            if (isRumored || isReality) {
+                return res.redirect(302, '/shows');
+            }
+        } catch(_){}
+
         let credits = await tmdService.tvCredits(id).catch(() => ({ cast: [], crew: [] }));
         const videos = (show.videos && show.videos.results) ? show.videos.results : [];
         // Pick a sensible YouTube trailer key if available

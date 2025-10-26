@@ -20,7 +20,17 @@ module.exports = {
         return new Promise((resolve, reject) => {
             axios.get(`${url}/discover/movie?api_key=${key}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=true&page=1`)
             .then(response => {
-                resolve(response.data.results)
+                try {
+                    const list = Array.isArray(response.data && response.data.results) ? response.data.results : [];
+                    const filtered = list.filter(r => {
+                        const hasDate = !!(r && r.release_date);
+                        const hasVotes = (r && Number(r.vote_count)) > 0;
+                        return hasDate && hasVotes;
+                    });
+                    resolve(filtered);
+                } catch(_) {
+                    resolve(response.data.results)
+                }
             })
             .catch(error => {
                 reject(error)

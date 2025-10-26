@@ -26,6 +26,13 @@ module.exports = (server) => {
             .catch(() => ({}));
         // No redirects: links are now generated with slugs across the app
 
+        // Ignore rumored titles site-wide
+        try {
+            if (String(movie && movie.status || '').toLowerCase() === 'rumored') {
+                return res.redirect(302, '/movies');
+            }
+        } catch(_){}
+
         let credits = await tmdService.movieCredits(id).catch(() => ({ cast: [], crew: [] }));
         let runtime = getRunTime(movie.runtime || 0);
         const videos = (movie.videos && movie.videos.results) ? movie.videos.results : [];
@@ -39,6 +46,7 @@ module.exports = (server) => {
                 items = items.filter(it => {
                     if (!it) return false;
                     if ((it.vote_count||0) < 200) return false;
+                    if (!it.release_date) return false;
                     if (lang && it.original_language && it.original_language !== lang) return false;
                     const overlap = Array.isArray(it.genre_ids) ? it.genre_ids.filter(g => baseGenres.includes(g)).length : 0;
                     return overlap >= 1;
