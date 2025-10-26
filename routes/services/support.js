@@ -87,6 +87,22 @@ module.exports = {
         })
 
     },
+    reopenCase: (case_id) => {
+        return new Promise ((resolve, reject) => {
+            Support.findOne({ '_id' : case_id}, function (error, foundCase) {
+                if (error || !foundCase) return reject(error||new Error('not found'));
+                foundCase.resolved = false;
+                foundCase.last_updated = new Date();
+                foundCase.save((error, reopened) =>{
+                    if(error)
+                        reject(error);
+                    else
+                        resolve(reopened);
+                })
+            });
+        })
+
+    },
     deleteCase: (case_id) => {
         return new Promise ((resolve, reject) => {
             Support.deleteOne({ '_id' : case_id}, function (error) {

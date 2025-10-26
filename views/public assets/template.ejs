@@ -10,19 +10,17 @@
     <% include ./partials/standard/head.ejs %>
 </head>
 
-<body class="<%= (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions) ? 'pref-show-quick-actions' : '' %>">
+<body class="<%= (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions) ? 'pref-show-quick-actions' : '' %> th-has-header th-bg <%= (page_file === 'temp_home' && page_data && page_data.hide_features) ? 'home-hide-features' : '' %>">
     <!-- Includes Header -->
-    <% if (page_file !== 'temp_home' && page_file !== 'temp_user' && page_file !== 'temp_announcements') { %>
-      <% include partials/standard/header.ejs %>
-    <% } %>
+    <% include partials/standard/header.ejs %>
 
     <main id="content-wrapper" class="<%= page_file === 'profile' ? 'profile-page' : (page_file === 'temp_home' ? 'temp-home-wrapper' : (page_file === 'temp_user' ? 'temp-user-wrapper' : '')) %>">
         <%- include(`pages/${page_file}.ejs`) %>
     </main>
-    
-    <% if (page_file !== 'temp_home' && page_file !== 'temp_user' && page_file !== 'temp_announcements') { %>
-      <% include partials/standard/footer.ejs %>
-      <% include partials/standard/recommend_modal.ejs %>
+    <% include partials/standard/footer.ejs %>
+    <% include partials/standard/recommend_modal.ejs %>
+    <% if (typeof user === 'undefined' || !user) { %>
+      <% include partials/standard/floating_cta.ejs %>
     <% } %>
 </body>
 

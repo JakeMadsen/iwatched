@@ -82,18 +82,27 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
     const restrictedUrlService = require('../../routes/services/restrictedUrls');
     const validation = await restrictedUrlService.validateCustomUrl(body.custom_url);
 
-    if(this.local.username != body.username && body.username != "")
-        this.local.username = body.username;
+    // Username is immutable via settings; only allow update when a non-empty string is explicitly provided
+    if (typeof body.username === 'string') {
+        const newName = body.username.trim();
+        if (newName && this.local.username !== newName) {
+            this.local.username = newName;
+        }
+    }
 
-    if(this.local.email != body.email && body.email != "")
-        this.local.email = body.email;
+    if (typeof body.email === 'string') {
+        const newEmail = body.email.trim();
+        if (newEmail && this.local.email !== newEmail) {
+            this.local.email = newEmail;
+        }
+    }
 
     if (body.password && body.password.trim() !== "")
         this.local.password = this.generateHash(body.password.trim());
 
     if(validation && validation.ok === true){
         if(this.profile.custom_url != body.custom_url && body.custom_url != ""){
-            this.profile.custom_url = body.custom_url.toLowerCase();
+            this.profile.custom_url = body.custom_url; // preserve case
         }
     }
 

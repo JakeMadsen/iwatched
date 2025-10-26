@@ -6,11 +6,6 @@
     profile: { custom_url: 'guest', profile_image: 'profile-picture-missing.png', banner_image: 'profile-banner-missing.png' },
     stats: { movies: 142, shows: 68, hours: 287 }
   };
-  const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'Movies', href: '/movies' },
-    { label: 'Series', href: '/shows' }
-  ];
   function avatarFor(userObj){
     try {
       if (userObj && userObj.profile && userObj.profile.profile_image && userObj.profile.profile_image !== 'profile-picture-missing.png'){
@@ -34,8 +29,7 @@
 %>
 
 <div class="temp-user" data-page="temp-user">
-  <!-- Reuse the new header from temp-home for consistency -->
-  <header class="th-header" data-th-header>
+  <% /* legacy header moved to partials */ if(false){ %>
     <div class="th-shell">
       <div class="th-header__bar">
         <div class="th-logo">
@@ -161,7 +155,8 @@
     </div>
   </header>
 
-  <main class="th-main">
+  <% } %>
+  <div class="th-main">
     <!-- Old profile hero copied verbatim to preserve functionality and banner support -->
     <div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
       <div class="container">
@@ -223,43 +218,9 @@
         <%- include('../partials/profile/main.ejs', { page_data: page_data }) %>
       </div>
     </div>
-  </main>
+  </div>
 
-  <footer class="th-footer">
-    <div class="th-shell">
-      <div class="th-footer__grid">
-        <div>
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/movies">Movies</a></li>
-            <li><a href="/shows">Series</a></li>
-          </ul>
-        </div>
-        <div>
-          <ul>
-            <li><a href="/faq">FAQ</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/contact">Contact</a></li>
-          </ul>
-        </div>
-        <div>
-          <ul>
-            <li><a href="/policy-tos">Terms of Service</a></li>
-            <li><a href="/policy-privacy">Privacy Policy</a></li>
-            <li><a href="/policy-community">Community Policy</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="th-footer__base">
-        <div class="th-logo">
-          <span class="th-logo__word">iWatched</span>
-          <span class="th-badge">BETA</span>
-        </div>
-        <p>&copy; 2025 iWatched &mdash; A better way to see what you've seen.</p>
-      </div>
-    </div>
-  </footer>
+  
 
   <% if(typeof user == 'undefined'){ %>
     <button class="th-floating-cta" type="button">
@@ -271,6 +232,7 @@
   <% } %>
 </div>
 
+<% /* moved to shared scripts */ if(false){ %>
 <script>
   (function() {
     const header = document.querySelector('[data-th-header]');
@@ -304,3 +266,4 @@
     } catch(_){}
   })();
 </script>
+<% } %>

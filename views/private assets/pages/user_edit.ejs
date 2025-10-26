@@ -11,9 +11,8 @@
     <div class="form-row">
       <div class="form-group col-md-6">
         <label>Username</label>
-        <input class="form-control" value="<%= page_data.user.local && page_data.user.local.username || '' %>" readonly>
-        <input type="hidden" name="username" value="<%= page_data.user.local && page_data.user.local.username || '' %>">
-        <small class="form-text text-muted">Username is read‑only for safety.</small>
+        <input class="form-control" name="username" value="<%= page_data.user.local && page_data.user.local.username || '' %>">
+        <small class="form-text text-muted">Admin override: changing username may affect profile URLs.</small>
       </div>
       <div class="form-group col-md-6">
         <label>Email</label>
@@ -26,7 +25,7 @@
       <div class="form-group col-md-6">
         <label>Custom URL</label>
         <input class="form-control" name="custom_url" value="<%= page_data.user.profile && page_data.user.profile.custom_url || '' %>">
-        <small class="form-text text-muted">Lowercase; must be unique.</small>
+        <small class="form-text text-muted">Must be unique. Case preserved (e.g., /JakeTheDane).</small>
       </div>
       <div class="form-group col-md-6">
         <label>Birthday</label>

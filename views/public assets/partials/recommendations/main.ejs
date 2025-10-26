@@ -1,10 +1,39 @@
-<div class="container" style="margin-top: 16px;">
-  <div class="row">
-    <div class="col-md-12">
-      <h1 style="margin: 0 0 12px;">Recommendations</h1>
-      <p style="opacity:.85;">Incoming and sent recommendations between you and friends.</p>
+<% if (page_data && page_data.user) { %>
+  <div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
+    <div class="container">
+      <div class="container profile-hero__inner">
+        <div class="profile-hero__left">
+          <img class="profile-hero__avatar" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>" alt="">
+          <div class="profile-hero__meta">
+            <h1 class="profile-hero__name"><%= page_data.user.local.username %></h1>
+            <% const handle = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '') ? page_data.user.profile.custom_url : (page_data.user.local.username || '');
+               const handleBasePath = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '') ? '/' + page_data.user.profile.custom_url : '/' + page_data.user._id; %>
+            <% if (handle) { %>
+              <div class="profile-hero__handle">
+                <a class="profile-hero__handle-link" href="<%= handleBasePath %>">@<%= handle %></a>
+              </div>
+            <% } %>
+            <% if (page_data.user.profile.description) { %>
+              <p class="profile-hero__bio"><%= page_data.user.profile.description %></p>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <div class="profile-hero__overlay"></div>
     </div>
   </div>
+
+  <div id="profile_section">
+    <div class="container">
+      <%- include('../profile/profile_stats.ejs') %>
+      <%- include('../profile/profile_quicklinks.ejs') %>
+    </div>
+  </div>
+<% } %>
+
+<div class="container" style="margin-top: 16px;">
+  <h1 style="margin: 0 0 12px;">Recommendations</h1>
+  <p style="opacity:.85;">Incoming and sent recommendations between you and friends.</p>
 
   <div class="row" style="margin-top: 8px;">
     <div class="col-md-12">

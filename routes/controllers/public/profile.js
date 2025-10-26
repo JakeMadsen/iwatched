@@ -301,11 +301,12 @@ module.exports = (server) => {
                 icon: d && d.icon ? ('/static/style/img/badges/' + d.icon) : null
             };
         });
+        const headerStats = await __buildHeaderStats(u);
         res.render('public assets/template.ejs', {
             page_title: 'iWatched.xyz - Badges',
             page_file: 'profile',
             page_subFile: 'badges',
-            page_data: { user: u, badges: enriched },
+            page_data: Object.assign({ user: u, badges: enriched }, headerStats),
             user: req.user
         });
     });

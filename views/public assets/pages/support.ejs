@@ -11,7 +11,7 @@
                     <br>
                     <strong>Type: </strong><%= currentCase.type %>
                     <br>
-                    <% if(currentCase.seen_by_user == false) { %> 
+                    <% if(currentCase.seen_by_user === false && (currentCase.messages||[]).slice(-1)[0] && (currentCase.messages||[]).slice(-1)[0].author_type === 'support') { %> 
                     <strong style="color: red;">New answer</strong>
                     <% } %>
 
@@ -89,4 +89,3 @@
         </div>
     </div>
 </div>
-

@@ -108,4 +108,16 @@ module.exports = (server) => {
             return res.redirect(`/support/${req.params.case_id}`);
         }
     });
+
+    // Close case (by user)
+    server.post('/support/:case_id([0-9a-fA-F]{24})/close', async (req, res) => {
+        try { await supportServices.closeCase(req.params.case_id); } catch(_) {}
+        return res.redirect(`/support/${req.params.case_id}`);
+    });
+
+    // Re-open case (by user)
+    server.post('/support/:case_id([0-9a-fA-F]{24})/reopen', async (req, res) => {
+        try { await supportServices.reopenCase(req.params.case_id); } catch(_) {}
+        return res.redirect(`/support/${req.params.case_id}`);
+    });
 }

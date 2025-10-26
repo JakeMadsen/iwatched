@@ -3,9 +3,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-    <title>
-        <%= page_title %>
-    </title>
+    <% 
+      var __rawTitle = (typeof page_title !== 'undefined' && page_title != null) ? String(page_title) : '';
+      var __suffix = __rawTitle.replace(/^\s*iWatched(\.xyz)?\s*-\s*/i,'').trim();
+      var __titleOut = 'iWatched' + (__suffix ? (' - ' + __suffix) : '');
+    %>
+    <title><%= __titleOut %></title>
 
     <!-- Bootstrap CSS CDN -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4"

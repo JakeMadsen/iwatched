@@ -28,6 +28,9 @@ supportMessageSchema.methods.initial = function(data){
     this.title          = data.title;
     this.type           = data.type;
     this.messages.push(new_message);
+    // When a user opens a case, it's already seen by them, not support
+    this.seen_by_user    = true;
+    this.seen_by_support = false;
 }
 supportMessageSchema.methods.newMessage = function(data, user, support) {
     let new_message = {

@@ -1,3 +1,150 @@
-<header>
-    <% include ./navigation.ejs %>
+<%
+  // Local helpers and data for header
+  var navLinks = [
+    { label: 'Home', href: '/' },
+    { label: 'Movies', href: '/movies' },
+    { label: 'Series', href: '/shows' }
+  ];
+  function avatarFor(u){
+    try {
+      if (u && u.profile && u.profile.profile_image && u.profile.profile_image !== 'profile-picture-missing.png'){
+        return '/static/style/img/profile_images/users/' + u._id + '/' + u.profile.profile_image;
+      }
+    } catch(_){ }
+    return '/static/style/img/profile_images/users/default/picture_default.png';
+  }
+%>
+
+<header class="th-header" data-th-header>
+  <div class="th-shell">
+    <div class="th-header__bar">
+      <div class="th-logo">
+        <span class="th-logo__word">iWatched</span>
+        <span class="th-badge">BETA</span>
+      </div>
+
+      <nav class="th-nav th-nav--desktop" aria-label="Main navigation">
+        <% navLinks.forEach(function(link) { %>
+          <a class="th-nav__link" href="<%= link.href %>"><%= link.label %></a>
+        <% }); %>
+      </nav>
+
+      <div class="th-header__actions">
+        <!-- Global search (reuse old IDs for existing JS) -->
+        <form id="nav_search_form" class="form-inline my-2 my-lg-0" action="/search" method="get" style="position:relative; z-index: 1100;">
+          <div class="th-search">
+            <span class="th-search__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input id="nav_search" name="q" class="th-search__input" type="search" placeholder="Search..." aria-label="Search" autocomplete="off">
+            <div id="nav_search_results" class="dropdown-menu nav-search-menu"></div>
+          </div>
+        </form>
+
+        <% if(typeof user != 'undefined'){ %>
+          <% if( user.permissions.level.admin == true || user.permissions.level.moderator == true ) { %>
+            <a href="/admin/" class="th-button th-button--ghost">Admin Panel</a>
+          <% } %>
+          <div class="dropdown">
+            <a class="nav-link" href="#" id="navbarNotif" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Notifications" style="position:relative;">
+              <i class="fas fa-bell"></i>
+              <span id="notif_badge" class="badge badge-pill badge-danger" style="position:absolute; top:0; right:-4px; display:none;">0</span>
+            </a>
+            <div id="notif_menu" class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarNotif" style="min-width: 280px;">
+              <span class="dropdown-item-text" style="opacity:.75;">No notifications</span>
+            </div>
+          </div>
+          <div class="dropdown">
+            <a class='nav-link dropdown-toggle th-userbtn' href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" aria-label="Open profile menu for <%= user.local.username %>">
+              <img class="th-userbtn__avatar" src="<%= avatarFor(user) %>" alt="">
+              <span class="th-userbtn__name"><%= user.local.username %></span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+              <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+                <a class="dropdown-item" href="/<%= user.profile.custom_url %>">My Profile</a>
+              <% } else { %>
+                <a class="dropdown-item" href="/<%= user._id %>">My Profile</a>
+              <% } %>
+              <a class="dropdown-item" href="/user/recommendations">Recommendations</a>
+              <a class="dropdown-item" href="/user/badges">Badges</a>
+              <a class="dropdown-item" href="/support">Support</a>
+              <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+                <a class="dropdown-item" href="/<%= user.profile.custom_url %>/settings">Settings</a>
+              <% } else { %>
+                <a class="dropdown-item" href="/<%= user._id %>/settings">Settings</a>
+              <% } %>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="/logout">Log out</a>
+            </div>
+          </div>
+        <% } else { %>
+          <a class="th-button th-button--ghost" href="/login">Login</a>
+          <a class="th-button th-button--primary" href="/signup">Create Account</a>
+        <% } %>
+
+        <button class="th-header__mobile-toggle" type="button" data-th-mobile-toggle aria-expanded="false" aria-controls="th-mobile-menu">
+          <span class="th-header__icon th-header__icon--menu" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </span>
+          <span class="th-header__icon th-header__icon--close" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </span>
+          <span class="sr-only">Toggle menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="th-mobile-menu" class="th-mobile-menu" data-th-mobile-menu hidden>
+      <div class="th-shell">
+        <nav class="th-mobile-menu__links" aria-label="Mobile navigation">
+          <% navLinks.forEach(function(link) { %>
+            <a class="th-nav__link" href="<%= link.href %>"><%= link.label %></a>
+          <% }); %>
+        </nav>
+        <div class="th-mobile-menu__search">
+          <div class="th-search th-search--full">
+            <span class="th-search__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input class="th-search__input" type="text" placeholder="Search...">
+          </div>
+        </div>
+        <div class="th-mobile-menu__actions">
+          <% if(typeof user == 'undefined'){ %>
+            <a class="th-button th-button--ghost" href="/login">Login</a>
+            <a class="th-button th-button--primary" href="/signup">Create Account</a>
+          <% } else { %>
+            <% if( user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+              <a class="th-button th-button--ghost" href="/<%= user.profile.custom_url %>">My Profile</a>
+            <% } else { %>
+              <a class="th-button th-button--ghost" href="/<%= user._id %>">My Profile</a>
+            <% } %>
+            <a class="th-button th-button--ghost" href="/user/recommendations">Recommendations</a>
+            <a class="th-button th-button--ghost" href="/user/badges">Badges</a>
+            <a class="th-button th-button--ghost" href="/support">Support</a>
+            <% if( user.profile.custom_url != "" && user.profile.custom_url != null) { %>
+              <a class="th-button th-button--ghost" href="/<%= user.profile.custom_url %>/settings">Settings</a>
+            <% } else { %>
+              <a class="th-button th-button--ghost" href="/<%= user._id %>/settings">Settings</a>
+            <% } %>
+            <a class="th-button th-button--primary" href="/logout">Log out</a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
 </header>

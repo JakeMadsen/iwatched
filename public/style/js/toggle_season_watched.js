@@ -13,6 +13,7 @@ function showSeasonComplete(user_id, show_id, season_number, user_key){
   fetch(new Request(link, init)).catch(()=>{});
   $(`#add_watched_season_${show_id}_${season_number}`).hide();
   $(`#remove_watched_season_${show_id}_${season_number}`).show();
+  try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:true, f:null, s:null }); } catch(_){}
   try { if (typeof checkIfWatchedShow === 'function') checkIfWatchedShow(user_id, show_id); } catch(_){}
 }
 
@@ -23,6 +24,8 @@ function showSeasonUncomplete(user_id, show_id, season_number, user_key){
   fetch(new Request(link, init)).catch(()=>{});
   $(`#add_watched_season_${show_id}_${season_number}`).show();
   $(`#remove_watched_season_${show_id}_${season_number}`).hide();
+  // pessimistic update; server will correct on next fetch
+  try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:false, f:null, s:null }); } catch(_){}
   try { if (typeof checkIfWatchedShow === 'function') checkIfWatchedShow(user_id, show_id); } catch(_){}
 }
 

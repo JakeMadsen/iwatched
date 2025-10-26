@@ -12,6 +12,14 @@
   overflow-x: hidden;
 }
 
+/* Global enablement of new background + font when th-header is used sitewide */
+body.th-bg {
+  background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 55%), #080b14 !important;
+  color: #e5e9f7;
+  font-family: "Inter", "Poppins", "Segoe UI", sans-serif;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+
 .temp-home a {
   text-decoration: none;
   color: inherit;
@@ -212,6 +220,17 @@ body.th-mobile-open { overflow: hidden; }
 
 .th-main { position: relative; padding-top: 140px; }
 
+/* Add offset for legacy pages that don't wrap content in .th-main */
+#content-wrapper { flex: 1 0 auto; padding-top: 92px; }
+@media (max-width: 1024px){ #content-wrapper { padding-top: 86px; } }
+@media (max-width: 540px){ #content-wrapper { padding-top: 80px; } }
+
+/* Create breathing room above footer and keep it at the bottom */
+.th-footer { margin-top: 52px; }
+
+/* Optionally hide the features section on /home */
+body.home-hide-features .th-features { display: none !important; }
+
 .th-section { padding: 60px 0; position: relative; }
 
 .th-hero {
@@ -368,9 +387,8 @@ body.th-mobile-open { overflow: hidden; }
 .th-link:hover { color: #c8d1ff; transform: translateX(4px); }
 
 .th-section.th-trending { padding: 90px 0 110px; background: linear-gradient(180deg, rgba(9, 12, 21, 0), rgba(9, 12, 21, 0.6)); }
-.th-trending__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 40px; }
-.th-trending__head h2 { font-size: clamp(2rem, 3vw, 3rem); margin-bottom: 12px; }
-.th-trending__head p { color: #9aa4c4; }
+.th-trending__head { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px; margin-bottom: 28px; text-align: center; }
+.th-trending__head h2 { font-size: clamp(1.8rem, 2.6vw, 2.6rem); margin: 0; }
 
 .th-trending__grid { display: grid; gap: 18px; grid-template-columns: repeat(6, minmax(0, 1fr)); }
 

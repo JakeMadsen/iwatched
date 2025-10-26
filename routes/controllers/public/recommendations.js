@@ -69,14 +69,38 @@ module.exports = function(server){
       // Mark notifications as seen when page is opened
       try { await Recommendation.updateMany({ receiver_id: userId, receiver_notified: { $ne: true } }, { $set: { receiver_notified: true } }); } catch(_){}
 
+      // Build lightweight header stats for profile header/quicklinks on this page
+      let header = { numberOfMoviesWatched: 0, movie_watch_time: '-', numberOfShowsWatched: 0, numberOfSeasonsWatched: 0, numberOfEpisodesWatched: 0, show_watch_time: '-', total_watch_time_text: '-' };
+      try {
+        const UserMovieTotals = require('../../../db/models/userMovieTotals');
+        const UserMovie = require('../../../db/models/userMovie');
+        const UserShowTotals = require('../../../db/models/userShowTotals');
+        function minsToText(mins){ mins = Math.max(0, Math.floor(Number(mins||0))); const d=Math.floor(mins/1440); const h=Math.floor((mins%1440)/60); const m=mins%60; return d+" "+(d===1?"day":"days")+" and "+h+" "+(h===1?"hour":"hours")+" and "+m+" minutes"; }
+        const mt = await UserMovieTotals.findOne({ user_id: userId }).lean();
+        const st = await UserShowTotals.findOne({ user_id: userId }).lean();
+        const moviesCount = await UserMovie.countDocuments({ user_id: userId, movie_watched_count: { $gt: 0 } });
+        const movieMins = (mt && typeof mt.total_runtime==='number') ? mt.total_runtime : 0;
+        const showMins = (st && typeof st.total_runtime==='number') ? st.total_runtime : 0;
+        header = {
+          numberOfMoviesWatched: moviesCount,
+          movie_watch_time: movieMins ? minsToText(movieMins) : '-',
+          numberOfShowsWatched: (st && st.unique_shows_watched) || 0,
+          numberOfSeasonsWatched: (st && st.total_seasons_watched) || 0,
+          numberOfEpisodesWatched: (st && st.total_episodes_watched) || 0,
+          show_watch_time: showMins ? minsToText(showMins) : '-',
+          total_watch_time_text: minsToText((movieMins||0)+(showMins||0))
+        };
+      } catch(_){}
+
       res.render('public assets/template.ejs', {
         page_title: 'iWatched.xyz - Recommendations',
         page_file: 'recommendations',
         page_subFile: 'main',
-        page_data: {
+        page_data: Object.assign({
+          user: req.user,
           sent: sentEnriched,
           received: receivedEnriched
-        },
+        }, header),
         user: req.user
       });
     } catch (e) {
@@ -133,11 +157,34 @@ module.exports = function(server){
       const [sentEnriched, receivedEnriched] = await Promise.all([enrich(sent), enrich(received)]);
       try { await Recommendation.updateMany({ receiver_id: userId, receiver_notified: { $ne: true } }, { $set: { receiver_notified: true } }); } catch(_){}
 
+      // Build header stats for profile header/quicklinks
+      let header = { numberOfMoviesWatched: 0, movie_watch_time: '-', numberOfShowsWatched: 0, numberOfSeasonsWatched: 0, numberOfEpisodesWatched: 0, show_watch_time: '-', total_watch_time_text: '-' };
+      try {
+        const UserMovieTotals = require('../../../db/models/userMovieTotals');
+        const UserMovie = require('../../../db/models/userMovie');
+        const UserShowTotals = require('../../../db/models/userShowTotals');
+        function minsToText(mins){ mins = Math.max(0, Math.floor(Number(mins||0))); const d=Math.floor(mins/1440); const h=Math.floor((mins%1440)/60); const m=mins%60; return d+" "+(d===1?"day":"days")+" and "+h+" "+(h===1?"hour":"hours")+" and "+m+" minutes"; }
+        const mt = await UserMovieTotals.findOne({ user_id: userId }).lean();
+        const st = await UserShowTotals.findOne({ user_id: userId }).lean();
+        const moviesCount = await UserMovie.countDocuments({ user_id: userId, movie_watched_count: { $gt: 0 } });
+        const movieMins = (mt && typeof mt.total_runtime==='number') ? mt.total_runtime : 0;
+        const showMins = (st && typeof st.total_runtime==='number') ? st.total_runtime : 0;
+        header = {
+          numberOfMoviesWatched: moviesCount,
+          movie_watch_time: movieMins ? minsToText(movieMins) : '-',
+          numberOfShowsWatched: (st && st.unique_shows_watched) || 0,
+          numberOfSeasonsWatched: (st && st.total_seasons_watched) || 0,
+          numberOfEpisodesWatched: (st && st.total_episodes_watched) || 0,
+          show_watch_time: showMins ? minsToText(showMins) : '-',
+          total_watch_time_text: minsToText((movieMins||0)+(showMins||0))
+        };
+      } catch(_){}
+
       res.render('public assets/template.ejs', {
         page_title: 'iWatched.xyz - Recommendations',
         page_file: 'recommendations',
         page_subFile: 'main',
-        page_data: { sent: sentEnriched, received: receivedEnriched },
+        page_data: Object.assign({ sent: sentEnriched, received: receivedEnriched, user: res.locals.user }, header),
         user: req.user
       });
     } catch (e) {

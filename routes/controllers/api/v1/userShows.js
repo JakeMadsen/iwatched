@@ -201,12 +201,13 @@ module.exports = (server) => {
             let ids = Array.isArray(req.body.ids) ? req.body.ids : [];
             ids = ids.map(String).filter(Boolean);
             if (!user_id || ids.length === 0) return res.send({ user_id, statuses: {} });
-            const docs = await UserShow.find({ user_id, show_id: { $in: ids.map(String) } }).select('show_id show_watched_count show_watched show_favorite show_bookmarked').lean();
+            const docs = await UserShow.find({ user_id, show_id: { $in: ids.map(String) } }).select('show_id show_watched_count show_watched show_favorite show_bookmarked seasons.date_completed').lean();
             const map = {}; ids.forEach(id => { map[String(id)] = { w:false, f:false, s:false }; });
             (docs||[]).forEach(d => {
                 const id = String(d.show_id);
+                const anySeasonCompleted = !!(d && Array.isArray(d.seasons) && d.seasons.some(s => !!s.date_completed));
                 map[id] = {
-                    w: !!(((d.show_watched_count||0) > 0) || !!d.show_watched),
+                    w: !!(((d.show_watched_count||0) > 0) || !!d.show_watched || anySeasonCompleted),
                     f: !!d.show_favorite,
                     s: !!d.show_bookmarked
                 };

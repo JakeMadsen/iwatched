@@ -11,16 +11,47 @@
 ### Cool stuff
 Make personal notes about movies / shows
 Do reviews
-
+preferences
+Toggle - Don't show "watched" movies or shows on /movies or /shows whilst searching
 
 ### Personaliztion 
 Achievments
 Badges
 Showcases
+#### Free showcases
+    Top Rated Movies
+    Recently Logged
+    Favorite Genres
+    Favorite Actors/Directors
+    Watchlist Preview
+    Achievements
+    Recommendations
+
+#### Premium showcases
+    Statistics Summary (charts)
+    Personality Breakdown
+    World Map (countries watched)
+    Timeline of milestones
+    Custom Banner / Theme
+    Genre Heatmap
+    Year in Review
+    Collector’s Shelf
+    Custom Showcase Titles / Layouts
+    
+You could let users pick 1–2 free slots, 5–6 if Premium.
 
 ### Social stuff
 Reccomend TV series / Movies directly to friends (which lands in a dedicated list that can be sorted by genre, movie/show, who recommended it)
 
+
+### Show implementation
+When hovering a show, show the three buttons like with a movie 
+"Watched / Tickmark" (Tooltip; Add entire show as watched) If clicked marks all seasons as watched 
+"Bookmark / Bookmarked"
+"Heart / Favorite"
+
+If on /shows/id
+Each individual season should have the "Watched tickmark" so each season can be added or removed individually
 
 
 

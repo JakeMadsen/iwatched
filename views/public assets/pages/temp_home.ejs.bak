@@ -1,0 +1,70 @@
+<%
+  const featureCards = [
+    { key: 'log', title: 'Log Movies & Series', description: 'Build your complete watch history with dates, ratings, and personal notes.', accent: 'blue' },
+    { key: 'stats', title: 'Discover Your Stats', description: 'See your top genres, actors, and directors through beautiful visualizations.', accent: 'indigo' },
+    { key: 'insights', title: 'Visualize Your Habits', description: 'Learn what kind of viewer you really are with personalized insights.', accent: 'purple' },
+    { key: 'customize', title: 'Customize Your Profile', description: 'Unlock showcases, badges, and themes to express your cinematic taste.', accent: 'pink' }
+  ];
+  function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
+%>
+
+<div class="temp-home" data-page="temp-home">
+  <div class="th-main">
+    <section class="th-section th-features" id="features">
+      <div class="th-shell">
+        <div class="th-section__heading">
+          <h2>Your movie journey, enhanced</h2>
+          <p>iWatched transforms how you track, remember, and share your entertainment experiences.</p>
+        </div>
+        <div class="th-feature-grid">
+          <% featureCards.forEach(function(feature) { %>
+            <a class="th-feature-card th-feature-card--<%= feature.accent %>" href="/about#<%= slugify(feature.title) %>">
+              <div class="th-feature-card__icon">
+                <% if (feature.key === 'log') { %>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="M16 2v4"></path>
+                    <path d="M8 2v4"></path>
+                    <path d="M2 10h20"></path>
+                  </svg>
+                <% } else if (feature.key === 'stats') { %>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 3v18h18"></path>
+                    <rect x="7" y="13" width="3" height="5" rx="1"></rect>
+                    <rect x="12" y="9" width="3" height="9" rx="1"></rect>
+                    <rect x="17" y="5" width="3" height="13" rx="1"></rect>
+                  </svg>
+                <% } else if (feature.key === 'insights') { %>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3.73 7.11a7.92 7.92 0 0 1 2.08-2.52"></path>
+                    <path d="M2.05 13a8 8 0 0 1 4.5-10.9"></path>
+                    <path d="M11 2a8 8 0 0 1 11 6"></path>
+                    <path d="M21.95 11.05a8 8 0 0 1-4.5 10.9"></path>
+                    <path d="M13 22a8 8 0 0 1-11-6"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                <% } else { %>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 3v18"></path>
+                    <path d="M4 21a8 8 0 0 0 8-8"></path>
+                    <path d="M4 3v18"></path>
+                    <path d="M9 3h10"></path>
+                    <path d="M9 21h10"></path>
+                  </svg>
+                <% } %>
+              </div>
+              <h3><%= feature.title %></h3>
+              <p><%= feature.description %></p>
+              <div class="th-feature-card__cta">
+                Learn more
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

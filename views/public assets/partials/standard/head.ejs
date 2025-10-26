@@ -1,7 +1,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="ie=edge">
-<title><%= page_title %></title>
+<% 
+  var __rawTitle = (typeof page_title !== 'undefined' && page_title != null) ? String(page_title) : '';
+  var __suffix = __rawTitle.replace(/^\s*iWatched(\.xyz)?\s*-\s*/i,'').trim();
+  var __titleOut = 'iWatched' + (__suffix ? (' - ' + __suffix) : '');
+%>
+<title><%= __titleOut %></title>
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="/static/style/img/standard/cropped_ico.png">
@@ -10,23 +15,18 @@
 <link rel="stylesheet" type="text/css" href="/static/style/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="/static/style/css/stylesheet.css">
 <link rel="stylesheet" type="text/css" href="/static/style/css/navigation.css">
-<% if (page_file === 'temp_home' || page_file === 'temp_user' || page_file === 'temp_announcements' || (typeof is_admin_template !== 'undefined' && is_admin_template)) { %>
+<!-- New design fonts + base styles (th- header/footer) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
-<% if (page_file === 'temp_home') { %>
-  <link rel="stylesheet" type="text/css" href="/static/style/css/temp_home.css">
-<% } %>
+<link rel="stylesheet" type="text/css" href="/static/style/css/temp_home.css">
 <% if (page_file === 'temp_user') { %>
-  <!-- Reuse temp_home header styles + add profile page styles -->
-  <link rel="stylesheet" type="text/css" href="/static/style/css/temp_home.css">
+  <!-- Profile page styles for new design -->
   <link rel="stylesheet" type="text/css" href="/static/style/css/temp_user.css">
 <% } %>
 <% if (page_file === 'temp_announcements') { %>
-  <!-- Reuse temp_home header styles + add announcements page styles -->
-  <link rel="stylesheet" type="text/css" href="/static/style/css/temp_home.css">
+  <!-- Announcements page styles for new design -->
   <link rel="stylesheet" type="text/css" href="/static/style/css/temp_announcements.css">
-<% } %>
 <% } %>
 <% if (typeof page_file !== 'undefined' && (page_file === 'movies' || page_file === 'shows' || page_file === 'person')) { %>
 <link rel="stylesheet" type="text/css" href="/static/style/css/detail.css">

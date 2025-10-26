@@ -11,8 +11,8 @@
 
 /* Reuse th-* header styles from temp_home.css, so only profile-specific below */
 
-/* Reduce top offset for profile pages using the fixed th-header */
-.temp-user .th-main { padding-top: 92px; }
+/* Content sits under global #content-wrapper padding; no extra pad here */
+.temp-user .th-main { padding-top: 0; }
 
 .tp-hero {
   position: relative;
@@ -40,12 +40,12 @@
 .tp-card__muted { color:#9aa4c4; font-size:.9rem; }
 
 @media (max-width: 1024px){
-  .temp-user .th-main { padding-top: 86px; }
+  .temp-user .th-main { padding-top: 0; }
   .tp-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 540px){
-  .temp-user .th-main { padding-top: 80px; }
+  .temp-user .th-main { padding-top: 0; }
   .tp-hero__inner { flex-direction: column; align-items: flex-start; }
   .tp-actions { width:100%; }
 }

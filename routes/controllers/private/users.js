@@ -51,7 +51,7 @@ module.exports = (server) => {
             u.profile = u.profile || {};
             if (typeof req.body.description !== 'undefined') u.profile.description = req.body.description;
             if (typeof req.body.birthday !== 'undefined') u.profile.birthday = req.body.birthday;
-            if (typeof req.body.custom_url !== 'undefined') u.profile.custom_url = (req.body.custom_url||'').toLowerCase();
+            if (typeof req.body.custom_url !== 'undefined') u.profile.custom_url = (req.body.custom_url||'');
             if (typeof req.body.visibility !== 'undefined') u.profile.visibility = req.body.visibility;
             u.profile.inactive = (req.body.inactive === 'on' || req.body.inactive === '1' || req.body.inactive === 'true');
 

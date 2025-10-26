@@ -319,6 +319,79 @@
     // Realtime support events listener will be attached after socket init (see below)
   })();
 </script>
+<script>
+  // Load latest announcement into elements with data-ann-* attributes
+  window.addEventListener('DOMContentLoaded', function(){
+    try {
+      var titleEl = document.querySelector('[data-ann-title]');
+      var dateEl = document.querySelector('[data-ann-date]');
+      var textEl = document.querySelector('[data-ann-text]');
+      var linkEl = document.querySelector('[data-ann-link]');
+      if(!titleEl && !dateEl && !textEl && !linkEl) return;
+      fetch('/api/v1/announcements/latest', { headers: { 'Accept': 'application/json' } })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(payload){
+          if(!payload || !payload.announcement) return;
+          var a = payload.announcement;
+          if(titleEl && a.title) titleEl.textContent = a.title;
+          if(dateEl){
+            try {
+              var src = a.created_at || a.updated_at;
+              if(src){ dateEl.textContent = new Date(src).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }); dateEl.style.display=''; }
+              else { dateEl.style.display='none'; }
+            } catch(_) { dateEl.style.display='none'; }
+          }
+          if(textEl){
+            textEl.textContent = (a.text || '').trim() || 'Latest announcement coming soon.';
+          }
+          if(linkEl){
+            var slug = (a.slug||'').toString();
+            linkEl.setAttribute('href','/announcements/'+a._id+(slug?('-'+slug):''));
+          }
+        })
+        .catch(function(_){});
+    } catch(_){}
+  });
+</script>
+<script>
+  // Header interactions (scroll state + mobile menu) — bind after DOM ready
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      var header = document.querySelector('[data-th-header]');
+      var toggle = document.querySelector('[data-th-mobile-toggle]');
+      var mobileMenu = document.querySelector('[data-th-mobile-menu]');
+      function setHeaderState(){
+        if (!header) return;
+        if (window.scrollY > 12) { header.classList.add('th-header--scrolled'); }
+        else { header.classList.remove('th-header--scrolled'); }
+      }
+      window.addEventListener('scroll', setHeaderState, { passive: true });
+      setHeaderState();
+      if (toggle && mobileMenu) {
+        toggle.addEventListener('click', function(){
+          var isOpen = mobileMenu.hasAttribute('hidden') === false;
+          if (isOpen) { mobileMenu.setAttribute('hidden', ''); toggle.setAttribute('aria-expanded', 'false'); document.body.classList.remove('th-mobile-open'); }
+          else { mobileMenu.removeAttribute('hidden'); toggle.setAttribute('aria-expanded', 'true'); document.body.classList.add('th-mobile-open'); }
+        });
+      }
+    } catch(_){}
+  });
+</script>
+<script>
+  // Highlight active nav link — run after DOM ready
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      var path = (window.location && window.location.pathname) || '/';
+      var links = document.querySelectorAll('.th-nav a.th-nav__link, .th-mobile-menu__links a.th-nav__link');
+      links.forEach(function(a){
+        var href = a.getAttribute('href') || '';
+        // Treat nested routes (e.g., /movies/123) as active for their parent.
+        var isMatch = (href === '/') ? (path === '/') : (path === href || path.indexOf(href + '/') === 0 || path.indexOf(href + '?') === 0);
+        if (isMatch) { a.classList.add('is-active'); a.setAttribute('aria-current', 'page'); }
+      });
+    } catch(_){}
+  });
+</script>
 <script src="/static/style/js/toggle_watched_movies.js"></script>
 <script src="/static/style/js/toggle_favourited_movies.js"></script>
 <script src="/static/style/js/toggle_saved_movies.js"></script>
