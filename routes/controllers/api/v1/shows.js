@@ -3,6 +3,7 @@ const tmdService = new MovieDb(process.env.TMDB_API_KEY || 'ab4e974d12c288535f86
 
 module.exports = function (server) {
   console.log('* Show API Routes Loaded Into Server');
+  const UserShow = require('../../../../db/models/userShow');
 
   // Search TV series by text
   server.get('/api/v1/shows/search/:search_param?/:page?', async (req, res) => {
@@ -14,7 +15,17 @@ module.exports = function (server) {
 
     tmdService
       .searchTv(parameters)
-      .then(results => res.send(results))
+      .then(async results => {
+        try {
+          if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
+            const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
+            const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));
+            const filtered = Object.assign({}, results, { results: (results.results||[]).filter(r => !watchedSet.has(String(r.id))) });
+            return res.send(filtered);
+          }
+        } catch(_){}
+        res.send(results);
+      })
       .catch(error => res.send(error));
   });
 
@@ -41,7 +52,17 @@ module.exports = function (server) {
 
       tmdService
         .discoverTv(parameters)
-        .then(results => res.send(results))
+        .then(async results => {
+          try {
+            if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
+              const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
+              const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));
+              const filtered = Object.assign({}, results, { results: (results.results||[]).filter(r => !watchedSet.has(String(r.id))) });
+              return res.send(filtered);
+            }
+          } catch(_){}
+          res.send(results);
+        })
         .catch(error => res.send(error));
     } catch (e) {
       res.send({ page: 1, total_pages: 1, total_results: 0, results: [] });
@@ -59,4 +80,3 @@ module.exports = function (server) {
     }
   });
 };
-

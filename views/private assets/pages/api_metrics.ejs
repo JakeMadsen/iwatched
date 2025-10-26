@@ -1,0 +1,104 @@
+<div class="container-fluid" style="padding: 14px;">
+  <h2 style="margin-bottom:10px;">API Metrics</h2>
+  <p class="text-muted" style="margin-top:-6px;">Live request volume and endpoint breakdown. Values auto-refresh every 3 seconds.</p>
+
+  <div class="row" style="margin-bottom:12px;">
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Requests / minute</div>
+        <div class="stat-card__value" id="m_rpm"><%= (page_data.snapshot && page_data.snapshot.rpm && page_data.snapshot.rpm.last60s) || 0 %></div>
+        <div class="stat-card__hint">Avg/hour: <span id="m_rpm_avg"><%= (page_data.snapshot && page_data.snapshot.rpm && page_data.snapshot.rpm.avgPerHour) || 0 %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Requests / sec</div>
+        <div class="stat-card__value"><span id="m_rps">
+          <%= (page_data.snapshot && page_data.snapshot.rps && page_data.snapshot.rps.current) || 0 %>
+        </span></div>
+        <div class="stat-card__hint">Avg 60s: <span id="m_rps_avg"><%= (page_data.snapshot && page_data.snapshot.rps && page_data.snapshot.rps.avg60s) || 0 %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Latency (ms)</div>
+        <div class="stat-card__value"><span id="m_p50"><%= (page_data.snapshot && page_data.snapshot.latencyMs && page_data.snapshot.latencyMs.p50) || 0 %></span></div>
+        <div class="stat-card__hint">p95: <span id="m_p95"><%= (page_data.snapshot && page_data.snapshot.latencyMs && page_data.snapshot.latencyMs.p95) || 0 %></span> · avg: <span id="m_lat_avg"><%= (page_data.snapshot && page_data.snapshot.latencyMs && page_data.snapshot.latencyMs.avg) || 0 %></span></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-card__label">Errors</div>
+        <div class="stat-card__value"><span id="m_e4"> <%= (page_data.snapshot && page_data.snapshot.errors && page_data.snapshot.errors.e4xx) || 0 %></span>/<span id="m_e5"><%= (page_data.snapshot && page_data.snapshot.errors && page_data.snapshot.errors.e5xx) || 0 %></span></div>
+        <div class="stat-card__hint">DB: <span id="m_db"><%= (page_data.snapshot && page_data.snapshot.db && page_data.snapshot.db.state) || '-' %></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel surface">
+    <div class="panel__header panel__header--between">
+      <h4 style="margin:0;">Endpoints (users, movies, shows)</h4>
+      <small class="muted">rpm = last 60s · avg/hr = mean of last 60 minutes</small>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm" style="color:#fff;">
+        <thead>
+          <tr>
+            <th style="min-width:380px;">Endpoint</th>
+            <th>rpm</th>
+            <th>avg/hr</th>
+            <th>rps</th>
+            <th>total</th>
+          </tr>
+        </thead>
+        <tbody id="ep_table_body">
+          <% (page_data.endpoints||[]).forEach(function(e){ %>
+            <tr>
+              <td><%= e.key %></td>
+              <td><%= e.rpm %></td>
+              <td><%= e.avgPerHour %></td>
+              <td><%= e.rps %></td>
+              <td><%= e.totals %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function update(){
+    fetch('/admin/api-metrics.json', { cache:'no-cache' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if(!d||!d.ok) return; var s=d.snapshot||{}; try {
+        if($('m_rpm')) $('m_rpm').textContent = (s.rpm&&s.rpm.last60s)||0;
+        if($('m_rpm_avg')) $('m_rpm_avg').textContent = (s.rpm&&s.rpm.avgPerHour)||0;
+        if($('m_rps')) $('m_rps').textContent = (s.rps&&s.rps.current)||0;
+        if($('m_rps_avg')) $('m_rps_avg').textContent = (s.rps&&s.rps.avg60s)||0;
+        if($('m_p50')) $('m_p50').textContent = (s.latencyMs&&s.latencyMs.p50)||0;
+        if($('m_p95')) $('m_p95').textContent = (s.latencyMs&&s.latencyMs.p95)||0;
+        if($('m_lat_avg')) $('m_lat_avg').textContent = (s.latencyMs&&s.latencyMs.avg)||0;
+        if($('m_e4')) $('m_e4').textContent = (s.errors&&s.errors.e4xx)||0;
+        if($('m_e5')) $('m_e5').textContent = (s.errors&&s.errors.e5xx)||0;
+        if($('m_db')) $('m_db').textContent = (s.db&&s.db.state)||'-';
+        // table
+        var tbody = $('ep_table_body'); if (!tbody) return;
+        var rows = (d.endpoints||[]).map(function(e){
+          return '<tr>'+
+            '<td>'+e.key+'</td>'+
+            '<td>'+e.rpm+'</td>'+
+            '<td>'+e.avgPerHour+'</td>'+
+            '<td>'+e.rps+'</td>'+
+            '<td>'+e.totals+'</td>'+
+          '</tr>';
+        }).join('');
+        tbody.innerHTML = rows;
+      } catch(_){} });
+  }
+  setInterval(update, 3000);
+})();
+</script>
+

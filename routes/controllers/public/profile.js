@@ -311,14 +311,24 @@ module.exports = (server) => {
     });
 
     server.post('/:id/settings', getUser, isCorrectUser, async (req, res) => {    
+        const wantsJson = (String(req.query.ajax||'') === '1')
+            || ((req.headers['accept']||'').indexOf('application/json') !== -1)
+            || (req.get && req.get('X-Requested-With') === 'XMLHttpRequest');
         await userService
         .saveUser(req.params.id, req.body, req.files)
         .then(userUpdated => {
+            if (wantsJson){
+                try {
+                    const prefs = (userUpdated && userUpdated.profile && userUpdated.profile.preferences) || {};
+                    return res.json({ ok:true, preferences: prefs });
+                } catch (_) { return res.json({ ok:true }); }
+            }
             res.redirect('/'+userUpdated._id)
         })
         .catch(error => {
             console.log("server.post/:id/settings - catched error")
             console.log(error)
+            if (wantsJson) return res.status(400).json({ ok:false });
             throw new Error({error: error, custom_error: "Something went wrong with saving settings"})
         })
     });

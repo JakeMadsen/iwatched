@@ -14,7 +14,11 @@
 
     <div class="settings-card" style="margin-bottom:24px;">
         <h2>Active Sessions</h2>
-        <p class="text" style="margin-top:-6px;">See where you're logged in and sign out of other devices.</p>
+        <div class="d-flex align-items-center justify-content-between" style="margin-top:-6px;">
+            <p class="text mb-0">See where you're logged in and sign out of other devices.</p>
+            <button class="btn btn-sm btn-dark" id="sessions_toggle_btn" aria-expanded="false" title="Expand/collapse"><i class="fas fa-chevron-down"></i></button>
+        </div>
+        <div id="sessions_body" style="display:none;">
         <div class="table-responsive">
             <table class="table table-sm" style="color: #ffff;">
                 <thead>
@@ -32,12 +36,60 @@
             </table>
         </div>
         <button class="btn btn-secondary btn-sm" id="logout_others_btn">Log out other sessions</button>
+        </div>
+    </div>
+
+    <!-- Site preferences / Quick Actions visibility + future theme toggle -->
+    <div class="settings-card" style="margin-bottom:24px;">
+        <div class="d-flex align-items-center justify-content-between">
+            <h2 class="mb-0">Site Preferences</h2>
+            <button class="btn btn-sm btn-dark" id="site_prefs_toggle_btn" aria-expanded="false" title="Expand/collapse"><i class="fas fa-chevron-down"></i></button>
+        </div>
+        <div id="site_prefs_body" style="display:none;">
+        <p class="text" style="margin-top:-6px;">Tweak UI behavior. Quick Actions are the Watched, Favourite and Bookmark buttons on posters.</p>
+        <form id="site_prefs_form" action="/<%= user._id %>/settings" method="POST">
+            <input type="hidden" name="pref_show_quick_actions" value="0">
+            <div style="margin:8px 0 12px; display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="pref_show_quick_actions" name="pref_show_quick_actions" value="1" <%= (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions) ? 'checked' : '' %> />
+                <label for="pref_show_quick_actions" style="margin:0;">Always show Quick Actions</label>
+            </div>
+
+            <input type="hidden" name="pref_hide_watched_in_search" value="0">
+            <div style="margin:8px 0 12px; display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="pref_hide_watched_in_search" name="pref_hide_watched_in_search" value="1" <%= (user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search) ? 'checked' : '' %> />
+                <label for="pref_hide_watched_in_search" style="margin:0;">Hide movies/shows I've already watched in search results</label>
+            </div>
+
+            <div style="opacity:.6; pointer-events:none; margin:10px 0 6px;">
+                <div style="font-weight:600; margin-bottom:4px;">Theme (coming soon)</div>
+                <div style="display:flex; align-items:center; gap:18px;">
+                    <label style="margin:0;">
+                        <input type="radio" name="pref_theme" value="dark" disabled> Dark
+                    </label>
+                    <label style="margin:0;">
+                        <input type="radio" name="pref_theme" value="light" disabled> Light
+                    </label>
+                    <label style="margin:0;">
+                        <input type="radio" name="pref_theme" value="system" disabled checked> System
+                    </label>
+                    <small class="text-muted" style="margin-left:6px;">To be added</small>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm">Save Preferences</button>
+        </form>
+        </div>
     </div>
 
     <div class="settings-card">
-    <h2>Profile Settings</h2>
+    <div class="d-flex align-items-center justify-content-between">
+        <h2 class="mb-0">Profile Settings</h2>
+        <button class="btn btn-sm btn-dark" id="profile_settings_toggle_btn" aria-expanded="false" title="Expand/collapse"><i class="fas fa-chevron-down"></i></button>
+    </div>
+    <div id="profile_settings_body" style="display:none;">
 
     <form action="/<%= user._id %>/settings" method="POST" encType="multipart/form-data">
+        
         <!-- Images -->
         <div class="row">
             <div class="col-md-6">
@@ -86,8 +138,8 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="user_username">Username</label>
-                    <input name="username" type="text" class="form-control" id="user_username" aria-describedby="usernameHelp"
-                        value="<%= user.local.username %>" readonly>
+                    <input type="text" class="form-control" id="user_username" aria-describedby="usernameHelp"
+                        value="<%= user.local.username %>" readonly disabled>
                     <small id="usernamelHelp" class="form-text text-muted">Username cannot be changed</small>
                 </div>
 
@@ -140,7 +192,8 @@
 
         <button type="submit" class="btn btn-primary">Update Settings</button>
     </form>
-
+    </div>
+    
     <script>
         var password = document.getElementById("user_password")
             , confirm_password = document.getElementById("user_password_confirm");
@@ -176,22 +229,76 @@
       })();
     </script>
     </div>
-</div>
+<script>
+(function(){
+  // Attach AJAX submit for site preferences
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      var form = document.getElementById('site_prefs_form');
+      if(!form) return;
+      form.addEventListener('submit', function(e){
+        try { e.preventDefault(); } catch(_){ }
+        var showQA = !!document.getElementById('pref_show_quick_actions').checked;
+        var hideWatched = !!document.getElementById('pref_hide_watched_in_search').checked;
+        fetch(form.getAttribute('action') + '?ajax=1', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json', 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' },
+          body: JSON.stringify({ pref_show_quick_actions: showQA ? '1':'0', pref_hide_watched_in_search: hideWatched ? '1':'0' })
+        }).then(function(r){ return r.json(); }).then(function(){
+          try { if (!window.SITE_PREFS) window.SITE_PREFS = {}; SITE_PREFS.showQuickActions = showQA; SITE_PREFS.hideWatchedInSearch = hideWatched; } catch(_){}
+          try { var cls = document.body.classList; if(showQA) cls.add('pref-show-quick-actions'); else cls.remove('pref-show-quick-actions'); } catch(_){}
+          try { if (window.showToast) showToast('Preferences have been applied','success'); } catch(_){}
+        }).catch(function(){ try { if (window.showToast) showToast('Failed to save preferences','warning'); } catch(_){} });
+      });
+    } catch(_){}
+  });
+})();
+</script>
 
 <script>
   (function(){
     function fmtDate(d){ try { var dt = new Date(d); return dt.toLocaleString(); } catch(e) { return ''; } }
+    function parseUA(ua){
+      try {
+        ua = String(ua||'');
+        // Browser
+        var browser = 'Browser';
+        var ver = '';
+        var m;
+        if ((m = ua.match(/Edg(?:e|A|iOS)?\/([\d\.]+)/))) { browser = 'Edge'; ver = m[1]; }
+        else if ((m = ua.match(/OPR\/([\d\.]+)/))) { browser = 'Opera'; ver = m[1]; }
+        else if ((m = ua.match(/Firefox\/([\d\.]+)/))) { browser = 'Firefox'; ver = m[1]; }
+        else if ((m = ua.match(/Chrome\/([\d\.]+)/)) && !/Chromium/i.test(ua)) { browser = 'Chrome'; ver = m[1]; }
+        else if ((m = ua.match(/Version\/([\d\.]+).*Safari\//))) { browser = 'Safari'; ver = m[1]; }
+        else if (/Safari\//.test(ua)) { browser = 'Safari'; }
+
+        // OS (coarse)
+        var os = 'Unknown OS';
+        if (/Windows NT 10\.0/.test(ua)) os = 'Windows 10/11';
+        else if (/Windows NT 6\.3/.test(ua)) os = 'Windows 8.1';
+        else if (/Windows NT 6\.2/.test(ua)) os = 'Windows 8';
+        else if (/Windows NT 6\.1/.test(ua)) os = 'Windows 7';
+        else if (/Android\s([\d\.]+)/.test(ua)) os = 'Android ' + (ua.match(/Android\s([\d\.]+)/)||[])[1];
+        else if (/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+        else if (/Mac OS X\s([\d_]+)/.test(ua)) os = 'macOS ' + (ua.match(/Mac OS X\s([\d_]+)/)||[])[1].replace(/_/g,'.');
+        else if (/Linux/.test(ua)) os = 'Linux';
+
+        return browser + (ver?(' '+ver):'') + ' — ' + os;
+      } catch (_) { return String(ua||''); }
+    }
+
     function renderSessions(data){
       var tbody = document.getElementById('sessions_table');
       if(!tbody) return;
       var rows = '';
-      (data.sessions||[]).forEach(function(s){
+      var list = (data.sessions||[]).filter(function(s){ return !!(s && (s.current || s.active)); });
+      list.forEach(function(s){
         var loc = (s.geo && (s.geo.city||s.geo.region||s.geo.country)) ? [s.geo.city, s.geo.region, s.geo.country].filter(Boolean).join(', ') : '-';
-        var ua = (s.user_agent||'').split(')')[0];
+        var ua = parseUA(s.user_agent||'');
         var badge = s.current ? '<span class="badge badge-success">Current</span>' : (s.active?'<span class="badge badge-info">Active</span>':'<span class="badge badge-secondary">Offline</span>');
         var action = s.current ? '' : '<button class="btn btn-link btn-sm js-revoke" data-sid="'+s.sid+'">Log out</button>';
         rows += '<tr>'+
-          '<td style="max-width:280px;word-break:break-word;">'+ (ua||'Unknown') +' '+badge+'</td>'+
+          '<td style="max-width:320px;word-break:break-word;">'+ (ua||'Unknown') +' '+badge+'</td>'+
           '<td>'+(s.ip||'-')+'</td>'+
           '<td>'+loc+'</td>'+
           '<td>'+fmtDate(s.last_seen_at)+'</td>'+
@@ -228,7 +335,54 @@
       fetch('/api/v1/user/sessions/revoke_others', { method:'POST' })
         .then(function(){ loadSessions(); window.showToast && showToast('Other sessions logged out','warning'); });
     }); }
-    // init
-    document.addEventListener('DOMContentLoaded', loadSessions);
+
+    // Collapsible sessions (default closed, lazy load on first open)
+    var sessionsLoaded = false;
+    var toggleBtn = document.getElementById('sessions_toggle_btn');
+    var sessBody = document.getElementById('sessions_body');
+    if(toggleBtn && sessBody){
+      toggleBtn.setAttribute('aria-expanded','false');
+      toggleBtn.addEventListener('click', function(){
+        var open = (sessBody.style.display !== 'none');
+        if(open){
+          sessBody.style.display = 'none';
+          toggleBtn.setAttribute('aria-expanded','false');
+          try { toggleBtn.querySelector('i').className = 'fas fa-chevron-down'; } catch(_){ }
+        } else {
+          sessBody.style.display = '';
+          toggleBtn.setAttribute('aria-expanded','true');
+          try { toggleBtn.querySelector('i').className = 'fas fa-chevron-up'; } catch(_){ }
+          if(!sessionsLoaded){ sessionsLoaded = true; loadSessions(); }
+        }
+      });
+    }
+
+    // Toggle Site Preferences
+    try {
+      var spBtn = document.getElementById('site_prefs_toggle_btn');
+      var spBody = document.getElementById('site_prefs_body');
+      if (spBtn && spBody){
+        spBtn.setAttribute('aria-expanded','false');
+        spBtn.addEventListener('click', function(){
+          var open = (spBody.style.display !== 'none');
+          if(open){ spBody.style.display='none'; spBtn.setAttribute('aria-expanded','false'); try{ spBtn.querySelector('i').className='fas fa-chevron-down'; }catch(_){} }
+          else { spBody.style.display=''; spBtn.setAttribute('aria-expanded','true'); try{ spBtn.querySelector('i').className='fas fa-chevron-up'; }catch(_){} }
+        });
+      }
+    } catch(_){}
+
+    // Toggle Profile Settings
+    try {
+      var psBtn = document.getElementById('profile_settings_toggle_btn');
+      var psBody = document.getElementById('profile_settings_body');
+      if (psBtn && psBody){
+        psBtn.setAttribute('aria-expanded','false');
+        psBtn.addEventListener('click', function(){
+          var open = (psBody.style.display !== 'none');
+          if(open){ psBody.style.display='none'; psBtn.setAttribute('aria-expanded','false'); try{ psBtn.querySelector('i').className='fas fa-chevron-down'; }catch(_){} }
+          else { psBody.style.display=''; psBtn.setAttribute('aria-expanded','true'); try{ psBtn.querySelector('i').className='fas fa-chevron-up'; }catch(_){} }
+        });
+      }
+    } catch(_){}
   })();
 </script>

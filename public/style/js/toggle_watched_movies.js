@@ -1,5 +1,15 @@
 function checkIfWatched(user_id, movie_id){
     if(!user_id || !movie_id){ return; }
+    try {
+      if (window.StatusStore){
+        $(`#add_watched_movie_${movie_id}`).hide();
+        $(`#remove_watched_movie_${movie_id}`).hide();
+        StatusStore.getOne('movie', String(movie_id)).then(function(st){
+          if(st && st.w===true) $(`#remove_watched_movie_${movie_id}`).show(); else $(`#add_watched_movie_${movie_id}`).show();
+        });
+        return;
+      }
+    } catch(_){}
     $(`#add_watched_movie_${movie_id}`).hide();
     $(`#remove_watched_movie_${movie_id}`).hide();
     var link = `/api/v1/user-movies/check/watched/${user_id}/${movie_id}`;
@@ -36,6 +46,7 @@ function movieAddWatched(user_id, movie_id, movie_runtime, user_key) {
 
     $(`#add_watched_movie_${movie_id}`).hide();
     $(`#remove_watched_movie_${movie_id}`).show();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:true, f:null, s:null }); } catch(_){}
 }
 
 function movieRemoveWatched(user_id, movie_id, movie_runtime, user_key){
@@ -62,4 +73,5 @@ function movieRemoveWatched(user_id, movie_id, movie_runtime, user_key){
 
     $(`#add_watched_movie_${movie_id}`).show();
     $(`#remove_watched_movie_${movie_id}`).hide();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:false, f:null, s:null }); } catch(_){}
 }

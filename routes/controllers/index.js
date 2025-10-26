@@ -29,6 +29,7 @@ module.exports = (server) => {
     require("./private/contact")(server);
     require("./private/badges")(server);
     require("./private/announcements")(server);
+    try { require("./private/apiMetrics")(server); } catch(_){}
 
     console.log('======== Loading Public Routes ========')
     /* PUBLIC ROUTES */

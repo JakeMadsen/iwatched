@@ -1,5 +1,15 @@
 function checkIfSaved(user_id, movie_id){
     if(!user_id || !movie_id){ return; }
+    try {
+      if (window.StatusStore){
+        $(`#add_saved_movie_${movie_id}`).hide();
+        $(`#remove_saved_movie_${movie_id}`).hide();
+        StatusStore.getOne('movie', String(movie_id)).then(function(st){
+          if(st && st.s===true) $(`#remove_saved_movie_${movie_id}`).show(); else $(`#add_saved_movie_${movie_id}`).show();
+        });
+        return;
+      }
+    } catch(_){}
     $(`#add_saved_movie_${movie_id}`).hide();
     $(`#remove_saved_movie_${movie_id}`).hide();
     var link = `/api/v1/user-movies/check/saved/${user_id}/${movie_id}`;
@@ -35,6 +45,7 @@ function movieAddSaved(user_id, movie_id, movie_runtime, user_key) {
 
     $(`#add_saved_movie_${movie_id}`).hide();
     $(`#remove_saved_movie_${movie_id}`).show();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { s:true, w:null, f:null }); } catch(_){}
 }
 
 function movieRemoveSaved(user_id, movie_id, movie_runtime, user_key){
@@ -60,4 +71,5 @@ function movieRemoveSaved(user_id, movie_id, movie_runtime, user_key){
 
     $(`#add_saved_movie_${movie_id}`).show();
     $(`#remove_saved_movie_${movie_id}`).hide();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { s:false, w:null, f:null }); } catch(_){}
 }

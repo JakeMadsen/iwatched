@@ -77,6 +77,7 @@ function searchMovies(genre) {
     }
 
     var $container;
+    var seenIds = new Set();
     var autoButtonTimer = null;
     var consecutiveEmptyPages = 0;
     var autoLoadCount = 0;
@@ -88,7 +89,13 @@ function searchMovies(genre) {
                 if (searchParam) {
                     base += encodeURIComponent(searchParam) + '/';
                 }
-                return base + this.pageIndex;
+                var qs = '';
+                try {
+                  if (window.SITE_PREFS && SITE_PREFS.hideWatchedInSearch && window.__uid && __uid()){
+                    qs = '?profile_id=' + encodeURIComponent(__uid()) + '&hide_watched=1';
+                  }
+                } catch(_){}
+                return base + this.pageIndex + qs;
             },
             responseType: 'text',
             loadOnScroll: true,
@@ -125,9 +132,36 @@ function searchMovies(genre) {
             }
             return m;
         });
-        var itemsHTML = results.map(getItemHTML).filter(Boolean).join('');
+        // De-duplicate by TMDB id across pages and DOM
+        var items = [];
+        var holderEl = $holder && $holder[0];
+        (results||[]).forEach(function(m){
+            var id = (m && (m.id!=null)) ? String(m.id) : '';
+            if(!id) return;
+            if (seenIds.has(id)) return;
+            if (holderEl && holderEl.querySelector('[data-tmd-id="'+id+'"]')) return;
+            var html = getItemHTML(m);
+            if (html) { seenIds.add(id); items.push(html); }
+        });
+        var itemsHTML = items.join('');
         var $items = $(itemsHTML);
         $container.infiniteScroll('appendItems', $items);
+        try {
+          if (window.StatusStore){
+            var idsToPrefetch = (results||[]).map(function(m){ return m && m.id; }).filter(Boolean);
+            StatusStore.request('movie', idsToPrefetch).then(function(list){
+              if (!(window.SITE_PREFS && SITE_PREFS.hideWatchedInSearch)) return;
+              try {
+                var holder = document.getElementById('movies_holder');
+                (results||[]).forEach(function(m, idx){
+                  var st = list[idx] || {}; if (!st || !st.w) return;
+                  var el = holder && holder.querySelector('[data-tmd-id="'+ String(m.id) +'"]');
+                  if (el) el.style.display = 'none';
+                });
+              } catch(_){}
+            });
+          }
+        } catch(_){}
 
         // If nothing appended and there are more pages, auto-skip to next
         var appendedCount = $items.length;

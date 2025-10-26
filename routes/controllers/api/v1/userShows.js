@@ -193,6 +193,27 @@ module.exports = (server) => {
             if (!res.headersSent) return res.status(200).send({ status: 'ok' });
         } catch (e) { if (!res.headersSent) return res.status(500).send({ status: 500 }); }
     });
+
+    // Bulk status (watched/favourite/saved) for many shows
+    server.post('/api/v1/user-shows/status/bulk', async (req, res) => {
+        try {
+            const user_id = String(req.body.profile_id||'');
+            let ids = Array.isArray(req.body.ids) ? req.body.ids : [];
+            ids = ids.map(String).filter(Boolean);
+            if (!user_id || ids.length === 0) return res.send({ user_id, statuses: {} });
+            const docs = await UserShow.find({ user_id, show_id: { $in: ids.map(String) } }).select('show_id show_watched_count show_watched show_favorite show_bookmarked').lean();
+            const map = {}; ids.forEach(id => { map[String(id)] = { w:false, f:false, s:false }; });
+            (docs||[]).forEach(d => {
+                const id = String(d.show_id);
+                map[id] = {
+                    w: !!(((d.show_watched_count||0) > 0) || !!d.show_watched),
+                    f: !!d.show_favorite,
+                    s: !!d.show_bookmarked
+                };
+            });
+            res.send({ user_id, statuses: map });
+        } catch (e) { res.send({ statuses: {} }); }
+    });
     server.post('/api/v1/user-shows/show/uncomplete', apiIsCorrectUser, async (req, res) => {
         try {
             const user_id = req.body.user_id; const show_id = String(req.body.show_id || req.body.movie_id);

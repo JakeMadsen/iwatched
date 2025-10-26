@@ -19,6 +19,14 @@ var userSchema = mongoose.Schema({
             beta_tester: { type: Boolean, default: false },
             premium: { type: Boolean, default: false }
         },
+        // UI/UX preferences and quality-of-life toggles for the user
+        preferences:        {
+            // When true, show the action buttons ("Quick Actions": Watched, Favourite, Bookmark)
+            // on posters without requiring hover
+            show_quick_actions: { type: Boolean, default: false },
+            // When true, search endpoints and UI hide items already watched
+            hide_watched_in_search: { type: Boolean, default: false }
+        },
         inactive:           { type: Boolean, default: false },  
         banner_image:       { type: String, default: null },
         profile_image:      { type: String, default: 'profile-picture-missing.png' },
@@ -118,6 +126,30 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
             }
         } catch (_) {}
     }
+
+    // Preferences (QoL settings)
+    try {
+        // Ensure preferences object exists
+        if (!this.profile.preferences) this.profile.preferences = {};
+        // Coerce checkbox value to boolean. Accept arrays like ['0','1'] from hidden+checkbox pattern.
+        const v = body.pref_show_quick_actions;
+        if (typeof v !== 'undefined'){
+            let val = v;
+            if (Array.isArray(val) && val.length) val = val[val.length - 1];
+            const str = String(val).toLowerCase();
+            const enabled = (str === '1' || str === 'true' || str === 'on' || str === 'yes');
+            this.profile.preferences.show_quick_actions = !!enabled;
+        }
+        // Hide watched in search preference
+        const v2 = body.pref_hide_watched_in_search;
+        if (typeof v2 !== 'undefined'){
+            let val2 = v2; if (Array.isArray(val2) && val2.length) val2 = val2[val2.length-1];
+            const str2 = String(val2).toLowerCase();
+            const enabled2 = (str2 === '1' || str2 === 'true' || str2 === 'on' || str2 === 'yes');
+            this.profile.preferences.hide_watched_in_search = !!enabled2;
+        }
+        try { this.markModified('profile.preferences'); } catch(_){}
+    } catch(_){}
 
 };
 

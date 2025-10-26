@@ -179,6 +179,27 @@ module.exports = (server) => {
         } catch (e) { res.send(false); }
     });
 
+    // Bulk status (watched/favourite/saved) for many movies
+    server.post('/api/v1/user-movies/status/bulk', async (req, res) => {
+        try {
+            const user_id = String(req.body.profile_id||'');
+            let ids = Array.isArray(req.body.ids) ? req.body.ids : [];
+            ids = ids.map(String).filter(Boolean);
+            if (!user_id || ids.length === 0) return res.send({ user_id, statuses: {} });
+            const docs = await UserMovie.find({ user_id, movie_id: { $in: ids.map(String) } }).select('movie_id movie_watched_count movie_watched movie_favorite movie_bookmarked').lean();
+            const map = {}; ids.forEach(id => { map[String(id)] = { w:false, f:false, s:false }; });
+            (docs||[]).forEach(d => {
+                const id = String(d.movie_id);
+                map[id] = {
+                    w: !!(((d.movie_watched_count||0) > 0) || !!d.movie_watched),
+                    f: !!d.movie_favorite,
+                    s: !!d.movie_bookmarked
+                };
+            });
+            res.send({ user_id, statuses: map });
+        } catch (e) { res.send({ statuses: {} }); }
+    });
+
     // Lists
     server.get('/api/v1/user-movies/watched/:profile_id/:page?', async (req, res) => {
         var perPage = 18, page = Math.max(0, req.params.page || 1);

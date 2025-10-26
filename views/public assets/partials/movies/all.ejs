@@ -45,7 +45,7 @@
 
 <% if(typeof user != 'undefined') { %>
     <script type="text/html" id="movie-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{id}}">
             <a href="/movies/{{id}}-{{slug}}">
             <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}"
                 alt="" 
@@ -88,7 +88,7 @@
     </script>
 <% } else { %>
     <script type="text/html" id="movie-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{id}}">
             <a href="/movies/{{id}}-{{slug}}">
                     <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}"
                         alt="">

@@ -331,6 +331,14 @@ h1, h2, h3,h4,  a {
   opacity: 0;
 }
 
+/* === Preference: Always show Quick Actions ===
+   When the viewer enables this setting, keep the overlay with action
+   buttons visible without requiring hover. */
+body.pref-show-quick-actions .image-box .movie-hover { opacity: 1; }
+body.pref-show-quick-actions .image-box:hover .movie-hover { opacity: 1; }
+/* Keep poster image at normal opacity (no extra dimming on non-hover) */
+body.pref-show-quick-actions .image-box .image-box-hover { opacity: 1; }
+
 
 /* 
 **  Terms of Service styles

@@ -1,8 +1,15 @@
 function checkIfWatchedShow(user_id, show_id){
     $(`#add_watched_show_${show_id}`).hide()
     $(`#remove_watched_show_${show_id}`).hide()
+    try {
+      if (window.StatusStore){
+        StatusStore.getOne('show', String(show_id)).then(function(st){
+          if(st && st.w===true) $(`#remove_watched_show_${show_id}`).show(); else $(`#add_watched_show_${show_id}`).show();
+        });
+        return;
+      }
+    } catch(_){}
     var link = `/api/v1/user-shows/check/watched/${user_id}/${show_id}`
-
     if(user_id){  
         fetch(link)
         .then(response => response.json())
@@ -30,6 +37,7 @@ function showAddWatched(user_id, show_id, show_runtime, user_key) {
     }).catch(()=>{});
     $(`#add_watched_show_${show_id}`).hide();
     $(`#remove_watched_show_${show_id}`).show();
+    try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:true, f:null, s:null }); } catch(_){}
 }
 
 function showRemoveWatched(user_id, show_id, show_runtime, user_key){
@@ -45,4 +53,5 @@ function showRemoveWatched(user_id, show_id, show_runtime, user_key){
     }).catch(()=>{});
     $(`#add_watched_show_${show_id}`).show();
     $(`#remove_watched_show_${show_id}`).hide();
+    try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:false, f:null, s:null }); } catch(_){}
 }

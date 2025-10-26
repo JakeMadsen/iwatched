@@ -43,7 +43,7 @@
 </div>
 
 <script type="text/html" id="show-template">
-  <div class="col-md-2 image-box">
+  <div class="col-md-2 image-box" data-tmd-id="{{id}}">
     <a href="/shows/{{id}}-{{slug}}">
       <img class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}" alt=""
         <% if (typeof user != 'undefined') { %>

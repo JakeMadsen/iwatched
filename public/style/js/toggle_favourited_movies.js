@@ -1,5 +1,15 @@
 function checkIfFavourited(user_id, movie_id){
     if(!user_id || !movie_id){ return; }
+    try {
+      if (window.StatusStore){
+        $(`#add_favourited_movie_${movie_id}`).hide();
+        $(`#remove_favourited_movie_${movie_id}`).hide();
+        StatusStore.getOne('movie', String(movie_id)).then(function(st){
+          if(st && st.f===true) $(`#remove_favourited_movie_${movie_id}`).show(); else $(`#add_favourited_movie_${movie_id}`).show();
+        });
+        return;
+      }
+    } catch(_){}
     $(`#add_favourited_movie_${movie_id}`).hide();
     $(`#remove_favourited_movie_${movie_id}`).hide();
     var link = `/api/v1/user-movies/check/favourited/${user_id}/${movie_id}`;
@@ -35,6 +45,7 @@ function movieAddFavourited(user_id, movie_id, movie_runtime, user_key) {
 
     $(`#add_favourited_movie_${movie_id}`).hide();
     $(`#remove_favourited_movie_${movie_id}`).show();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { f:true, w:null, s:null }); } catch(_){}
 }
 
 function movieRemoveFavourited(user_id, movie_id, movie_runtime, user_key){
@@ -60,4 +71,5 @@ function movieRemoveFavourited(user_id, movie_id, movie_runtime, user_key){
 
     $(`#add_favourited_movie_${movie_id}`).show();
     $(`#remove_favourited_movie_${movie_id}`).hide();
+    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { f:false, w:null, s:null }); } catch(_){}
 }

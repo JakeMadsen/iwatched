@@ -39,6 +39,9 @@ async function revokeSession(userId, sid){
   try {
     await getSessionCollection().deleteOne({ _id: sid });
   } catch (_) {}
+  try {
+    await UserSession.deleteOne({ user_id: userId, sid });
+  } catch (_) {}
 }
 
 async function revokeOtherSessions(userId, currentSid){
@@ -56,8 +59,12 @@ async function revokeOtherSessions(userId, currentSid){
   if (toDelete.length) {
     await coll.deleteMany({ _id: { $in: toDelete } });
   }
+  // Mark any matching metadata as revoked and then remove all non-current metadata for the user
   await UserSession.updateMany({ user_id: userId, sid: { $in: toDelete } }, { $set: { revoked: true } }).exec();
+  try {
+    // Hard purge: remove every metadata entry except the current session id
+    await UserSession.deleteMany({ user_id: userId, sid: { $ne: currentSid } });
+  } catch (_) {}
 }
 
 module.exports = { listUserSessions, revokeSession, revokeOtherSessions };
-

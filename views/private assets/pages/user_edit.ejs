@@ -11,8 +11,9 @@
     <div class="form-row">
       <div class="form-group col-md-6">
         <label>Username</label>
-        <input class="form-control" name="username" value="<%= page_data.user.local && page_data.user.local.username || '' %>">
-        <small class="form-text text-muted">Changing username may break old links if custom URL depends on it.</small>
+        <input class="form-control" value="<%= page_data.user.local && page_data.user.local.username || '' %>" readonly>
+        <input type="hidden" name="username" value="<%= page_data.user.local && page_data.user.local.username || '' %>">
+        <small class="form-text text-muted">Username is read‑only for safety.</small>
       </div>
       <div class="form-group col-md-6">
         <label>Email</label>

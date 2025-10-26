@@ -8,6 +8,19 @@
 <script src="/static/style/js/profile_shows.js"></script>
 <script src="/static/style/js/profile_settings.js"></script>
 <script src="/static/style/js/search_global.js"></script>
+<script>
+  // Expose lightweight site preferences to client
+  try {
+    window.SITE_PREFS = {
+      userId: <%- JSON.stringify((typeof user !== 'undefined' && user && user._id) ? String(user._id) : null) %>,
+      showQuickActions: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions)) %>,
+      hideWatchedInSearch: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search)) %>
+    };
+  } catch(_){}
+  // simple helper
+  window.__uid = function(){ try { return (window.SITE_PREFS && SITE_PREFS.userId) || null; } catch(_) { return null; } };
+</script>
+<script src="/static/style/js/js_helpers/status_store.js"></script>
 <!-- Cookie Consent (vanilla-cookieconsent) -->
 <script defer src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@2.9.2/dist/cookieconsent.js" crossorigin="anonymous"></script>
 <script>

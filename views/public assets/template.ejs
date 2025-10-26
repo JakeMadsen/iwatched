@@ -10,7 +10,7 @@
     <% include ./partials/standard/head.ejs %>
 </head>
 
-<body>
+<body class="<%= (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions) ? 'pref-show-quick-actions' : '' %>">
     <!-- Includes Header -->
     <% if (page_file !== 'temp_home' && page_file !== 'temp_user' && page_file !== 'temp_announcements') { %>
       <% include partials/standard/header.ejs %>
