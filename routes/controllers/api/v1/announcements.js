@@ -89,9 +89,9 @@ module.exports = function(server){
             const u = c.user_id ? map.get(String(c.user_id)) : null;
             const username = u && u.local && u.local.username;
             const slug = u && u.profile && u.profile.custom_url;
-            const img = (u && u.profile && u.profile.profile_image)
+            const img = (u && u.profile && u.profile.profile_image && u.profile.profile_image !== 'profile-picture-missing.png')
               ? `/static/style/img/profile_images/users/${u._id}/${u.profile.profile_image}`
-              : '/static/style/img/profile_images/users/default/picture_default.png';
+              : '/static/style/img/standard/standard_avatar.png';
             const link = slug ? `/${slug}` : (u ? `/${u._id}` : '#');
             const handle = slug ? `@${slug}` : (username ? `@${username}` : '@user');
             // Featured badge

@@ -1,9 +1,15 @@
 <% if (page_data && page_data.user) { %>
-  <div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
+  <% var __banner = (page_data.user && page_data.user.profile && page_data.user.profile.banner_image && page_data.user.profile.banner_image !== 'profile-banner-missing.png')
+        ? ('/static/style/img/profile_images/users/' + page_data.user._id + '/' + page_data.user.profile.banner_image)
+        : '/static/style/img/standard/standard_banner.png'; %>
+  <div id="profile_header" class="profile-hero" style="background-image: url('<%= __banner %>');">
     <div class="container">
       <div class="container profile-hero__inner">
         <div class="profile-hero__left">
-          <img class="profile-hero__avatar" src="/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.profile_image %>" alt="">
+          <% var __avatar = (page_data.user && page_data.user.profile && page_data.user.profile.profile_image && page_data.user.profile.profile_image !== 'profile-picture-missing.png')
+                ? ('/static/style/img/profile_images/users/' + page_data.user._id + '/' + page_data.user.profile.profile_image)
+                : '/static/style/img/standard/standard_avatar.png'; %>
+          <img class="profile-hero__avatar" src="<%= __avatar %>" alt="">
           <div class="profile-hero__meta">
             <h1 class="profile-hero__name"><%= page_data.user.local.username %></h1>
             <% const handle = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '') ? page_data.user.profile.custom_url : (page_data.user.local.username || '');

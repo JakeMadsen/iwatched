@@ -12,8 +12,9 @@ module.exports = (server) => {
             page_title: "iWatched.xyz - Sign in/up",
             page_file: "login",
             page_data: {
-                login_error: req.flash(),
-                signup_error: req.flash()
+                // Use keyed flashes so we don't consume messages accidentally
+                login_error: req.flash('flash'),
+                signup_error: req.flash('signupMessage')
             },
             user: req.user
         });

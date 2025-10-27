@@ -81,7 +81,7 @@
         }
         function userRow(u){
           var slug = u.slug ? '/'+u.slug : '/'+u.id;
-          var av = u.avatar || '/static/style/img/profile_images/users/default/picture_default.png';
+          var av = u.avatar || '/static/style/img/standard/standard_avatar.png';
           return '<a href="'+slug+'" class="card" style="background:#1b1b1b;border-radius:10px;padding:12px;display:flex;align-items:center;gap:12px;color:#e0e0e0;text-decoration:none;margin-bottom:8px;">'
             + '<img src="'+av+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">'
             + '<div><div style="font-weight:700;">'+(u.username||u.slug||'User')+'</div>'

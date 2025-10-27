@@ -72,9 +72,9 @@ module.exports = (server) => {
                     if (m.author_type === 'support') return;
                     const u = m.user_id && map.get(String(m.user_id));
                     if (u) {
-                        m.user_avatar = (u.profile && u.profile.profile_image)
+                        m.user_avatar = (u.profile && u.profile.profile_image && u.profile.profile_image !== 'profile-picture-missing.png')
                           ? `/static/style/img/profile_images/users/${u._id}/${u.profile.profile_image}`
-                          : '/static/style/img/profile_images/users/default/picture_default.png';
+                          : '/static/style/img/standard/standard_avatar.png';
                         if (!m.username && u.local && u.local.username) m.username = u.local.username;
                     }
                 });

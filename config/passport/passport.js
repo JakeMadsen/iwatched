@@ -1,5 +1,6 @@
 var LocalStrategy = require('passport-local').Strategy;
 var User = require('../../db/models/user');
+var BannedAccount = require('../../db/models/bannedAccount');
 
 
 module.exports = (passport) => {
@@ -22,7 +23,46 @@ module.exports = (passport) => {
     },
     function (req, username, password, done) {
         process.nextTick(function () {
-            User
+            // Validate username: only letters and numbers
+            const uname = String(username||'');
+            if (!/^[A-Za-z0-9]+$/.test(uname)){
+                return done(null, false, req.flash('signupMessage', 'Username may contain only letters and numbers.'));
+            }
+            if (uname.length < 3 || uname.length > 24){
+                return done(null, false, req.flash('signupMessage', 'Username must be 3-24 characters.'));
+            }
+
+            // First, reject if email/IP is banned
+            try {
+                const escapeRegex = (text) => String(text||'').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const email = String(req.body.email||'');
+                const rawIp = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip || '').toString();
+                // Ignore loopback/private IPs in dev so you don't lock yourself out
+                function isPublicIp(ip){
+                    if(!ip) return false;
+                    // trim proxies list (take first)
+                    ip = String(ip).split(',')[0].trim();
+                    // IPv6 loopback
+                    if (ip === '::1' || ip === '0:0:0:0:0:0:0:1') return false;
+                    // IPv4 loopback
+                    if (/^127\./.test(ip)) return false;
+                    // RFC1918 private ranges
+                    if (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(ip)) return false;
+                    // Link-local
+                    if (/^169\.254\./.test(ip)) return false;
+                    return true;
+                }
+                const ip = isPublicIp(rawIp) ? String(rawIp).split(',')[0].trim() : null;
+                const emailRx = new RegExp('^' + escapeRegex(email) + '$', 'i');
+                BannedAccount.findOne({ $or: [ { email: emailRx }, (ip? { ip } : null) ].filter(Boolean) }, function(err, banned){
+                    if (err) return done(err);
+                    if (banned) return done(null, false, req.flash('signupMessage', 'This email/IP is banned.'));
+                    proceed();
+                });
+            } catch(_) { proceed(); }
+
+            function proceed(){
+              User
             .findOne(
                 { $or: [
                     { 'local.email': req.body.email },
@@ -56,6 +96,7 @@ module.exports = (passport) => {
                     });
                 }
             })
+            }
         });
     }));
 

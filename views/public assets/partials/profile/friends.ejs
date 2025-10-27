@@ -13,7 +13,7 @@
           <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom:12px;">
             <div class="card" style="background:#1b1b1b;border-radius:10px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:#e0e0e0;">
               <a href="<%= f.slug ? ('/'+f.slug) : ('/'+f.id) %>" style="display:flex;align-items:center;gap:12px;color:#e0e0e0;text-decoration:none;">
-                <img src="<%= f.avatar || '/static/style/img/profile_images/users/default/picture_default.png' %>" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
+                <img src="<%= f.avatar || '/static/style/img/standard/standard_avatar.png' %>" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
                 <div><div style="font-weight:700;"><%= f.username || f.slug || f.id %></div></div>
               </a>
               <% if (user && String(user._id) === String(page_data.user._id)) { %>
@@ -51,7 +51,7 @@
           (data.friends||[]).forEach(function(f){
             var href = f.slug ? '/'+f.slug : '/'+f.id;
             var name = f.username || f.slug || f.id;
-            var av = f.avatar || '/static/style/img/profile_images/users/default/picture_default.png';
+            var av = f.avatar || '/static/style/img/standard/standard_avatar.png';
             var since = f.since ? new Date(f.since) : null;
             var sinceTxt = since ? ('Friends since: '+('0'+since.getDate()).slice(-2)+('0'+(since.getMonth()+1)).slice(-2)+since.getFullYear()) : '';
             var card = '<div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom:12px;">\

@@ -1,14 +1,19 @@
 <div class="container">
+    <% 
+      var le = (page_data && page_data.login_error) || {}; 
+      var leArr = Array.isArray(le) ? le : (le.flash || []); 
+      var leObj = (Array.isArray(leArr) ? leArr[0] : leArr) || {}; 
+      var loginPrefill = leObj.login || '';
+      var loginErrText = leObj.error || null;
+      var se = (page_data && page_data.signup_error);
+      var signupMsg = Array.isArray(se) ? (se[0] || '') : (se && se.signupMessage ? (se.signupMessage[0] || '') : '');
+    %>
     <div class="row" style="padding: 20px 0px 20px 0px;">
         <div class="col-md-6">
             <h4>Sign in</h4>
             <form method="POST" action="/login">
                 <div class="form-group">
-                    <% if (Object.keys(page_data.login_error).length != 0) { %>
-                        <input id="login_email" name="email" class="form-control" placeholder="Email or Username" type="text" autocomplete="email" value="<%= page_data.login_error.flash[0].login %>">
-                    <% } else { %>
-                        <input id="login_email" name="email" class="form-control" placeholder="Email or Username" type="text" autocomplete="email">
-                    <% } %>
+                    <input id="login_email" name="email" class="form-control" placeholder="Email or Username" type="text" autocomplete="email" value="<%= loginPrefill %>">
                 </div>
                 <div class="form-group">
                     <input id="login_password" name="password" class="form-control" placeholder="Password" type="password" autocomplete="current-password">
@@ -20,12 +25,8 @@
                 <div class="form-group">
                     <button id="login_submit" type="submit" class="btn btn-block btn-outline-primary" disabled> Login </button>
                 </div>
-                <% if (Object.keys(page_data.login_error).length != 0) { %>
-                    <div class="alert alert-danger">
-                        <h3  style="color: #101010; text-align: center;">
-                            <%= page_data.login_error.flash[0].error %>
-                        </h3>
-                    </div>
+                <% if (loginErrText) { %>
+                    <div class="alert alert-danger"><h3 style="color:#101010; text-align:center;"><%= loginErrText %></h3></div>
                 <% } %>
 
                 <a class="small float-right" href="#">Forgot password?</a>
@@ -54,10 +55,8 @@
         <div class="col-md-6">
             <h4>Sign Up</h4>
             <!-- show any messages that come back with authentication -->
-            <% if (Object.keys(page_data.signup_error).length != 0) { %>
-            <div class="alert alert-danger">
-                <%= page_data.signup_error %>
-            </div>
+            <% if (signupMsg) { %>
+              <div class="alert alert-danger"><%= signupMsg %></div>
             <% } %>
             <form method="POST" action="/signup">
                 <div class="form-group">
@@ -66,8 +65,11 @@
                             name="username" 
                             class="form-control" 
                             placeholder="Username" 
-                            type="text">
-                    <small class="form-text text-muted">Username cannot be changed.</small>
+                            type="text"
+                            pattern="[A-Za-z0-9]+"
+                            title="Letters and numbers only; 3-24 characters"
+                            minlength="3" maxlength="24">
+                    <small class="form-text text-muted">Letters and numbers only (3–24). Username cannot be changed.</small>
                 </div>
                 <div class="form-group">
                     <input  required 

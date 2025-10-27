@@ -1,6 +1,9 @@
 
 
-<div id="profile_header" class="profile-hero" style="background-image: url('/static/style/img/profile_images/users/<%= page_data.user._id %>/<%= page_data.user.profile.banner_image %>');">
+<% var __banner = (page_data.user && page_data.user.profile && page_data.user.profile.banner_image && page_data.user.profile.banner_image !== 'profile-banner-missing.png')
+      ? ('/static/style/img/profile_images/users/' + page_data.user._id + '/' + page_data.user.profile.banner_image)
+      : '/static/style/img/standard/standard_banner.png'; %>
+<div id="profile_header" class="profile-hero" style="background-image: url('<%= __banner %>');">
     <div class="container">
         <div class="container profile-hero__inner">
         <div class="profile-hero__left">
@@ -47,4 +50,3 @@
         <%- include(`../partials/profile_temp/${page_subFile}.ejs`) %>
     </div>
 </div>
-

@@ -48,12 +48,17 @@
             </ul>
         </li>
 
-        <!-- Go to user management -->
+        <!-- Users dropdown -->
         <li class="">
-            <a href="/admin/users">
+            <a href="#usersSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                 <i class="fas fa-users"></i>
                 Users
             </a>
+            <ul class="collapse list-unstyled" id="usersSubmenu">
+                <li class=""><a href="/admin/users"><i class="fas fa-list"></i> All users</a></li>
+                <li class=""><a href="/admin/bans"><i class="fas fa-user-slash"></i> Banned users</a></li>
+                <li class=""><a href="/admin/users/create"><i class="fas fa-user-plus"></i> Create user</a></li>
+            </ul>
         </li>  
 
         <!-- Badges management -->

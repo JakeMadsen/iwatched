@@ -1,0 +1,38 @@
+<div class="container-fluid">
+  <div class="d-flex align-items-center justify-content-between">
+    <h3>Banned Users</h3>
+    <% if (page_data && page_data.ok) { %><div class="alert alert-success mb-0">Saved</div><% } %>
+  </div>
+
+  <form class="card card-body mb-3" action="/admin/bans/add" method="POST" style="max-width:720px;">
+    <h5>Add ban</h5>
+    <div class="form-row">
+      <div class="form-group col-md-4"><label>Email</label><input name="email" class="form-control" required></div>
+      <div class="form-group col-md-4"><label>IP</label><input name="ip" class="form-control" placeholder="optional"></div>
+      <div class="form-group col-md-4"><label>Hardware ID</label><input name="hardware_id" class="form-control" placeholder="optional"></div>
+    </div>
+    <div class="form-group"><label>Reason</label><input name="reason" class="form-control" placeholder="Spam / abuse"></div>
+    <div class="form-group"><button class="btn btn-outline-danger" type="submit"><i class="fas fa-user-slash"></i> Add ban</button></div>
+  </form>
+
+  <table class="table table-striped">
+    <thead><tr><th>Email</th><th>IP</th><th>Hardware ID</th><th>Reason</th><th>Moderator</th><th>Date</th><th style="width:120px;">Actions</th></tr></thead>
+    <tbody>
+    <% (page_data.bans||[]).forEach(function(b){ %>
+      <tr>
+        <td><%= b.email %></td>
+        <td><%= b.ip || '' %></td>
+        <td><%= b.hardware_id || '' %></td>
+        <td><%= b.reason || '' %></td>
+        <td><%= b.moderator_label || b.moderator_name || b.moderator_id || '' %></td>
+        <td><%= (b.date_banned && new Date(b.date_banned).toLocaleString()) || '' %></td>
+        <td>
+          <form method="POST" action="/admin/bans/<%= b._id %>/delete" onsubmit="return confirm('Remove ban?');">
+            <button class="btn btn-sm btn-danger" type="submit">Unban</button>
+          </form>
+        </td>
+      </tr>
+    <% }); %>
+    </tbody>
+  </table>
+</div>

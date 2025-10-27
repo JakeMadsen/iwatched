@@ -113,7 +113,7 @@
       try { fetch('/api/v1/announcements/'+a._id+'/impression', { method:'POST', headers:{'Content-Type':'application/json'} }); } catch(_){ }
     }
     function buildCommentHTML(c, isReply, repliesCount){
-      var avatar = c.user_avatar || '/static/style/img/profile_images/users/default/picture_default.png';
+      var avatar = c.user_avatar || '/static/style/img/standard/standard_avatar.png';
       var handle = c.user_handle || ('@'+(c.username||'user'));
       var link = c.user_link || '#';
       var edited = c.edited_at ? ' <em style=\"opacity:.8;\">edited</em>' : '';
