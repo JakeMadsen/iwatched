@@ -82,7 +82,7 @@
                         <% var year = (page_data.movie.release_date||'').toString().slice(0,4); %>
                         <% if (year) { %><span style="opacity:.85;"> <%= year %> </span><% } %>
                         <% if (page_data.movie.vote_average) { var __v = Number(page_data.movie.vote_average||0); var __vr = Math.round(__v*2)/2; var __vrStr = (__vr % 1 === 0) ? __vr.toFixed(0) : __vr.toFixed(1); %>
-                            <span style="opacity:.85;">•</span>
+                            <span style="opacity:.85;">ï¿½</span>
                             <span style="opacity:.85;"> <i class="fas fa-star" style="color:#f5c518;"></i> <%= __vrStr %>/10</span>
                         <% } %>
                         <!-- <span style="opacity:.85;">â€¢</span> -->
@@ -195,7 +195,7 @@
                             <% var year = (page_data.movie.release_date||'').toString().slice(0,4); %>
                             <% if (year) { %><span style="opacity:.85;"> <%= year %> </span><% } %>
                             <% if (page_data.movie.vote_average) { var __v = Number(page_data.movie.vote_average||0); var __vr = Math.round(__v*2)/2; var __vrStr = (__vr % 1 === 0) ? __vr.toFixed(0) : __vr.toFixed(1); %>
-                            <span style="opacity:.85;">•</span>
+                            <span style="opacity:.85;">ï¿½</span>
                             <span style="opacity:.85;"> <i class="fas fa-star" style="color:#f5c518;"></i> <%= __vrStr %>/10</span>
                         <% } %>
                             <!-- <span style="opacity:.85;">â€¢</span> -->
@@ -292,80 +292,122 @@
     <% } %>
     
     <!-- Similar Movies -->
+    <% if ((page_data.similar||[]).length) { %>
     <div>
-        <h1>Similar Movies</h1>
+        <h2>Similar Movies</h2>
         <hr>
 
         <div class="row">
-            <% page_data.similar.forEach(function (movie, index){ %>
-                <% if(index + 1 <= 12) { %>
-                    <div class="col-md-2 image-box" >
-                        <a href="/movies/<%= movie.id %>">
-                            <% if(typeof user != 'undefined') { %>
-                                <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>"
-                                    alt="" 
-                                    onload="    
-                                        checkIfFavourited('<%= user._id %>', '<%= movie.id %>')
-                                        checkIfWatched('<%= user._id %>', '<%= movie.id %>')
-                                        checkIfSaved('<%= user._id %>', '<%= movie.id %>')">
-
-                            <% } else { %>
-                                    <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= movie.poster_path %>" alt="" >
-                            <% } %>
-                        </a>
-                        <div class="movie-hover image-box-description">
-                            <p><%= movie.title %></p>
-                            <% if(typeof user != 'undefined') { %>
-                                <div class="row" >
-                                    <div class="col-md-4">
-                                            <i  class="far fa-check-circle fa-2x icon-white" 
-                                            id="add_watched_movie_<%= movie.id %>"
-                                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;" >
-                                        </i>
-                                        <i  class="fas fa-check-circle fa-2x icon-green" 
-                                            id="remove_watched_movie_<%= movie.id %>"  
-                                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= movie.id %>', '<%= movie.runtime %>', '<%= user.permissions.user_private_key %>'); return false;">
-                                        </i>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <i  class="far fa-heart fa-2x icon-white" 
-                                            id="add_favourited_movie_<%= movie.id %>" 
-                                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
-                                        </i>
-                                        <i  class="fas fa-heart fa-2x icon-red" 
-                                            id="remove_favourited_movie_<%= movie.id %>" 
-                                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= movie.id %>'); return false;">
-                                        </i>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <i  class="far fa-bookmark fa-2x icon-white"
-                                            id="add_saved_movie_<%= movie.id %>" 
-                                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
-                                        </i>
-                                        <i class="fas fa-bookmark fa-2x icon-blue"
-                                            id="remove_saved_movie_<%= movie.id %>" 
-                                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= movie.id %>'); return false;">
-                                        </i>
-                                    </div>
-                                </div>
-                            <% } %>
-                        </div>
+            <% page_data.similar.forEach(function (m, index){ if (index < 12) { %>
+            <div class="col-md-2 image-box">
+                <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
+                    <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= m.poster_path %>" alt="">
+                </a>
+                <div class="movie-hover image-box-description">
+                    <div class="movie-title" title="<%= m.title %>"><%= m.title %></div>
+                    <% if (typeof user != 'undefined') { %>
+                    <div class="movie-actions">
+                        <i class="far fa-check-circle fa-2x icon-white" id="add_watched_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        <i class="far fa-heart fa-2x icon-white" id="add_favourited_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        <i class="far fa-bookmark fa-2x icon-white" id="add_saved_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
                     </div>
-                <% } %>
-            <% }); %>
+                    <% } %>
+                </div>
+            </div>
+            <% } }); %>
         </div>
+
+        <% if ((page_data.similar_all||[]).length > 12) { %>
+        <div class="text-center" style="margin:10px 0;">
+            <button id="movie_similar_toggle_btn" class="btn btn-secondary btn-sm">Show more similar movies</button>
+        </div>
+        <div id="movie_similar_more" style="display:none;">
+            <div class="row">
+                <% page_data.similar_all.forEach(function (m, index){ if (index >= 12) { %>
+                <div class="col-md-2 image-box">
+                    <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
+                        <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/<%= m.poster_path %>" alt="">
+                    </a>
+                    <div class="movie-hover image-box-description">
+                        <div class="movie-title" title="<%= m.title %>"><%= m.title %></div>
+                        <% if (typeof user != 'undefined') { %>
+                        <div class="movie-actions">
+                            <i class="far fa-check-circle fa-2x icon-white" id="add_watched_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                            <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                            <i class="far fa-heart fa-2x icon-white" id="add_favourited_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                            <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                            <i class="far fa-bookmark fa-2x icon-white" id="add_saved_movie_<%= m.id %>" onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                            <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_movie_<%= m.id %>" onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <% } }); %>
+            </div>
+        </div>
+        <% } %>
     </div>
-</div>
-
-
-
-
-<% if(typeof user != 'undefined') { %>
-    <script>
-    checkIfWatched('<%= user._id %>', '<%= page_data.movie.id %>')
-    checkIfFavourited('<%= user._id %>', '<%= page_data.movie.id %>')
-    checkIfSaved('<%= user._id %>', '<%= page_data.movie.id %>')
+    <% } %>
     
-    </script>
-<% } %>
+    </div>
+
+<script>
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      <% if (typeof user != 'undefined') { %>
+      // Initialize main movie quick-action state
+      checkIfWatched('<%= user._id %>', String(<%= page_data.movie.id %>));
+      checkIfFavourited('<%= user._id %>', String(<%= page_data.movie.id %>));
+      checkIfSaved('<%= user._id %>', String(<%= page_data.movie.id %>));
+
+      // Initialize first 12 similar movies
+      (function(){
+        var ids = <%- JSON.stringify((page_data.similar||[]).map(function(m){ return m && m.id; }).filter(Boolean)) %>;
+        ids.forEach(function(mid){
+          checkIfWatched('<%= user._id %>', String(mid));
+          checkIfFavourited('<%= user._id %>', String(mid));
+          checkIfSaved('<%= user._id %>', String(mid));
+        });
+      })();
+      <% } %>
+    } catch(_){}
+
+    // Toggle for "Similar Movies" section
+    try {
+      var btn = document.getElementById('movie_similar_toggle_btn');
+      var more = document.getElementById('movie_similar_more');
+      if (btn && more) {
+        var didInitMore = false;
+        btn.addEventListener('click', function(){
+          var visible = more.style.display !== 'none';
+          if (visible) {
+            more.style.display = 'none';
+            btn.textContent = 'Show more similar movies';
+          } else {
+            more.style.display = '';
+            btn.textContent = 'Show fewer similar movies';
+            <% if (typeof user != 'undefined') { %>
+            if (!didInitMore) {
+              didInitMore = true;
+              try {
+                var moreIds = <%- JSON.stringify((page_data.similar_all||[]).slice(12).map(function(m){ return m && m.id; }).filter(Boolean)) %>;
+                moreIds.forEach(function(mid){
+                  checkIfWatched('<%= user._id %>', String(mid));
+                  checkIfFavourited('<%= user._id %>', String(mid));
+                  checkIfSaved('<%= user._id %>', String(mid));
+                });
+              } catch(_){}
+            }
+            <% } %>
+          }
+        });
+      }
+    } catch(_){}
+  });
+})();
+</script>
 

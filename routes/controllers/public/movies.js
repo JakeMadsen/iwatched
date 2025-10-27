@@ -36,20 +36,37 @@ module.exports = (server) => {
         let credits = await tmdService.movieCredits(id).catch(() => ({ cast: [], crew: [] }));
         let runtime = getRunTime(movie.runtime || 0);
         const videos = (movie.videos && movie.videos.results) ? movie.videos.results : [];
-        async function pickSimilarMovies(){
+        async function gatherSimilarAll(){
             try {
                 const base = movie || {};
                 const baseGenres = Array.isArray(base.genres) ? base.genres.map(g=>g.id) : [];
                 const lang = base.original_language || '';
+                function notDoc(it){ const ids = Array.isArray(it && it.genre_ids) ? it.genre_ids : []; return !ids.includes(99); }
+                const byId = new Map();
+                function pushList(list){ (list||[]).forEach(it=>{ if(!it) return; const sid=String(it.id); if (sid===String(id)) return; if(!byId.has(sid)) byId.set(sid, it); }); }
+                // Recommendations and similar
                 let rec = await tmdService.movieRecommendations({ id: id }).catch(()=>({ results: [] }));
-                let items = Array.isArray(rec && rec.results) && rec.results.length ? rec.results : ((movie.similar && movie.similar.results) ? movie.similar.results : []);
+                pushList(rec && rec.results);
+                pushList(movie && movie.similar && movie.similar.results);
+                let items = Array.from(byId.values());
+                // If low count, broaden with discover by shared genres
+                if (items.length < 36 && baseGenres.length){
+                    for (let page=1; page<=3 && items.length<36; page++){
+                        try {
+                            const disc = await tmdService.discoverMovie({ with_genres: baseGenres.join(','), sort_by:'popularity.desc', page }).catch(()=>({ results: [] }));
+                            pushList(disc && disc.results);
+                        } catch(_){}
+                    }
+                    items = Array.from(byId.values());
+                }
+                // Filter and score
                 items = items.filter(it => {
                     if (!it) return false;
-                    if ((it.vote_count||0) < 200) return false;
+                    if (!notDoc(it)) return false;
                     if (!it.release_date) return false;
-                    if (lang && it.original_language && it.original_language !== lang) return false;
-                    const overlap = Array.isArray(it.genre_ids) ? it.genre_ids.filter(g => baseGenres.includes(g)).length : 0;
-                    return overlap >= 1;
+                    if ((it.vote_count||0) < 50) return false;
+                    if (lang && it.original_language && it.original_language !== lang) return true; // allow cross-language in fallback
+                    return true;
                 });
                 items.forEach(it => {
                     const overlap = Array.isArray(it.genre_ids) ? it.genre_ids.filter(g => baseGenres.includes(g)).length : 0;
@@ -57,10 +74,11 @@ module.exports = (server) => {
                     it.__score = score;
                 });
                 items.sort((a,b)=> (b.__score||0) - (a.__score||0));
-                return items.slice(0, 12);
-            } catch (_) { return (movie.similar && movie.similar.results) ? movie.similar.results.slice(0,12) : []; }
+                return items.slice(0, 36);
+            } catch (_) { return (movie.similar && movie.similar.results) ? movie.similar.results.slice(0,36) : []; }
         }
-        const similar = await pickSimilarMovies();
+        const similar_all = await gatherSimilarAll();
+        const similar = similar_all.slice(0, 12);
         const cast = credits.cast || [];
         const crew = credits.crew || [];
         const directors = crew.filter(c => (c.job === 'Director'));
@@ -74,6 +92,7 @@ module.exports = (server) => {
                 movie_videos: videos,
                 runtime:  runtime,
                 similar: similar,
+                similar_all: similar_all,
                 cast: cast,
                 directors: directors
             },

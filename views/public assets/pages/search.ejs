@@ -28,10 +28,22 @@
         }
         function slugify(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80); }
         function movieCard(m){
-          var slug = slugify(m.title);
-          return '<div class="col-md-2 image-box"><a href="/movies/'+m.id+'-'+slug+'">'
+          var slug = slugify(m.title||'');
+          var html = '<div class="col-md-2 image-box"><a href="/movies/'+m.id+'-'+slug+'">'
            + '<img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w500/'+(m.poster_path||'')+'" alt=""></a>'
-           + '<div class="movie-hover image-box-description"><div class="movie-title">'+(m.title||'')+'</div></div></div>';
+           + '<div class="movie-hover image-box-description"><div class="movie-title">'+(m.title||'')+'</div>';
+          <% if (typeof user != 'undefined') { %>
+          html += '<div class="movie-actions">'
+            + '<i class="far fa-check-circle fa-2x icon-white" id="add_watched_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieAddWatched(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieRemoveWatched(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="far fa-heart fa-2x icon-white" id="add_favourited_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieAddFavourited(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-heart fa-2x icon-red" id="remove_favourited_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieRemoveFavourited(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="far fa-bookmark fa-2x icon-white" id="add_saved_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieAddSaved(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '<i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_movie_'+(m.id||'')+'" onclick="event.stopPropagation(); movieRemoveSaved(\'<%= user._id %>\', \'"+(m.id||"")+"\', \'\', \'<%= user.permissions.user_private_key %>\'); return false;"></i>'
+            + '</div>';
+          <% } %>
+          html += '</div></div>';
+          return html;
         }
         function showCard(s){
           var slug = slugify(s.name);
@@ -100,6 +112,20 @@
         holder.innerHTML = html;
         buildNav({ movies: !!movies, shows: !!shows, persons: !!persons, users: !!users });
         if(!holder.innerHTML){ holder.innerHTML = '<p style="opacity:.75;">No results for "'+q+'".</p>'; }
+
+        // Initialize quick-action states for viewer
+        <% if (typeof user != 'undefined') { %>
+        try {
+          var idsMovie = (data.movies||[]).map(function(m){ return m.id; }).filter(Boolean);
+          var idsShow  = (data.shows||[]).map(function(s){ return s.id; }).filter(Boolean);
+          idsMovie.forEach(function(id){ $('#add_watched_movie_'+id+',#remove_watched_movie_'+id+',#add_favourited_movie_'+id+',#remove_favourited_movie_'+id+',#add_saved_movie_'+id+',#remove_saved_movie_'+id).hide(); });
+          idsShow.forEach(function(id){ $('#add_watched_show_'+id+',#remove_watched_show_'+id+',#add_favourited_show_'+id+',#remove_favourited_show_'+id+',#add_saved_show_'+id+',#remove_saved_show_'+id).hide(); });
+          if (window.StatusStore){
+            if (idsMovie.length){ StatusStore.request('movie', idsMovie).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsMovie[idx]; if(!id) return; (st&&st.w===true?$('#remove_watched_movie_'+id):$('#add_watched_movie_'+id)).show(); (st&&st.f===true?$('#remove_favourited_movie_'+id):$('#add_favourited_movie_'+id)).show(); (st&&st.s===true?$('#remove_saved_movie_'+id):$('#add_saved_movie_'+id)).show(); }); }); }
+            if (idsShow.length){ StatusStore.request('show', idsShow).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsShow[idx]; if(!id) return; (st&&st.w===true?$('#remove_watched_show_'+id):$('#add_watched_show_'+id)).show(); (st&&st.f===true?$('#remove_favourited_show_'+id):$('#add_favourited_show_'+id)).show(); (st&&st.s===true?$('#remove_saved_show_'+id):$('#add_saved_show_'+id)).show(); }); }); }
+          }
+        } catch(_){}
+        <% } %>
       })
       .catch(function(){ holder.innerHTML = '<p style="opacity:.75;">Search failed.</p>'; });
   })();

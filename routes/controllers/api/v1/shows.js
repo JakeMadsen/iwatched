@@ -17,17 +17,36 @@ module.exports = function (server) {
       .searchTv(parameters)
       .then(async results => {
         try {
-          // Filter out reality shows from search results (genre 10764 = Reality)
+          // Filter out "non-series" types: Reality(10764), Talk(10767), News(10763)
           if (results && Array.isArray(results.results)) {
             results.results = results.results.filter(r => {
               const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
               const notReality = !ids.includes(10764);
+              const notTalk = !ids.includes(10767);
+              const notNews = !ids.includes(10763);
+              const notDoc = !ids.includes(99);
               // Also drop empty shells (no votes, no first_air_date)
               const hasDate = !!(r && r.first_air_date);
               const hasVotes = (r && Number(r.vote_count)) > 0;
-              return notReality && hasDate && hasVotes;
+              return notReality && notTalk && notNews && notDoc && hasDate && hasVotes;
             });
           }
+          // Exclude award shows via keywords when we have them in our DB cache
+          try {
+            const ids = (results.results||[]).map(r => r && r.id).filter(Boolean).map(String);
+            if (ids.length) {
+              const docs = await Show.find({ tmd_id: { $in: ids } }).select('tmd_id keywords').lean();
+              const kwMap = new Map(docs.map(d => [String(d.tmd_id), (d.keywords||[])]));
+              results.results = (results.results||[]).filter(r => {
+                const kws = kwMap.get(String(r.id)) || [];
+                const text = kws.join(' ').toLowerCase();
+                // conservative award-show detection
+                const isAward = /award/.test(text) || /awards/.test(text) || /ceremony/.test(text);
+                return !isAward;
+              });
+            }
+          } catch(_){}
+
           if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
             const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
             const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));
@@ -63,17 +82,35 @@ module.exports = function (server) {
 
       tmdService
         .discoverTv(parameters)
-        .then(async results => {
-          try {
+      .then(async results => {
+        try {
             if (results && Array.isArray(results.results)) {
               results.results = results.results.filter(r => {
                 const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
                 const notReality = !ids.includes(10764);
+                const notTalk = !ids.includes(10767);
+                const notNews = !ids.includes(10763);
+                const notDoc = !ids.includes(99);
                 const hasDate = !!(r && r.first_air_date);
                 const hasVotes = (r && Number(r.vote_count)) > 0;
-                return notReality && hasDate && hasVotes;
+                return notReality && notTalk && notNews && notDoc && hasDate && hasVotes;
               });
             }
+            // Exclude award shows via keywords when known
+            try {
+              const ids = (results.results||[]).map(r => r && r.id).filter(Boolean).map(String);
+              if (ids.length) {
+                const docs = await Show.find({ tmd_id: { $in: ids } }).select('tmd_id keywords').lean();
+                const kwMap = new Map(docs.map(d => [String(d.tmd_id), (d.keywords||[])]));
+                results.results = (results.results||[]).filter(r => {
+                  const kws = kwMap.get(String(r.id)) || [];
+                  const text = kws.join(' ').toLowerCase();
+                  const isAward = /award/.test(text) || /awards/.test(text) || /ceremony/.test(text);
+                  return !isAward;
+                });
+              }
+            } catch(_){}
+
             if (String(req.query.hide_watched||'') === '1' && req.query.profile_id){
               const watchedDocs = await UserShow.find({ user_id: String(req.query.profile_id), $or: [ { show_watched_count: { $gt: 0 } }, { show_watched: { $ne: null } } ] }).select('show_id').lean();
               const watchedSet = new Set((watchedDocs||[]).map(d => String(d.show_id)));
@@ -107,9 +144,21 @@ module.exports = function (server) {
         if (doc && doc.poster_path){ cachePut(id, doc.poster_path); res.set('Cache-Control','public, max-age=3600'); return res.send({ poster_path: doc.poster_path }); }
       } catch(_){}
       const show = await tmdService.tvInfo(id).catch(()=>({}));
-      const poster = show && show.poster_path ? show.poster_path : null;
+      let poster = show && show.poster_path ? show.poster_path : null;
+      // Enrich with keywords and metadata when available
+      let keywords = [];
+      try {
+        const kw = await tmdService.tvKeywords({ id: id }).catch(()=>null);
+        if (kw && Array.isArray(kw.results)) { keywords = kw.results.map(k => (k && (k.name||'')).toLowerCase()).filter(Boolean); }
+      } catch(_){}
       cachePut(id, poster);
-      try { if (poster) { await Show.updateOne({ tmd_id: id }, { $set: { poster_path: poster } }, { upsert: false }); } } catch(_){}
+      try {
+        const update = { poster_path: poster };
+        try { if (show && Array.isArray(show.genres)) update.genres = show.genres.map(g=>g && g.id).filter(Boolean); } catch(_){}
+        try { if (show && show.type) update.type = show.type; } catch(_){}
+        if (keywords && keywords.length) update.keywords = keywords;
+        await Show.updateOne({ tmd_id: id }, { $set: update }, { upsert: false });
+      } catch(_){}
       res.set('Cache-Control','public, max-age=1800');
       return res.send({ poster_path: poster });
     } catch (e) { return res.send({ poster_path: null }); }

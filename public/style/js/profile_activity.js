@@ -18,37 +18,22 @@
           } catch(_) { return ''; }
         }).join('');
         var $items = $(html); $holder.append($items);
-        // Default the toggle state from activity flags (profile owner's actions)
-        try {
-          items.forEach(function(it){
-            var id = it.tmd_id; if(!id) return;
-            if (it.type === 'movie'){
-              var wSel = it.w ? '#remove_watched_movie_' : '#add_watched_movie_';
-              var fSel = it.f ? '#remove_favourited_movie_' : '#add_favourited_movie_';
-              var sSel = it.s ? '#remove_saved_movie_' : '#add_saved_movie_';
-              $('#add_watched_movie_'+id+', #remove_watched_movie_'+id).hide(); $(wSel+id).show();
-              $('#add_favourited_movie_'+id+', #remove_favourited_movie_'+id).hide(); $(fSel+id).show();
-              $('#add_saved_movie_'+id+', #remove_saved_movie_'+id).hide(); $(sSel+id).show();
-            } else {
-              var wSel2 = it.w ? '#remove_watched_show_' : '#add_watched_show_';
-              var fSel2 = it.f ? '#remove_favourited_show_' : '#add_favourited_show_';
-              var sSel2 = it.s ? '#remove_saved_show_' : '#add_saved_show_';
-              $('#add_watched_show_'+id+', #remove_watched_show_'+id).hide(); $(wSel2+id).show();
-              $('#add_favourited_show_'+id+', #remove_favourited_show_'+id).hide(); $(fSel2+id).show();
-              $('#add_saved_show_'+id+', #remove_saved_show_'+id).hide(); $(sSel2+id).show();
-            }
-          });
-        } catch(_){}
-
-        // If the viewer is the same as the profile owner, refine state using their full statuses
+        // Always reflect the VIEWER's quick-action state (not the profile owner's).
+        // If viewer not logged in, default to all "add" (off) icons.
         try {
           var viewerId = (window.SITE_PREFS && SITE_PREFS.userId) || null;
-          var profileId = (data && data.user_id) ? String(data.user_id) : null;
-          if (viewerId && profileId && String(viewerId) === String(profileId) && window.StatusStore){
-            var idsMovie = items.filter(function(x){return x.type==='movie';}).map(function(x){return x.tmd_id;});
-            var idsShow  = items.filter(function(x){return x.type==='show';}).map(function(x){return x.tmd_id;});
-            if (idsMovie.length){ StatusStore.request('movie', idsMovie).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsMovie[idx]; if(!id) return; $('#add_watched_movie_'+id+',#remove_watched_movie_'+id).hide(); (st&&st.w===true?$('#remove_watched_movie_'+id):$('#add_watched_movie_'+id)).show(); $('#add_favourited_movie_'+id+',#remove_favourited_movie_'+id).hide(); (st&&st.f===true?$('#remove_favourited_movie_'+id):$('#add_favourited_movie_'+id)).show(); $('#add_saved_movie_'+id+',#remove_saved_movie_'+id).hide(); (st&&st.s===true?$('#remove_saved_movie_'+id):$('#add_saved_movie_'+id)).show(); }); }); }
-            if (idsShow.length){ StatusStore.request('show', idsShow).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsShow[idx]; if(!id) return; $('#add_watched_show_'+id+',#remove_watched_show_'+id).hide(); (st&&st.w===true?$('#remove_watched_show_'+id):$('#add_watched_show_'+id)).show(); $('#add_favourited_show_'+id+',#remove_favourited_show_'+id).hide(); (st&&st.f===true?$('#remove_favourited_show_'+id):$('#add_favourited_show_'+id)).show(); $('#add_saved_show_'+id+',#remove_saved_show_'+id).hide(); (st&&st.s===true?$('#remove_saved_show_'+id):$('#add_saved_show_'+id)).show(); }); }); }
+          var idsMovie = items.filter(function(x){return x.type==='movie';}).map(function(x){return x.tmd_id;});
+          var idsShow  = items.filter(function(x){return x.type==='show';}).map(function(x){return x.tmd_id;});
+          // Hide both variants before applying
+          idsMovie.forEach(function(id){ $('#add_watched_movie_'+id+',#remove_watched_movie_'+id+',#add_favourited_movie_'+id+',#remove_favourited_movie_'+id+',#add_saved_movie_'+id+',#remove_saved_movie_'+id).hide(); });
+          idsShow.forEach(function(id){ $('#add_watched_show_'+id+',#remove_watched_show_'+id+',#add_favourited_show_'+id+',#remove_favourited_show_'+id+',#add_saved_show_'+id+',#remove_saved_show_'+id).hide(); });
+          if (viewerId && window.StatusStore){
+            if (idsMovie.length){ StatusStore.request('movie', idsMovie).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsMovie[idx]; if(!id) return; (st&&st.w===true?$('#remove_watched_movie_'+id):$('#add_watched_movie_'+id)).show(); (st&&st.f===true?$('#remove_favourited_movie_'+id):$('#add_favourited_movie_'+id)).show(); (st&&st.s===true?$('#remove_saved_movie_'+id):$('#add_saved_movie_'+id)).show(); }); }); }
+            if (idsShow.length){ StatusStore.request('show', idsShow).then(function(list){ (list||[]).forEach(function(st, idx){ var id=idsShow[idx]; if(!id) return; (st&&st.w===true?$('#remove_watched_show_'+id):$('#add_watched_show_'+id)).show(); (st&&st.f===true?$('#remove_favourited_show_'+id):$('#add_favourited_show_'+id)).show(); (st&&st.s===true?$('#remove_saved_show_'+id):$('#add_saved_show_'+id)).show(); }); }); }
+          } else {
+            // Not logged in; always show "add" state (off)
+            idsMovie.forEach(function(id){ $('#add_watched_movie_'+id+',#add_favourited_movie_'+id+',#add_saved_movie_'+id).show(); });
+            idsShow.forEach(function(id){ $('#add_watched_show_'+id+',#add_favourited_show_'+id+',#add_saved_show_'+id).show(); });
           }
         } catch(_){}
         // Poster hydrate from client cache/queue

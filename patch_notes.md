@@ -8,6 +8,20 @@ Directive for contributors:
 
 ---
 
+## 2025-10-27T13:00Z - SEO: site name, icon, and snippet polish
+
+- Added rich head metadata to improve how the homepage appears in Google and social shares.
+  - Favicon/app icons + theme color: `cropped_ico.png` wired via `link rel="icon"`, `shortcut icon`, `apple-touch-icon`, and `<meta name="theme-color">`.
+  - Default meta description: “A better way to see what you've seen.”
+  - Open Graph / Twitter cards: title, description, image set to standard banner.
+  - Structured data (JSON‑LD):
+    - `WebSite` with preferred site name “iWatched”, URL `https://iwatched.app`, and `SearchAction` for on‑site search.
+    - `Organization` with `logo` set to `cropped_ico.png`.
+  - File: `views/public assets/partials/standard/head.ejs`.
+
+Notes
+- These hints help Google render the “iWatched” site name, show your icon, and use the new tagline under the result. Changes take effect after re‑crawl.
+
 ## 2025-10-27T12:00Z - Admin bans, signup hardening, UI fixes, and defaults
 
 - Admin: Ban + Delete and bans management

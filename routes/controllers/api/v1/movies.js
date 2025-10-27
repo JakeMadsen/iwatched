@@ -24,7 +24,9 @@ module.exports = function (server) {
                         results.results = results.results.filter(r => {
                             const hasDate = !!(r && r.release_date);
                             const hasVotes = (r && Number(r.vote_count)) > 0;
-                            return hasDate && hasVotes;
+                            const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
+                            const notDoc = !ids.includes(99); // Documentary
+                            return notDoc && hasDate && hasVotes;
                         });
                     }
                     if (String(req.query.hide_watched||'') === '1' && req.query.profile_id) {
@@ -64,7 +66,9 @@ module.exports = function (server) {
                         results.results = results.results.filter(r => {
                             const hasDate = !!(r && r.release_date);
                             const hasVotes = (r && Number(r.vote_count)) > 0;
-                            return hasDate && hasVotes;
+                            const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
+                            const notDoc = !ids.includes(99);
+                            return notDoc && hasDate && hasVotes;
                         });
                     }
                     if (String(req.query.hide_watched||'') === '1' && req.query.profile_id) {

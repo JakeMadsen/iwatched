@@ -18,17 +18,19 @@ module.exports = {
     },
     getPopularShows: () => {
         return new Promise((resolve, reject) => {
-            // Exclude reality genre 10764
-            axios.get(`${url}/discover/tv?api_key=${key}&language=en-US&sort_by=popularity.desc&page=1&include_null_first_air_dates=false&without_genres=10764`)
+            // Exclude Reality(10764), Talk(10767), News(10763)
+            axios.get(`${url}/discover/tv?api_key=${key}&language=en-US&sort_by=popularity.desc&page=1&include_null_first_air_dates=false&without_genres=10764,10767,10763`)
             .then(response => {
                 try {
                     const list = Array.isArray(response.data && response.data.results) ? response.data.results : [];
                     const filtered = list.filter(r => {
                         const ids = Array.isArray(r && r.genre_ids) ? r.genre_ids : [];
                         const notReality = !ids.includes(10764);
+                        const notTalk = !ids.includes(10767);
+                        const notNews = !ids.includes(10763);
                         const hasDate = !!(r && r.first_air_date);
                         const hasVotes = (r && Number(r.vote_count)) > 0;
-                        return notReality && hasDate && hasVotes;
+                        return notReality && notTalk && notNews && hasDate && hasVotes;
                     });
                     resolve(filtered);
                 } catch(_) {

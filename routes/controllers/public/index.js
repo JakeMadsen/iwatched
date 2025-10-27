@@ -18,9 +18,12 @@ module.exports = function (server) {
             popularShows = (popularShows||[]).filter(s => {
                 const ids = Array.isArray(s && s.genre_ids) ? s.genre_ids : [];
                 const notReality = !ids.includes(10764);
+                const notTalk = !ids.includes(10767);
+                const notNews = !ids.includes(10763);
+                const notDoc = !ids.includes(99);
                 const hasDate = !!(s && s.first_air_date);
                 const hasVotes = Number(s && s.vote_count || 0) > 0;
-                return notReality && hasDate && hasVotes;
+                return notReality && notTalk && notNews && notDoc && hasDate && hasVotes;
             });
         } catch (e) { try { console.error('[Home] popularShows failed:', e && e.message || e); } catch(_){} }
         res.render('public assets/template.ejs', {

@@ -46,16 +46,11 @@
     <h3>Movies (Cast)</h3>
     <hr>
     <div class="row">
-      <% (page_data.cast_movies||[]).slice(0,24).forEach(function(m){ %>
+      <% (page_data.cast_movies||[]).forEach(function(m){ %>
         <div class="col-md-2 image-box">
           <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (typeof user != 'undefined') { %>
-              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>"
-                   onload="
-                      checkIfFavourited('<%= user._id %>', '<%= m.id %>');
-                      checkIfWatched('<%= user._id %>', '<%= m.id %>');
-                      checkIfSaved('<%= user._id %>', '<%= m.id %>');
-                   ">
+              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>">
             <% } else { %>
               <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>">
             <% } %>
@@ -100,15 +95,11 @@
     <h3>Series (Cast)</h3>
     <hr>
     <div class="row">
-      <% (page_data.cast_shows||[]).slice(0,24).forEach(function(s){ %>
+      <% (page_data.cast_shows||[]).forEach(function(s){ %>
         <div class="col-md-2 image-box">
           <a href="/shows/<%= s.id %>-<%= (s.name||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (s.poster_path) { %>
-              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= s.poster_path %>" alt="<%= s.name %>"
-                <% if (typeof user != 'undefined') { %>
-                onload="checkIfFavouritedShow('<%= user._id %>', '<%= s.id %>'); checkIfWatchedShow('<%= user._id %>', '<%= s.id %>'); checkIfSavedShow('<%= user._id %>', '<%= s.id %>');"
-                <% } %>
-              >
+              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= s.poster_path %>" alt="<%= s.name %>">
             <% } %>
             <div class="movie-hover image-box-description">
               <p><%= s.name %></p>
@@ -140,16 +131,11 @@
     <h3>Directed</h3>
     <hr>
     <div class="row">
-      <% (page_data.crew_movies||[]).slice(0,24).forEach(function(m){ %>
+      <% (page_data.crew_movies||[]).forEach(function(m){ %>
         <div class="col-md-2 image-box">
           <a href="/movies/<%= m.id %>-<%= (m.title||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80) %>">
             <% if (typeof user != 'undefined') { %>
-              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>"
-                   onload="
-                      checkIfFavourited('<%= user._id %>', '<%= m.id %>');
-                      checkIfWatched('<%= user._id %>', '<%= m.id %>');
-                      checkIfSaved('<%= user._id %>', '<%= m.id %>');
-                   ">
+              <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>">
             <% } else { %>
               <img class="img-fluid image-box-hover" src="https://image.tmdb.org/t/p/w342/<%= m.poster_path %>" alt="<%= m.title %>">
             <% } %>
@@ -160,26 +146,26 @@
             <div class="row">
               <div class="col-md-4">
                 <i class="far fa-check-circle fa-2x icon-white"
-                   id="add_watched_movie_<%= m.id %>"
+                   id="add_watched_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
                 <i class="fas fa-check-circle fa-2x icon-green"
-                   id="remove_watched_movie_<%= m.id %>"
+                   id="remove_watched_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
               </div>
               <div class="col-md-4">
                 <i class="far fa-heart fa-2x icon-white"
-                   id="add_favourited_movie_<%= m.id %>"
+                   id="add_favourited_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
                 <i class="fas fa-heart fa-2x icon-red"
-                   id="remove_favourited_movie_<%= m.id %>"
+                   id="remove_favourited_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
               </div>
               <div class="col-md-4">
                 <i class="far fa-bookmark fa-2x icon-white"
-                   id="add_saved_movie_<%= m.id %>"
+                   id="add_saved_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
                 <i class="fas fa-bookmark fa-2x icon-blue"
-                   id="remove_saved_movie_<%= m.id %>"
+                   id="remove_saved_movie_dir_<%= m.id %>"
                    onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= m.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
               </div>
             </div>
@@ -191,3 +177,29 @@
   </div>
   <% } %>
 </div>
+
+<% if (typeof user != 'undefined') { %>
+<script>
+  (function(){
+    try {
+      var castMovieIds = (<%- JSON.stringify((page_data.cast_movies||[]).map(m=>m&&m.id).filter(Boolean)) %>);
+      var dirMovieIds  = (<%- JSON.stringify((page_data.crew_movies||[]).map(m=>m&&m.id).filter(Boolean)) %>);
+      var castShowIds  = (<%- JSON.stringify((page_data.cast_shows||[]).map(s=>s&&s.id).filter(Boolean)) %>);
+      function hideIcons(prefix, ids){ ids.forEach(function(id){
+        $('#'+prefix+'add_watched_'+id+',#'+prefix+'remove_watched_'+id+',#'+prefix+'add_favourited_'+id+',#'+prefix+'remove_favourited_'+id+',#'+prefix+'add_saved_'+id+',#'+prefix+'remove_saved_'+id).hide();
+      }); }
+      // cast movies use default ids
+      hideIcons('', castMovieIds.map(function(id){ return 'movie_'+id; }));
+      // directed movies use _dir_ ids
+      dirMovieIds.forEach(function(id){ $('#add_watched_movie_dir_'+id+',#remove_watched_movie_dir_'+id+',#add_favourited_movie_dir_'+id+',#remove_favourited_movie_dir_'+id+',#add_saved_movie_dir_'+id+',#remove_saved_movie_dir_'+id).hide(); });
+      // cast shows use default show ids
+      castShowIds.forEach(function(id){ $('#add_watched_show_'+id+',#remove_watched_show_'+id+',#add_favourited_show_'+id+',#remove_favourited_show_'+id+',#add_saved_show_'+id+',#remove_saved_show_'+id).hide(); });
+      if (window.StatusStore){
+        if (castMovieIds.length){ StatusStore.request('movie', castMovieIds).then(function(list){ (list||[]).forEach(function(st, idx){ var id=castMovieIds[idx]; if(!id)return; (st&&st.w?$('#remove_watched_movie_'+id):$('#add_watched_movie_'+id)).show(); (st&&st.f?$('#remove_favourited_movie_'+id):$('#add_favourited_movie_'+id)).show(); (st&&st.s?$('#remove_saved_movie_'+id):$('#add_saved_movie_'+id)).show(); }); }); }
+        if (dirMovieIds.length){ StatusStore.request('movie', dirMovieIds).then(function(list){ (list||[]).forEach(function(st, idx){ var id=dirMovieIds[idx]; if(!id)return; (st&&st.w?$('#remove_watched_movie_dir_'+id):$('#add_watched_movie_dir_'+id)).show(); (st&&st.f?$('#remove_favourited_movie_dir_'+id):$('#add_favourited_movie_dir_'+id)).show(); (st&&st.s?$('#remove_saved_movie_dir_'+id):$('#add_saved_movie_dir_'+id)).show(); }); }); }
+        if (castShowIds.length){ StatusStore.request('show', castShowIds).then(function(list){ (list||[]).forEach(function(st, idx){ var id=castShowIds[idx]; if(!id)return; (st&&st.w?$('#remove_watched_show_'+id):$('#add_watched_show_'+id)).show(); (st&&st.f?$('#remove_favourited_show_'+id):$('#add_favourited_show_'+id)).show(); (st&&st.s?$('#remove_saved_show_'+id):$('#add_saved_show_'+id)).show(); }); }); }
+      }
+    } catch(_){}
+  })();
+</script>
+<% } %>

@@ -5,7 +5,8 @@ const tmdService = new MovieDb(process.env.TMDB_API_KEY || 'ab4e974d12c288535f86
 module.exports = function (server) {
   server.get('/api/v1/search', async (req, res) => {
     const q = (req.query.q || '').toString().trim();
-    const limit = Math.min(parseInt(req.query.limit || '5', 10) || 5, 10);
+    // Allow larger people sets so "empty" person profiles still surface
+    const limit = Math.min(parseInt(req.query.limit || '10', 10) || 10, 20);
 
     if (!q) {
       return res.status(200).send({ q: '', movies: [], shows: [], users: [] });
@@ -51,11 +52,32 @@ module.exports = function (server) {
         poster_path: s.poster_path,
       }));
 
-      const persons = (personRes.results || []).slice(0, limit).map(p => ({
-        id: p.id,
-        name: p.name,
-        profile_path: p.profile_path
-      }));
+      function okMovie(it){
+        const ids = Array.isArray(it && it.genre_ids) ? it.genre_ids : [];
+        const notDoc = !ids.includes(99);
+        const hasDate = !!(it && it.release_date);
+        const hasVotes = (it && Number(it.vote_count)) > 0;
+        return notDoc && hasDate && hasVotes;
+      }
+      function okShow(it){
+        const ids = Array.isArray(it && it.genre_ids) ? it.genre_ids : [];
+        const notReality = !ids.includes(10764);
+        const notTalk = !ids.includes(10767);
+        const notNews = !ids.includes(10763);
+        const notDoc = !ids.includes(99);
+        const hasDate = !!(it && it.first_air_date);
+        const hasVotes = (it && Number(it.vote_count)) > 0;
+        return notReality && notTalk && notNews && notDoc && hasDate && hasVotes;
+      }
+      const persons = (personRes.results || [])
+        .filter(p => {
+          const known = Array.isArray(p && p.known_for) ? p.known_for : [];
+          if (!known.length) return false; // empty person profile -> skip
+          // keep if any known_for passes our content filters
+          return known.some(it => (it && it.media_type === 'movie' && okMovie(it)) || (it && it.media_type === 'tv' && okShow(it)));
+        })
+        .slice(0, limit)
+        .map(p => ({ id: p.id, name: p.name, profile_path: p.profile_path }));
 
       const userItems = (users || []).map(u => ({
         id: u._id,
