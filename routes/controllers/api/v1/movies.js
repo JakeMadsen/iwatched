@@ -81,16 +81,32 @@ module.exports = function (server) {
             })
     });
 
+    // Lightweight poster cache to minimize TMDb calls
+    const Movie = require('../../../../db/models/movie');
+    const __posterCache = new Map(); // key -> { path, ts }
+    const POSTER_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours
+    function cacheGet(id){
+        try { const v = __posterCache.get(String(id)); if (!v) return null; if ((Date.now() - (v.ts||0)) > POSTER_TTL_MS) { __posterCache.delete(String(id)); return null; } return v.path || null; } catch(_) { return null; }
+    }
+    function cachePut(id, path){ try { __posterCache.set(String(id), { path: path || null, ts: Date.now() }); } catch(_){} }
+
     server.get('/api/v1/movies/get_poster/:id', async (req, res) => {
-        let movie = await tmdService.movieInfo(req.params.id)
-        let posterPath = {
-            poster_path: movie.poster_path
-        }
-        if(movie == 'undefined' || null)
-            res.send("error")
-        else
-            res.send(posterPath)
-
-
+        try {
+            const id = String(req.params.id);
+            // 1) Memory cache
+            const mem = cacheGet(id); if (mem) { res.set('Cache-Control','public, max-age=3600'); return res.send({ poster_path: mem }); }
+            // 2) DB cache (Movie document)
+            try {
+                const doc = await Movie.findOne({ tmd_id: id }).select('poster_path').lean();
+                if (doc && doc.poster_path){ cachePut(id, doc.poster_path); res.set('Cache-Control','public, max-age=3600'); return res.send({ poster_path: doc.poster_path }); }
+            } catch(_){}
+            // 3) Fallback to TMDb, persist
+            const movie = await tmdService.movieInfo(id).catch(()=>({}));
+            const poster = movie && movie.poster_path ? movie.poster_path : null;
+            cachePut(id, poster);
+            try { if (poster) { await Movie.updateOne({ tmd_id: id }, { $set: { poster_path: poster } }, { upsert: false }); } } catch(_){}
+            res.set('Cache-Control','public, max-age=1800');
+            return res.send({ poster_path: poster });
+        } catch (_) { return res.send({ poster_path: null }); }
     });
 }

@@ -124,8 +124,10 @@
     }
 
     function maybeHideWatched(type, map){
+      // Apply only on search/browse pages; never hide on user profile lists
       if (!(window.SITE_PREFS && SITE_PREFS.hideWatchedInSearch)) return;
       try {
+        if (!document.getElementById('search_input')) return; // not a search UI
         var holder = (type==='movie') ? document.getElementById('movies_holder') : document.getElementById('shows_holder');
         if (!holder) return;
         Object.keys(map||{}).forEach(function(id){

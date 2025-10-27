@@ -8,6 +8,27 @@ Directive for contributors:
 
 ---
 
+## 2025-10-27T00:00Z - Site-wide filtering: skip Rumored titles and Reality TV
+
+- Public pages
+  - Redirect away from low-quality details:
+    - Movies: if `status === Rumored` redirect to `/movies` (`routes/controllers/public/movies.js`).
+    - Shows: if `status === Rumored` or `type/genre === Reality` redirect to `/shows` (`routes/controllers/public/shows.js`).
+- API search endpoints
+  - Movies: require `release_date` and `vote_count > 0` for results (`routes/controllers/api/v1/movies.js`).
+  - Shows: exclude Reality (genre `10764`), require `first_air_date` and `vote_count > 0` (`routes/controllers/api/v1/shows.js`).
+  - Global navbar search also applies the same filters (`routes/controllers/api/v1/search.js`).
+- Home/popular lists
+  - Post-filter popular movies/shows with the same rules in services and on render (`routes/services/movies.js`, `routes/services/shows.js`, `routes/controllers/public/index.js`).
+- Person page
+  - Filter credits to hide rumored/unreleased movies and Reality TV appearances (`routes/controllers/public/person.js`).
+- Similar content
+  - Movie similar list now requires `release_date` to avoid placeholder recommendations (`routes/controllers/public/movies.js`).
+
+Notes
+- Reality detection uses TMDb TV genre id `10764` and `type === 'Reality'` where available.
+- These changes affect: `/`, `/movies`, `/movies/:id`, `/shows`, `/shows/:id`, `/person/:id`, and the navbar search.
+
 ## 2025-10-26T00:00Z - New public UI, fixes, support UX, and safety hardening
 
 - Layout + Partials

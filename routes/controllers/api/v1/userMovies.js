@@ -208,9 +208,12 @@ module.exports = (server) => {
             if (!user) return res.send(createError(404, { error: 'No user found' }));
             const entries = await UserMovie.find({ user_id: user._id, movie_watched_count: { $gt: 0 } }).lean();
             let movieList = entries.map(e => e.movie_id);
-            const movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
+            let movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
+            // Keep unique by TMDB id
+            const seen = new Set(); movies = movies.filter(m => { const id=String(m.tmd_id||''); if(!id||seen.has(id)) return false; seen.add(id); return true; });
             const totalResults = movies.length; const paged = paginateArray(movies, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged });
+            // Return quickly; client fetches posters asynchronously to avoid blocking
+            return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged });
         } catch (e) { res.send(createError(400, e)); }
     });
 
@@ -221,9 +224,16 @@ module.exports = (server) => {
             if (!user) return res.send(createError(404, { error: 'No user found' }));
             const entries = await UserMovie.find({ user_id: user._id, movie_favorite: { $ne: null } }).lean();
             let movieList = entries.map(e => e.movie_id);
-            const movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
+            let movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
             const totalResults = movies.length; const paged = paginateArray(movies, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged });
+            try {
+                const ids = paged.map(m => m.tmd_id);
+                const details = await Promise.all(ids.map(id => tmdService.movieInfo(id).catch(()=>null)));
+                const enriched = paged.map((m, idx) => {
+                    const d = details[idx] || {}; const poster = d.poster_path || d.backdrop_path || null; return Object.assign({}, m, { poster_path: poster });
+                });
+                return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: enriched.length, results: enriched });
+            } catch(_) { return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged }); }
         } catch (e) { res.send(createError(400, e)); }
     });
 
@@ -234,9 +244,16 @@ module.exports = (server) => {
             if (!user) return res.send(createError(404, { error: 'No user found' }));
             const entries = await UserMovie.find({ user_id: user._id, movie_bookmarked: { $ne: null } }).lean();
             let movieList = entries.map(e => e.movie_id);
-            const movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
+            let movies = await Movie.find({ 'tmd_id': { $in: movieList } }).collation({locale:'en',strength:2}).sort({ movie_title:1 }).lean();
             const totalResults = movies.length; const paged = paginateArray(movies, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged });
+            try {
+                const ids = paged.map(m => m.tmd_id);
+                const details = await Promise.all(ids.map(id => tmdService.movieInfo(id).catch(()=>null)));
+                const enriched = paged.map((m, idx) => {
+                    const d = details[idx] || {}; const poster = d.poster_path || d.backdrop_path || null; return Object.assign({}, m, { poster_path: poster });
+                });
+                return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: enriched.length, results: enriched });
+            } catch(_) { return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: totalResults, amount_of_results: paged.length, results: paged }); }
         } catch (e) { res.send(createError(400, e)); }
     });
 

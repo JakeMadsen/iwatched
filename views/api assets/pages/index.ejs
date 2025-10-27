@@ -66,6 +66,9 @@
                         <a class="nav-link" href="#user_movies_routes">User Movies (New)</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#user_activity_routes">User Activity</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="#recommendations_routes">Recommendations</a>
                     </li>
                 </ul>
@@ -168,6 +171,33 @@
             </tbody>
         </table>
     </div>
+    <!-- User Activity Routes -->
+    <div class="route_list">
+        <a name="user_activity_routes">
+            <h2>User Activity</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">/v1/</th>
+                    <td>GET</td>
+                    <td><a href="/api/v1/user-activity/latest/123">user-activity/latest/:profile_id</a></td>
+                    <td>Return up to 12 most recent actions (watched/favourited/saved) across movies and shows</td>
+                    <td>No</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Recommendations Routes -->
     <div class="route_list">
         <a name="recommendations_routes">

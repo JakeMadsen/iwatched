@@ -1,14 +1,8 @@
 <% if(typeof user != 'undefined') { %>
     <script type="text/html" id="movie-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/movies/{{tmd_id}}-{{slug}}">
-                    <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif"
-                        alt="" 
-                        onload="    
-                            checkIfFavourited('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
-                            checkIfWatched('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
-                            checkIfSaved('<%= (page_data && page_data.user && page_data.user._id) || (user && user._id) %>', '{{tmd_id}}')
-                        ">
+                    <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{movie_title}}</p>
@@ -50,9 +44,9 @@
     </script>
 <% } else { %>
     <script type="text/html" id="movie-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/movies/{{tmd_id}}-{{slug}}">
-                <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif">
+                <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{movie_title}}</p>

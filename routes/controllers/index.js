@@ -17,6 +17,8 @@ module.exports = (server) => {
     require("./api/v1/userShows")(server);
     require("./api/v1/recommendations")(server);
     require("./api/v1/reports")(server);
+    // Mixed user activity (movies + shows)
+    try { require("./api/v1/userActivity")(server); } catch(_){}
 
     console.log('======== Loading Private Routes ========')
     /* PRIVATE ROUTES */

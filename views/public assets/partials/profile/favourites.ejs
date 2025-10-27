@@ -1,29 +1,28 @@
-<div id="profile_lists">
-  <div class="d-flex align-items-center justify-content-between">
-    <h3>Favourites</h3>
-    <div>
-      <div class="btn-group" role="group" aria-label="Switch media">
-        <button id="fav_tab_movies" type="button" class="btn btn-sm btn-outline-light">Movies</button>
-        <button id="fav_tab_shows" type="button" class="btn btn-sm btn-outline-light">Shows</button>
-      </div>
-    </div>
-  </div>
+<style>
+  .scroll-box { overflow-y: auto; overflow-x: hidden; border-radius: 8px; }
+  /* Prevent flex rows from stretching to fill the tall box */
+  .scroll-box.row { align-content: flex-start; align-items: flex-start; }
+  .scroll-box { scrollbar-width: thin; scrollbar-color: #3b82f6 transparent; }
+  .scroll-box::-webkit-scrollbar { height: 8px; width: 8px; }
+  .scroll-box::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 8px; }
+  .scroll-box::-webkit-scrollbar-track { background: transparent; }
+  .section-heading { margin: 16px 0 8px; font-weight: 600; font-size: 18px; }
+  .fav-title { margin-top: 6px; margin-bottom: 6px; font-size: 24px; }
+  /* Avoid Bootstrap row negative margins causing horizontal scroll */
+  .scroll-box .row { margin-left: 0 !important; margin-right: 0 !important; }
+  /* Ensure overlay stays pinned to posters even if container height changes */
+  .image-box { position: relative; }
+  .image-box .movie-hover { position: absolute !important; inset: 0; }
+</style>
 
-  <div id="movies_holder" class="row mt-3"></div>
+<div id="profile_lists" class="container" style="padding-top: 12px;">
+  <h3 class="fav-title">Favourites</h3>
 
-  <div id="view_more" style="display: none; margin-top:10px;">
-    <div class="page-load-status">
-      <div class="loader-ellips infinite-scroll-request">
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-      </div>
-      <p class="infinite-scroll-last">End of content</p>
-      <p class="infinite-scroll-error">No more pages to load</p>
-    </div>
-    <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
-  </div>
+  <div class="section-heading">Movies</div>
+  <div id="fav_movies_holder" class="scroll-box row" style="height: 60vh; max-height: 80vh;"></div>
+
+  <div class="section-heading">Shows</div>
+  <div id="fav_shows_holder" class="scroll-box row" style="height: 60vh; max-height: 80vh;"></div>
 </div>
 
 <% include movie_template.ejs %>
@@ -31,26 +30,31 @@
 
 <script>
   (function(){
+    function sizeToThreeRows(holder){
+      try { var tries=0; function run(){
+        var img = holder.querySelector('.image-box img');
+        var h = img && img.getBoundingClientRect ? (img.getBoundingClientRect().height||0) : 0;
+        if (h && h>60){
+          var gap=24, rows=3;
+          var px = Math.round(rows*(h+gap));
+          var maxPx = Math.max(320, Math.min(px, Math.round((window.innerHeight||900)*0.8)));
+          // Fix a concrete height so the element gets its own scrollbar
+          holder.style.height = maxPx+'px';
+          holder.style.maxHeight = maxPx+'px';
+          return;
+        }
+        if (++tries < 30) setTimeout(run, 150);
+      } run(); } catch(_){ }
+    }
+    window.addEventListener('resize', function(){
+      var m=document.getElementById('fav_movies_holder'); var s=document.getElementById('fav_shows_holder');
+      if(m) sizeToThreeRows(m); if(s) sizeToThreeRows(s);
+    });
     document.addEventListener('DOMContentLoaded', function(){
       var userId = <%- JSON.stringify(page_data.user && page_data.user._id) %>;
-      var tab = <%- JSON.stringify(page_data.media_tab || 'movies') %>;
-      var btnMovies = document.getElementById('fav_tab_movies');
-      var btnShows = document.getElementById('fav_tab_shows');
-      function setActive(){
-        [btnMovies, btnShows].forEach(function(b){ if(!b) return; b.classList.remove('active'); });
-        if (tab === 'shows') btnShows && btnShows.classList.add('active');
-        else btnMovies && btnMovies.classList.add('active');
-      }
-      function load(){
-        $('#movies_holder').empty();
-        if (tab === 'shows') { profileFavouriteShows(userId); }
-        else { profileFavouriteMovies(userId); }
-        setActive();
-      }
-      if (btnMovies) btnMovies.addEventListener('click', function(){ tab='movies'; load(); });
-      if (btnShows) btnShows.addEventListener('click', function(){ tab='shows'; load(); });
-      load();
+      profileFavouriteMoviesInto('#fav_movies_holder', userId, { elementScroll: true });
+      profileFavouriteShowsInto('#fav_shows_holder', userId, { elementScroll: true });
+      setTimeout(function(){ sizeToThreeRows(document.getElementById('fav_movies_holder')); sizeToThreeRows(document.getElementById('fav_shows_holder')); }, 300);
     });
   })();
   </script>
-

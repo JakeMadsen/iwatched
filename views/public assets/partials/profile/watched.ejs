@@ -1,4 +1,13 @@
-<div id="profile_lists">
+<style>
+  /* Keep alignment consistent with quick links */
+  .profile-watched { padding-top: 12px; }
+  /* Align the header line with quick links exactly */
+  .profile-watched [name="allMovies"].row { margin-left: 0; margin-right: 0; }
+  .profile-watched [name="allMovies"] > [class^="col-"],
+  .profile-watched [name="allMovies"] > [class*=" col-"] { padding-left: 0; padding-right: 0; }
+</style>
+
+<div id="profile_lists" class="container profile-watched">
     <div id="profile_movie_list">
         <div name="allMovies" class="row">
             <h3 class="col-md-6" style="text-align: left;">
@@ -38,8 +47,6 @@
                 <p class="infinite-scroll-last">End of content</p>
                 <p class="infinite-scroll-error">No more pages to load</p>
             </div>
-
-            <p><button type="button" class="btn btn-primary  view-more-button">View more</button></p>
         </div>
     </div>
     <!-- List all items -->

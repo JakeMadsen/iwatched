@@ -82,7 +82,7 @@
           </div>
         <% } else { %>
           <a class="th-button th-button--ghost" href="/login">Login</a>
-          <a class="th-button th-button--primary" href="/signup">Create Account</a>
+          <a class="th-button th-button--primary" href="/login">Create Account</a>
         <% } %>
 
         <button class="th-header__mobile-toggle" type="button" data-th-mobile-toggle aria-expanded="false" aria-controls="th-mobile-menu">
@@ -126,7 +126,7 @@
         <div class="th-mobile-menu__actions">
           <% if(typeof user == 'undefined'){ %>
             <a class="th-button th-button--ghost" href="/login">Login</a>
-            <a class="th-button th-button--primary" href="/signup">Create Account</a>
+            <a class="th-button th-button--primary" href="/login">Create Account</a>
           <% } else { %>
             <% if( user.profile.custom_url != "" && user.profile.custom_url != null) { %>
               <a class="th-button th-button--ghost" href="/<%= user.profile.custom_url %>">My Profile</a>

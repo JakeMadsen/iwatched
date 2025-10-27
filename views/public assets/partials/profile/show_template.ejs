@@ -1,13 +1,8 @@
 <% if(typeof user != 'undefined') { %>
     <script type="text/html" id="show-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/shows/{{tmd_id}}-{{slug}}">
-                    <img name="show_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif"
-                        alt=""
-                        <% if (typeof user != 'undefined') { %>
-                        onload="checkIfFavouritedShow('<%= user._id %>', '{{tmd_id}}'); checkIfWatchedShow('<%= user._id %>', '{{tmd_id}}'); checkIfSavedShow('<%= user._id %>', '{{tmd_id}}');"
-                        <% } %>
-                    >
+                    <img name="show_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{show_title}}</p>
@@ -48,9 +43,9 @@
     </script>
 <% } else { %>
     <script type="text/html" id="show-template">
-        <div class="col-md-2 image-box" >
+        <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/shows/{{tmd_id}}-{{slug}}">
-                <img name="show_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif">
+                <img name="show_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
             </a>
             <div class="movie-hover image-box-description">
                 <p>{{show_title}}</p>

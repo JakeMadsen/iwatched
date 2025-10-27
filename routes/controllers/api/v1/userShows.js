@@ -454,7 +454,8 @@ module.exports = (server) => {
             }
 
             const total = items.length; const pageItems = paginateArray(items, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems });
+            // Return quickly; client will fetch posters asynchronously with caching
+            return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems });
         } catch (e) { res.send(createError(400, e)); }
     });
 
@@ -467,7 +468,12 @@ module.exports = (server) => {
             const list = entries.map(e => e.show_id);
             const items = await Show.find({ 'tmd_id': { $in: list } }).collation({locale:'en',strength:2}).sort({ show_title:1 }).lean();
             const total = items.length; const pageItems = paginateArray(items, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems });
+            try {
+                const ids = pageItems.map(s => s.tmd_id);
+                const details = await Promise.all(ids.map(id => tmdService.tvInfo(id).catch(()=>null)));
+                const enriched = pageItems.map((s, idx) => { const d = details[idx] || {}; const poster = d.poster_path || d.backdrop_path || null; return Object.assign({}, s, { poster_path: poster }); });
+                return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: enriched.length, results: enriched });
+            } catch(_) { return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems }); }
         } catch (e) { res.send(createError(400, e)); }
     });
 
@@ -480,7 +486,12 @@ module.exports = (server) => {
             const list = entries.map(e => e.show_id);
             const items = await Show.find({ 'tmd_id': { $in: list } }).collation({locale:'en',strength:2}).sort({ show_title:1 }).lean();
             const total = items.length; const pageItems = paginateArray(items, perPage, page);
-            res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems });
+            try {
+                const ids = pageItems.map(s => s.tmd_id);
+                const details = await Promise.all(ids.map(id => tmdService.tvInfo(id).catch(()=>null)));
+                const enriched = pageItems.map((s, idx) => { const d = details[idx] || {}; const poster = d.poster_path || d.backdrop_path || null; return Object.assign({}, s, { poster_path: poster }); });
+                return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: enriched.length, results: enriched });
+            } catch(_) { return res.send({ page, per_page: perPage, user_id: user._id, username: user.local.username, total_results: total, amount_of_results: pageItems.length, results: pageItems }); }
         } catch (e) { res.send(createError(400, e)); }
     });
 
