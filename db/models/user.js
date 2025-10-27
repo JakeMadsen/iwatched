@@ -33,7 +33,10 @@ var userSchema = mongoose.Schema({
         description:        { type: String, default: null },
         birthday:           { type: String, default: null },
         gender:             { type: String, default: null },
-        custom_url:         { type: String, default: hat(), index: {unique : true} },
+        // Important: default must be a function so each new doc gets a unique value.
+        // Using `hat()` directly here evaluates once at schema load, causing all new users
+        // to share the same value until server restart (duplicate key on second insert).
+        custom_url:         { type: String, default: () => hat(), index: {unique : true} },
         featured_badge_id:  { type: mongoose.Schema.Types.ObjectId, default: null },
         user_badges:        { type: [
             new mongoose.Schema({

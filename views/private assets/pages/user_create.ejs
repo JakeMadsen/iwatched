@@ -1,14 +1,30 @@
 <div class="container-fluid">
   <h3>Create User</h3>
-  <% if (page_data && page_data.err) { %><div class="alert alert-danger"><%= page_data.err %></div><% } %>
+  <% if (page_data && page_data.err) { %>
+    <div class="alert alert-danger">
+      <%= page_data.err %>
+      <% if (page_data.err_code && page_data.err_code.indexOf('e')===0 && page_data.msg) { %>
+        <div style="opacity:.8; font-size: 12px; margin-top: 4px;">Details: <%= page_data.msg %></div>
+      <% } %>
+    </div>
+  <% } %>
   <form method="POST" action="/admin/users/create" style="max-width:720px;">
     <div class="form-row">
-      <div class="form-group col-md-4"><label>Username</label><input name="username" class="form-control" required></div>
-      <div class="form-group col-md-4"><label>Email</label><input name="email" class="form-control" required></div>
-      <div class="form-group col-md-4"><label>Password</label><input name="password" class="form-control" placeholder="default: Password123!"></div>
+      <div class="form-group col-md-4">
+        <label>Username</label>
+        <input name="username" class="form-control" required pattern="[A-Za-z0-9]+" minlength="3" maxlength="24" title="Letters and numbers only (3–24)" value="<%= page_data && page_data.username || '' %>">
+        <small class="form-text text-muted">Letters and numbers only (3–24).</small>
+      </div>
+      <div class="form-group col-md-4">
+        <label>Email</label>
+        <input name="email" class="form-control" required type="email" value="<%= page_data && page_data.email || '' %>">
+      </div>
+      <div class="form-group col-md-4">
+        <label>Password</label>
+        <input name="password" class="form-control" placeholder="default: Password123!">
+      </div>
     </div>
     <button class="btn btn-outline-primary" type="submit"><i class="fas fa-user-plus"></i> Create</button>
     <a href="/admin/users" class="btn btn-secondary">Back</a>
   </form>
 </div>
-

@@ -5,11 +5,53 @@
   var __rawTitle = (typeof page_title !== 'undefined' && page_title != null) ? String(page_title) : '';
   var __suffix = __rawTitle.replace(/^\s*iWatched(\.xyz)?\s*-\s*/i,'').trim();
   var __titleOut = 'iWatched' + (__suffix ? (' - ' + __suffix) : '');
+  var __desc = (typeof page_description !== 'undefined' && page_description) ? String(page_description) : 'A better way to see what you\'ve seen.';
 %>
 <title><%= __titleOut %></title>
 
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="/static/style/img/standard/cropped_ico.png">
+<link rel="shortcut icon" href="/static/style/img/standard/cropped_ico.png">
+<link rel="apple-touch-icon" href="/static/style/img/standard/cropped_ico.png">
+<meta name="theme-color" content="#0b0f1a">
+
+<!-- SEO: base description + Open Graph / Twitter -->
+<meta name="description" content="<%= __desc %>">
+<meta property="og:site_name" content="iWatched">
+<meta property="og:title" content="<%= __titleOut %>">
+<meta property="og:description" content="<%= __desc %>">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://iwatched.app">
+<meta property="og:image" content="https://iwatched.app/static/style/img/standard/standard_banner.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= __titleOut %>">
+<meta name="twitter:description" content="<%= __desc %>">
+<meta name="twitter:image" content="https://iwatched.app/static/style/img/standard/standard_banner.png">
+
+<!-- Structured data: preferred site name + logo + search action -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "iWatched",
+  "alternateName": "iWatched.app",
+  "url": "https://iwatched.app",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://iwatched.app/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "iWatched",
+  "url": "https://iwatched.app",
+  "logo": "https://iwatched.app/static/style/img/standard/cropped_ico.png"
+}
+</script>
 
 <!-- Aquire's all stylesheets -->
 <link rel="stylesheet" type="text/css" href="/static/style/bootstrap/css/bootstrap.min.css">

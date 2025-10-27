@@ -6,6 +6,7 @@ const hat = require('hat');
 const BannedAccount = require('../../../db/models/bannedAccount');
 const UserSession = require('../../../db/models/userSession');
 const ModeratorPersona = require('../../../db/models/moderatorPersona');
+const ModerationLog = require('../../../db/models/moderationLog');
 
 
 module.exports = (server) => {
@@ -114,6 +115,9 @@ module.exports = (server) => {
             if (!ip) ip = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.ip || '').toString();
             const hwid = (req.body && req.body.hardware_id) ? String(req.body.hardware_id) : null;
             const reason = (req.body && req.body.reason) ? String(req.body.reason) : '';
+            if (!reason || reason.trim()===''){
+                return res.redirect(`/admin/users/${req.params.id}?err=Please provide a reason for banning.`);
+            }
             // Resolve moderator display name (persona > username)
             let moderator_name = null;
             try {
@@ -126,6 +130,10 @@ module.exports = (server) => {
                     await BannedAccount.create({ email, ip, hardware_id: hwid, reason, moderator_id: req.user._id, moderator_name: moderator_name || null, date_banned: new Date() });
                 } catch (e) { /* ignore dup */ }
             }
+            // Log moderation action pre-delete
+            try {
+                await ModerationLog.create({ moderator_id: req.user._id, target_user_id: u._id, action_type: 'ban_delete', reason, ip: (req.headers['x-forwarded-for'] || req.ip || '').toString(), user_agent: req.headers['user-agent']||null, metadata: { hwid: hwid || null } });
+            } catch(_){}
             await User.deleteOne({ _id: req.params.id });
             return res.redirect('/admin/bans?ok=1');
         } catch (e) {
@@ -134,26 +142,66 @@ module.exports = (server) => {
         }
     });
 
+    // Delete account without ban (requires reason; logs moderation)
+    server.post('/admin/users/:id([0-9a-fA-F]{24})/delete', isLoggedIn, async (req, res) => {
+        try {
+            const reason = String((req.body && req.body.reason) || '').trim();
+            if (!reason) return res.redirect(`/admin/users/${req.params.id}?err=Please provide a reason for deleting.`);
+            const u = await User.findById(req.params.id).lean();
+            if (!u) return res.redirect('/admin/users');
+            try {
+                await ModerationLog.create({ moderator_id: req.user._id, target_user_id: u._id, action_type: 'delete_account', reason, ip: (req.headers['x-forwarded-for'] || req.ip || '').toString(), user_agent: req.headers['user-agent']||null });
+            } catch(_){}
+            await User.deleteOne({ _id: req.params.id });
+            return res.redirect('/admin/users?ok=1');
+        } catch (e) { console.error('Delete user failed:', e && e.message); return res.redirect(`/admin/users/${req.params.id}?err=1`); }
+    });
+
     // Admin: create new user (for testing)
     server.get('/admin/users/create', isLoggedIn, async (req, res) => {
-        res.render(templatePath, { page_title: 'Admin - Create User', page_file: 'user_create', page_data: {}, user: req.user });
+        const errCode = String(req.query.err || '').trim();
+        const username = String(req.query.username || '');
+        const email = String(req.query.email || '');
+        const rawMsg = String(req.query.msg || '');
+        const messages = {
+            exists: 'Username or email already exists.',
+            banned: 'This email is banned. Remove it from Banned Users to proceed.',
+            invalid: 'Username must be 3–24 characters, letters and numbers only.',
+            e1: 'Unexpected error while creating the user.'
+        };
+        const err = errCode ? (messages[errCode] || 'Could not create user.') : null;
+        res.render(templatePath, { page_title: 'Admin - Create User', page_file: 'user_create', page_data: { err, err_code: errCode, username, email, msg: rawMsg }, user: req.user });
     });
     server.post('/admin/users/create', isLoggedIn, async (req, res) => {
         try {
             const username = (req.body.username||'').trim();
             const email = (req.body.email||'').trim();
             const password = (req.body.password||'').trim() || 'Password123!';
-            if (!username || !email) return res.redirect('/admin/users/create?err=1');
-            const exists = await User.findOne({ $or:[ { 'local.username': username }, { 'local.email': email } ] }).lean();
-            if (exists) return res.redirect('/admin/users/create?err=exists');
+            if (!username || !email) return res.redirect('/admin/users/create?err=e1');
+            // Validate username like public signup
+            if (!/^[A-Za-z0-9]+$/.test(username) || username.length < 3 || username.length > 24){
+                return res.redirect(`/admin/users/create?err=invalid&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}`);
+            }
+            // Case-insensitive duplicate check for username/email
+            const rx = (s)=> new RegExp('^'+String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$','i');
+            const exists = await User.findOne({ $or:[ { 'local.username': { $regex: rx(username) } }, { 'local.email': { $regex: rx(email) } } ] }).lean();
+            if (exists) return res.redirect(`/admin/users/create?err=exists&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}`);
             // Banned check
             const escapeRx = (t)=>String(t||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
             const banned = await BannedAccount.findOne({ email: new RegExp('^'+escapeRx(email)+'$', 'i') }).lean();
-            if (banned) return res.redirect('/admin/users/create?err=banned');
-            const u = new User(); u.initialSignup(username, email, password);
-            await u.save();
+            if (banned) return res.redirect(`/admin/users/create?err=banned&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}`);
+            const u = new User(); u.initialSignup(username, String(email).toLowerCase(), password);
+            try { await u.save(); }
+            catch (e) {
+                // Duplicate key safety net
+                if (e && (e.code === 11000 || (e.message||'').indexOf('E11000') !== -1)){
+                    return res.redirect(`/admin/users/create?err=exists&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}`);
+                }
+                console.error('Admin create user failed:', e && e.message);
+                return res.redirect(`/admin/users/create?err=e1&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&msg=${encodeURIComponent(e&&e.message||'')}`);
+            }
             return res.redirect(`/admin/users/${u._id}?ok=1`);
-        } catch (e) { return res.redirect('/admin/users/create?err=1'); }
+        } catch (e) { console.error('Admin create user failed (outer):', e && e.message); return res.redirect(`/admin/users/create?err=e1&username=${encodeURIComponent(req.body.username||'')}&email=${encodeURIComponent(req.body.email||'')}&msg=${encodeURIComponent(e&&e.message||'')}`); }
     });
 
     // Bans list

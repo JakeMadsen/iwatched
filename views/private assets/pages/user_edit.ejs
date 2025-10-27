@@ -93,8 +93,8 @@
   <form method="POST" action="/admin/users/<%= page_data.user._id %>/ban_delete" onsubmit="return confirm('Ban and delete this account permanently?');" class="card card-body" style="max-width:800px;">
     <div class="form-row">
       <div class="form-group col-md-8">
-        <label>Reason</label>
-        <input class="form-control" name="reason" placeholder="Spam / abuse">
+        <label>Reason (required)</label>
+        <input class="form-control" name="reason" placeholder="Spam / abuse" required>
       </div>
       <div class="form-group col-md-4">
         <label>Hardware ID (optional)</label>
@@ -103,5 +103,16 @@
     </div>
     <p class="text-muted">This will store the user's email in the ban list and delete the account. IP is captured from this request automatically.</p>
     <button class="btn btn-danger" type="submit"><i class="fas fa-user-slash"></i> Ban and delete account</button>
+  </form>
+
+  <form method="POST" action="/admin/users/<%= page_data.user._id %>/delete" onsubmit="return confirm('Delete this account permanently (without banning)?');" class="card card-body" style="max-width:800px; margin-top:12px;">
+    <div class="form-row">
+      <div class="form-group col-md-12">
+        <label>Reason (required)</label>
+        <input class="form-control" name="reason" placeholder="Account requested deletion / duplicate user / other" required>
+      </div>
+    </div>
+    <p class="text-muted">This permanently deletes the user without adding their email/IP to the ban list.</p>
+    <button class="btn btn-outline-danger" type="submit"><i class="fas fa-user-times"></i> Delete account</button>
   </form>
 </div>

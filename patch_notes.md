@@ -8,6 +8,39 @@ Directive for contributors:
 
 ---
 
+## 2025-10-27T12:00Z - Admin bans, signup hardening, UI fixes, and defaults
+
+- Admin: Ban + Delete and bans management
+  - Added `BannedAccount` model: `db/models/bannedAccount.js` (email, ip, hardware_id, reason, moderator, date).
+  - User edit now supports Ban and delete with reason/HWID: `views/private assets/pages/user_edit.ejs` and route `POST /admin/users/:id/ban_delete` in `routes/controllers/private/users.js`.
+  - Stores the target user's last session IP (not the admin IP) using `UserSession`; ignores private/loopback IPs on signup checks.
+  - Records moderator persona name when available: `routes/controllers/private/users.js`, `db/models/moderatorPersona.js` (read-only).
+  - Bans list and manual add/unban: `GET/POST /admin/bans` with UI `views/private assets/pages/bans.ejs`.
+  - Admin sidebar: Users dropdown (All users, Banned users, Create user): `views/private assets/partials/standard/sidebar_nav.ejs`.
+  - Admin create-user form: `GET/POST /admin/users/create`, page `views/private assets/pages/user_create.ejs`.
+
+- Signup flow + validation
+  - Username restricted to letters/numbers (3–24 chars) server-side and client-side: `config/passport/passport.js`, `views/public assets/pages/login.ejs`.
+  - Signup now blocks banned emails and (public) IPs; private/loopback IPs are ignored to avoid dev lockouts: `config/passport/passport.js`.
+  - Fixed flash handling so signup/login errors display reliably: `routes/controllers/public/login.js`, `views/public assets/pages/login.ejs`.
+
+- Profile defaults
+  - New default avatar and banner for users without uploads:
+    - Avatar fallback: `/static/style/img/standard/standard_avatar.png` wired in header/profile/friends/search/announcements/support.
+      Files updated across: `views/public assets/partials/standard/header.ejs`, `views/public assets/pages/profile.ejs`, `views/public assets/partials/recommendations/main.ejs`, `views/public assets/pages/temp_user.ejs`, `views/public assets/partials/profile/friends.ejs`, `views/public assets/pages/search.ejs`, `views/public assets/partials/announcements/one.ejs`, `views/public assets/pages/temp_announcements.ejs`, `routes/controllers/api/v1/announcements.js`, `routes/controllers/public/support.js`, `routes/controllers/private/support.js`.
+    - Banner fallback: `/static/style/img/standard/standard_banner.png` applied on profile/recommendations/temp profile pages.
+
+- Latest activity quick actions
+  - API now returns w/f/s flags and client uses them for immediate state; if viewing own profile, StatusStore refines: `routes/controllers/api/v1/userActivity.js`, `public/style/js/profile_activity.js`.
+
+- Favourites/Bookmarked UI
+  - Element-scrolled containers with fixed height and prefill until scrollable; overlay alignment fixed when fewer than 3 rows.
+  - Files: `views/public assets/partials/profile/favourites.ejs`, `views/public assets/partials/profile/bookmarked.ejs`, `public/style/js/profile_movies.js`, `public/style/js/profile_shows.js`.
+
+- Watched pages polish
+  - Align header row width with quick links and add top padding: `views/public assets/partials/profile/watched.ejs`.
+
+
 ## 2025-10-27T00:00Z - Site-wide filtering: skip Rumored titles and Reality TV
 
 - Public pages
