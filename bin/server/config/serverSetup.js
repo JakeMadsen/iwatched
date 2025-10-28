@@ -42,13 +42,41 @@ app.set('view engine','ejs');
 app.set('views', path.join(__dirname, '../../../views'));
 // Serve static assets from public
 const publicDir = path.join(__dirname, '../../../public');
+
+// Serve profile images from S3 (Tigris) under the same URLs if configured
+let storage = null;
+try { storage = require('./storage'); } catch (_) { storage = null; }
+const useS3ProfileImages = !!(storage && storage.isEnabled && storage.isEnabled());
+
+if (useS3ProfileImages) {
+    // Proxy profile images path to object storage to preserve existing URLs in views
+    app.get('/static/style/img/profile_images/users/:userId/:fileName', (req, res) => {
+        const userId = String(req.params.userId || '');
+        const fileName = String(req.params.fileName || '');
+        const key = `style/img/profile_images/users/${userId}/${fileName}`;
+        const cacheHeaders = {
+            'Cache-Control': 'public, max-age=60',
+        };
+        if (!storage || typeof storage.streamToResponse !== 'function' || !storage.streamToResponse(req, res, key, cacheHeaders)) {
+            try { res.status(404).end(); } catch (_) {}
+        }
+    });
+}
+
+// Static assets from local public dir
 app.use(express.static(publicDir));
 app.use('/static', express.static(publicDir));
 
 
 
 /* Server module setup*/
-app.use(fileUpload());
+// Harden file uploads (avatars/banners)
+app.use(fileUpload({
+    limits: { fileSize: Number(process.env.MAX_UPLOAD_SIZE_BYTES || (5 * 1024 * 1024)) },
+    abortOnLimit: true,
+    safeFileNames: true,
+    preserveExtension: true,
+}));
 // Metrics middleware: track RPS, latency, errors, auth failures
 try { app.use(require('../metrics').middleware); } catch (e) {}
 app.use(bodyParser.urlencoded({ extended: true }));

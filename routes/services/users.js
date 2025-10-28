@@ -10,7 +10,10 @@ const UserShowTotals        = require('../../db/models/userShowTotals');
 *   Services
 **************************/
 const fs        = require('fs');
+const path      = require('path');
 const mongoose  = require('mongoose');
+let storage = null;
+try { storage = require('../../bin/server/config/storage'); } catch (_) { storage = null; }
 
 
 /*
@@ -83,13 +86,13 @@ module.exports = {
                         else 
                         {
                             if (newProfilePicture) {
-                                saveProfileImages(user._id, newProfilePicture, user.profile.profile_image, "picture");
+                                await saveProfileImages(user._id, newProfilePicture, (user.profile && user.profile.profile_image) || null, "picture");
                                 let newName = `picture_${user._id}.${getFileExtention(newProfilePicture.name)}`;
                                 imagePB = newName;
                             }
 
                             if (newProfileBanner) {
-                                saveProfileImages(user._id, newProfileBanner, user.profile.banner_image, "banner");
+                                await saveProfileImages(user._id, newProfileBanner, (user.profile && user.profile.banner_image) || null, "banner");
                                 let newName = `banner_${user._id}.${getFileExtention(newProfileBanner.name)}`;
                                 imageBA = newName
                             }
@@ -166,22 +169,50 @@ module.exports = {
 /*
 *   Local functions
 **************************/
-function saveProfileImages(user_id, new_image, old_image, type) {
-    const dir = `public/style/img/profile_images/users/${user_id}`;
+async function saveProfileImages(user_id, new_image, old_image, type) {
+    if (!new_image) return;
+    const filename = `${type}_${user_id}.${getFileExtention(new_image.name || '')}`;
+    const relKey = `style/img/profile_images/users/${user_id}/${filename}`;
+
+    const useS3 = !!(storage && storage.isEnabled && storage.isEnabled());
 
     try {
+        if (useS3) {
+            // Delete old object if present
+            if (old_image) {
+                try { await storage.deleteObject(`style/img/profile_images/users/${user_id}/${old_image}`); } catch (_) {}
+            }
+            // Get bytes from express-fileupload
+            const body = (new_image.data && Buffer.isBuffer(new_image.data)) ? new_image.data : null;
+            const contentType = new_image.mimetype || 'application/octet-stream';
+            if (!body) {
+                // Fallback to temp file if configured
+                if (new_image.tempFilePath) {
+                    const bytes = fs.readFileSync(new_image.tempFilePath);
+                    await storage.putObject(relKey, bytes, contentType);
+                } else {
+                    throw new Error('No file data available for upload');
+                }
+            } else {
+                await storage.putObject(relKey, body, contentType);
+            }
+            // Mutate the name so callers persist it to user.profile.*
+            new_image.name = filename;
+            return;
+        }
+
+        // Filesystem fallback (dev/local)
+        const base = path.join(__dirname, '../../public');
+        const dir = path.join(base, 'style', 'img', 'profile_images', 'users', String(user_id));
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        // remove old image if provided and exists
-        if (old_image && fs.existsSync(`${dir}/${old_image}`)) {
-            try { fs.unlinkSync(`${dir}/${old_image}`); } catch (_) {}
+        if (old_image && fs.existsSync(path.join(dir, old_image))) {
+            try { fs.unlinkSync(path.join(dir, old_image)); } catch (_) {}
         }
-        if (!new_image) return;
-        new_image.name = `${type}_${user_id}.${getFileExtention(new_image.name || '')}`;
-        // express-fileupload provides mv
+        new_image.name = filename;
         if (typeof new_image.mv === 'function') {
-            new_image.mv(`${dir}/${new_image.name}`, (error) => {
+            new_image.mv(path.join(dir, new_image.name), (error) => {
                 if (error) console.error('save image : error', error);
             });
         }

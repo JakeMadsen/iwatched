@@ -5,7 +5,8 @@
   "main": "./bin/server/launch.js",
   "scripts": {
     "start-live": "nodemon ./bin/server/launch.js",
-    "start": "node ./bin/server/launch.js"
+    "start": "node ./bin/server/launch.js",
+    "migrate:profile-images": "node ./scripts/migrate_profile_images_to_s3.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "npm": "6.x"
   },
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "axios": "^0.18.0",
     "bcrypt-nodejs": "0.0.3",
     "connect-flash": "^0.1.1",
