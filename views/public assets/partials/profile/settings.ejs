@@ -90,7 +90,7 @@
     </div>
     <div id="profile_settings_body" style="display:none;">
 
-    <form action="/<%= user._id %>/settings" method="POST" encType="multipart/form-data">
+    <form id="profile_settings_form" action="/<%= user._id %>/settings" method="POST" encType="multipart/form-data">
         
         <!-- Images -->
         <div class="row">
@@ -99,6 +99,9 @@
                     <label for="profile-picture-file">Profile Picture</label>
                     <div class="profile-picture-file">
                         <input name="profilePictureFile" type="file" id="profilePictureFile">
+                        <% var isPremium = (page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium'); %>
+                        <small class="form-text text-muted">Max file size: <%= isPremium ? '8' : '5' %> MB</small>
+                        <div id="avatar_size_error" class="text-danger" style="display:none; margin-top:6px;"></div>
                     </div>
                 </div>
             </div>
@@ -109,6 +112,8 @@
                     <div class="profile-banner-file">
                         <input type="hidden" value="<%= user._id %>">
                         <input name="profileBannerFile" type="file" id="profileBannerFile">
+                        <small class="form-text text-muted">Max file size: <%= isPremium ? '8' : '5' %> MB</small>
+                        <div id="banner_size_error" class="text-danger" style="display:none; margin-top:6px;"></div>
                     </div>
                 </div>
             </div>
@@ -192,6 +197,9 @@
             <textarea name="description" rows="6" class="form-control" id="editor_description" placeholder=""><%= user.profile.description %></textarea>
         </div>
 
+        <% if (page_data && page_data.upload_error) { %>
+          <div class="alert alert-danger" role="alert" style="margin-bottom:12px;"><%= page_data.upload_error %></div>
+        <% } %>
         <button type="submit" class="btn btn-primary">Update Settings</button>
     </form>
     </div>
@@ -210,6 +218,43 @@
 
         password.onchange = validatePassword;
         confirm_password.onkeyup = validatePassword;
+    </script>
+    <script>
+      (function(){
+        document.addEventListener('DOMContentLoaded', function(){
+          try {
+            var form = document.getElementById('profile_settings_form');
+            if(!form) return;
+            var isPremium = <%= JSON.stringify(!!(page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium')) %>;
+            var max = isPremium ? (8*1024*1024) : (5*1024*1024);
+            function check(input, errorEl){
+              try {
+                if (!input || !input.files || input.files.length === 0) { errorEl.style.display='none'; errorEl.textContent=''; return true; }
+                var f = input.files[0];
+                if (f.size > max){
+                  var mb = Math.floor(max/1024/1024);
+                  errorEl.textContent = 'File is too large. Max ' + mb + 'MB for your plan.';
+                  errorEl.style.display = 'block';
+                  return false;
+                }
+                errorEl.style.display='none'; errorEl.textContent='';
+                return true;
+              } catch(_) { return true; }
+            }
+            var avatar = document.getElementById('profilePictureFile');
+            var banner = document.getElementById('profileBannerFile');
+            var aErr = document.getElementById('avatar_size_error');
+            var bErr = document.getElementById('banner_size_error');
+            if (avatar) avatar.addEventListener('change', function(){ check(avatar, aErr); });
+            if (banner) banner.addEventListener('change', function(){ check(banner, bErr); });
+            form.addEventListener('submit', function(e){
+              var okA = check(avatar, aErr);
+              var okB = check(banner, bErr);
+              if (!okA || !okB){ e.preventDefault(); try { window.showToast && showToast('One or more files exceed your limit','warning'); } catch(_){} }
+            });
+          } catch(_){}
+        });
+      })();
     </script>
     <script>
       (function(){

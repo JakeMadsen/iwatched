@@ -31,6 +31,8 @@ module.exports = (server) => {
     require("./private/contact")(server);
     require("./private/badges")(server);
     require("./private/announcements")(server);
+    try { require("./private/admins")(server); } catch(_){}
+    try { require("./private/uploads")(server); } catch(_){}
     try { require("./private/apiMetrics")(server); } catch(_){}
 
     console.log('======== Loading Public Routes ========')

@@ -1,6 +1,17 @@
 <div class="container" style="margin-top: 12px;">
-  <h2>Admin Dashboard</h2>
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <h2 style="margin:0;">Admin Dashboard</h2>
+    <div>
+      <a href="/admin/api-metrics" class="btn btn-sm btn-outline-info" title="View API endpoint metrics"><i class="fas fa-chart-line"></i> API Metrics</a>
+    </div>
+  </div>
   <div class="row" style="margin-top: 12px;">
+    <div class="col-md-3">
+      <div class="stat-card" data-toggle="tooltip" title="Unique visitors (by IP) in the last 24h; includes anonymous traffic">
+        <div class="stat-card__label">Unique visits (24h)</div>
+        <div class="stat-card__value" id="uniq24"><%= page_data.metrics.unique24h || 0 %></div>
+      </div>
+    </div>
     <div class="col-md-3">
       <div class="stat-card" data-toggle="tooltip" title="Unique authenticated users active within the last 5 minutes">
         <div class="stat-card__label">Active users (5m)</div>
@@ -90,6 +101,7 @@
       set('db_conn', m.db && m.db.connections || 0);
       set('uptime', m.uptimeSec || 0);
       set('sysload', m.system && m.system.load || 0);
+      set('uniq24', m.unique24h || 0);
     }).catch(function(){});
   }
   document.addEventListener('DOMContentLoaded', function(){ poll(); setInterval(poll, 5000); });

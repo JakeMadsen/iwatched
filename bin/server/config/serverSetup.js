@@ -72,11 +72,40 @@ app.use('/static', express.static(publicDir));
 /* Server module setup*/
 // Harden file uploads (avatars/banners)
 app.use(fileUpload({
-    limits: { fileSize: Number(process.env.MAX_UPLOAD_SIZE_BYTES || (5 * 1024 * 1024)) },
+    // Allow up to 8MB so premium users can upload larger images; free-tier is enforced in-route
+    limits: { fileSize: Number(process.env.MAX_UPLOAD_SIZE_BYTES || (8 * 1024 * 1024)) },
     abortOnLimit: true,
     safeFileNames: true,
     preserveExtension: true,
 }));
+
+// Preferred primary host redirect (SEO canonicalization). Set PRIMARY_HOST=iwatched.app
+try {
+    const primaryHost = process.env.PRIMARY_HOST || null;
+    if (primaryHost) {
+        app.use((req, res, next) => {
+            try {
+                const host = (req.headers['host'] || '').toString().split(':')[0];
+                if (host && host !== primaryHost) {
+                    const target = `${req.protocol}://${primaryHost}${req.originalUrl}`;
+                    return res.redirect(301, target);
+                }
+            } catch (_) {}
+            next();
+        });
+    }
+} catch (_) {}
+
+// Expose absolute URL to views for canonical/og:url
+app.use((req, res, next) => {
+    try {
+        const host = req.get('host');
+        const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').toString().split(',')[0];
+        const pathOnly = (req.originalUrl || req.url || '/').split('#')[0];
+        res.locals.abs_url = (host ? `${proto}://${host}${pathOnly}` : pathOnly);
+    } catch (_) {}
+    next();
+});
 // Metrics middleware: track RPS, latency, errors, auth failures
 try { app.use(require('../metrics').middleware); } catch (e) {}
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -27,7 +27,7 @@ module.exports = function (server) {
             });
         } catch (e) { try { console.error('[Home] popularShows failed:', e && e.message || e); } catch(_){} }
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
+            page_title: "iWatched - Home",
             page_file: "temp_home",
             page_data: { popular: { movies: popularMovies, shows: popularShows } },
             user: req.user
@@ -41,7 +41,7 @@ module.exports = function (server) {
 
     server.get('/temp-user', async function(req, res) {
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Temp User",
+            page_title: "iWatched - Temp User",
             page_file: "temp_user",
             user: req.user
         });

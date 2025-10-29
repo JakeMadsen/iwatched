@@ -9,7 +9,7 @@ module.exports = (server) => {
 
         else
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Sign in/up",
+            page_title: "iWatched - Sign in/up",
             page_file: "login",
             page_data: {
                 // Use keyed flashes so we don't consume messages accidentally

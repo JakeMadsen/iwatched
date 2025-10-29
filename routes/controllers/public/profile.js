@@ -50,7 +50,7 @@ module.exports = (server) => {
         let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
 
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
+            page_title: "iWatched - Home",
             page_file: "profile",
             page_subFile: "main",
             page_data: Object.assign({
@@ -86,7 +86,7 @@ module.exports = (server) => {
         }));
         const friendsList = enriched.filter(Boolean);
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Friends",
+            page_title: "iWatched - Friends",
             page_file: "profile",
             page_subFile: "friends",
             page_data: Object.assign({ user: res.locals.user, friends: friendsList, friends_count: friendsList.length }, headerStats2),
@@ -131,7 +131,7 @@ module.exports = (server) => {
         let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
         const headerStats3 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
+            page_title: "iWatched - Home",
             page_file: "profile",
             page_subFile: "watched",
             page_data: Object.assign({ user: res.locals.user, watchedTime: watchedTime, amountOfMovies: amountOfMovies, type: type, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats3),
@@ -164,7 +164,7 @@ module.exports = (server) => {
         const friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
         const tab = (req.query.tab && String(req.query.tab).toLowerCase()==='shows') ? 'shows' : 'movies';
         res.render('public assets/template.ejs', {
-            page_title: 'iWatched.xyz - Favourites',
+            page_title: 'iWatched - Favourites',
             page_file: 'profile',
             page_subFile: 'favourites',
             page_data: Object.assign({ user: res.locals.user, media_tab: tab, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats),
@@ -178,7 +178,7 @@ module.exports = (server) => {
         const friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
         const tab = (req.query.tab && String(req.query.tab).toLowerCase()==='shows') ? 'shows' : 'movies';
         res.render('public assets/template.ejs', {
-            page_title: 'iWatched.xyz - Bookmarked',
+            page_title: 'iWatched - Bookmarked',
             page_file: 'profile',
             page_subFile: 'bookmarked',
             page_data: Object.assign({ user: res.locals.user, media_tab: tab, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0 }, headerStats),
@@ -213,7 +213,7 @@ module.exports = (server) => {
         } catch (_) {}
         const headerStats6 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
+            page_title: "iWatched - Home",
             page_file: "profile",
             page_subFile: "settings",
             page_data: Object.assign({ user: res.locals.user, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0, badges: badgesDetailed }, headerStats6),
@@ -265,7 +265,7 @@ module.exports = (server) => {
 
         const headerStats7 = await __buildHeaderStats(res.locals.user);
         res.render('public assets/template.ejs', {
-            page_title: 'iWatched.xyz - Stats',
+            page_title: 'iWatched - Stats',
             page_file: 'profile',
             page_subFile: 'stats_page',
             page_data: Object.assign({ user: res.locals.user, stats: dummy }, headerStats7),
@@ -303,7 +303,7 @@ module.exports = (server) => {
         });
         const headerStats = await __buildHeaderStats(u);
         res.render('public assets/template.ejs', {
-            page_title: 'iWatched.xyz - Badges',
+            page_title: 'iWatched - Badges',
             page_file: 'profile',
             page_subFile: 'badges',
             page_data: Object.assign({ user: u, badges: enriched }, headerStats),
@@ -315,6 +315,53 @@ module.exports = (server) => {
         const wantsJson = (String(req.query.ajax||'') === '1')
             || ((req.headers['accept']||'').indexOf('application/json') !== -1)
             || (req.get && req.get('X-Requested-With') === 'XMLHttpRequest');
+
+        // Enforce per-plan upload size (5MB free, 8MB premium)
+        try {
+            const plan = (req.user && req.user.account && req.user.account.plan) || 'free';
+            const maxFree = 5 * 1024 * 1024; // 5MB
+            const maxPremium = 8 * 1024 * 1024; // 8MB
+            const max = (String(plan).toLowerCase() === 'premium') ? maxPremium : maxFree;
+            const files = req.files || {};
+            const toCheck = [
+                { f: files.profilePictureFile, name: 'Avatar' },
+                { f: files.profileBannerFile, name: 'Banner' }
+            ];
+            for (const item of toCheck) {
+                const f = item && item.f;
+                if (f && typeof f.size === 'number' && f.size > max) {
+                    const mb = (max/1024/1024)|0;
+                    const msg = `${item.name} is too large. Max ${mb}MB for your plan.`;
+                    if (wantsJson) return res.status(400).json({ ok:false, error: 'file_too_large', message: msg, limit_bytes: max });
+
+                    // Re-render settings with error banner
+                    let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+                    let badgesDetailed = [];
+                    try {
+                        const Badge = require('../../../db/models/badge');
+                        const badges = (res.locals.user.profile && res.locals.user.profile.user_badges) || [];
+                        const ids = badges.map(b => b.badge_id).filter(Boolean);
+                        if (ids.length) {
+                            const details = await Badge.find({ _id: { $in: ids } }).lean();
+                            const map = new Map(details.map(d => [String(d._id), d]));
+                            badgesDetailed = badges.map(b => {
+                                const d = map.get(String(b.badge_id));
+                                return { id: String(b.badge_id), title: (d && d.title) || 'Badge', icon: d && d.icon ? ('/static/style/img/badges/' + d.icon) : null, level: b.level || 'single' };
+                            });
+                        }
+                    } catch (_) {}
+                    const headerStatsX = await __buildHeaderStats(res.locals.user);
+                    return res.status(413).render('public assets/template.ejs', {
+                        page_title: "iWatched - Home",
+                        page_file: "profile",
+                        page_subFile: "settings",
+                        page_data: Object.assign({ user: res.locals.user, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0, badges: badgesDetailed, upload_error: msg, upload_limit_bytes: max }, headerStatsX),
+                        user: req.user
+                    });
+                }
+            }
+        } catch (e) { /* ignore size check errors and continue */ }
+
         await userService
         .saveUser(req.params.id, req.body, req.files)
         .then(userUpdated => {
@@ -326,11 +373,39 @@ module.exports = (server) => {
             }
             res.redirect('/'+userUpdated._id)
         })
-        .catch(error => {
+        .catch(async error => {
             console.log("server.post/:id/settings - catched error")
             console.log(error)
-            if (wantsJson) return res.status(400).json({ ok:false });
-            throw new Error({error: error, custom_error: "Something went wrong with saving settings"})
+            const message = (error && (error.custom_error || error.message)) || null;
+            if (wantsJson) return res.status(400).json({ ok:false, error: error && error.code || 'save_failed', message: message || 'Failed to save settings' });
+            // Re-render with friendly error if available
+            try {
+                let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
+                let badgesDetailed = [];
+                try {
+                    const Badge = require('../../../db/models/badge');
+                    const badges = (res.locals.user.profile && res.locals.user.profile.user_badges) || [];
+                    const ids = badges.map(b => b.badge_id).filter(Boolean);
+                    if (ids.length) {
+                        const details = await Badge.find({ _id: { $in: ids } }).lean();
+                        const map = new Map(details.map(d => [String(d._id), d]));
+                        badgesDetailed = badges.map(b => {
+                            const d = map.get(String(b.badge_id));
+                            return { id: String(b.badge_id), title: (d && d.title) || 'Badge', icon: d && d.icon ? ('/static/style/img/badges/' + d.icon) : null, level: b.level || 'single' };
+                        });
+                    }
+                } catch (_) {}
+                const headerStatsY = await __buildHeaderStats(res.locals.user);
+                return res.status(400).render('public assets/template.ejs', {
+                    page_title: "iWatched - Home",
+                    page_file: "profile",
+                    page_subFile: "settings",
+                    page_data: Object.assign({ user: res.locals.user, friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0, badges: badgesDetailed, upload_error: message || 'Failed to process image' }, headerStatsY),
+                    user: req.user
+                });
+            } catch (_) {
+                throw new Error({error: error, custom_error: "Something went wrong with saving settings"})
+            }
         })
     });
 

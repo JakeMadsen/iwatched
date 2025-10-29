@@ -13,6 +13,8 @@ const state = {
   minuteTs: new Array(60).fill(0),
   // per-endpoint counters (normalized path keys)
   endpoints: new Map(), // key -> { totals, secBuckets[60], secTs[60], minBuckets[60], minTs[60], method }
+  // rolling set of unique visitors by IP over last 24h
+  uniqueIp: new Map(), // ip -> lastSeenTs
 };
 
 function keyPath(method, path){
@@ -36,6 +38,18 @@ function record(durationMs, status, path, method){
   if (status >= 500) state.totals.errors5xx++;
   else if (status >= 400) state.totals.errors4xx++;
   if (status === 401 || status === 403 || /login/i.test(path||'')) state.totals.authFailures++;
+
+  // Unique visitors by IP (24h window)
+  try {
+    const ip = (this && this.req && (this.req.headers['x-forwarded-for'] || this.req.ip || this.req.connection && this.req.connection.remoteAddress) || '')
+                .toString().split(',')[0].trim();
+    if (ip) state.uniqueIp.set(ip, now);
+    // periodic cleanup on write
+    if ((now % 1000) < 10) {
+      const cutoff = now - 24*60*60*1000;
+      for (const [k,v] of state.uniqueIp.entries()) { if (!v || v < cutoff) state.uniqueIp.delete(k); }
+    }
+  } catch(_){}
 
   state.latencies.push(durationMs);
   if (state.latencies.length > 500) state.latencies.shift();
@@ -114,7 +128,8 @@ function snapshot(mongoose){
     authFailures: state.totals.authFailures,
     latencyMs: { avg: Number(avgLat.toFixed(1)), p50: Math.round(p50), p95: Math.round(p95) },
     db,
-    system: { load: os.loadavg ? os.loadavg()[0] : 0, memFree: os.freemem ? os.freemem() : 0 }
+    system: { load: os.loadavg ? os.loadavg()[0] : 0, memFree: os.freemem ? os.freemem() : 0 },
+    unique24h: state.uniqueIp.size
   };
 }
 
@@ -124,7 +139,8 @@ function middleware(req, res, next){
     res.removeListener('finish', onFinish);
     const diff = process.hrtime(start);
     const ms = Math.round((diff[0]*1e9 + diff[1]) / 1e6);
-    record(ms, res.statusCode, req.path || req.originalUrl, req.method);
+    // bind req into 'this' for record to access IP without changing signature
+    record.call({ req }, ms, res.statusCode, req.path || req.originalUrl, req.method);
   }
   res.on('finish', onFinish);
   next();

@@ -5,7 +5,13 @@ var messageSchema = mongoose.Schema({
     type: String,
     text: String,
     email: String,
-    from: String
+    from: String,
+    // Anti-spam + metadata
+    is_spam: { type: Boolean, default: false },
+    spam_reason: { type: String, default: null },
+    ip: { type: String, default: null },
+    ua: { type: String, default: null },
+    created_at: { type: Date, default: Date.now }
 });
 
 messageSchema.methods.initial = function(message){

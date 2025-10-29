@@ -8,7 +8,7 @@ module.exports = (server) => {
     
     server.get('/admin/support', isLoggedIn, async (req, res) => {
         res.render('private assets/template.ejs', {
-            page_title: "iWatched.xyz - Home",
+            page_title: "iWatched - Home",
             page_file: "support",
             sub_page_file: null,
             page_data: {
@@ -23,7 +23,7 @@ module.exports = (server) => {
         .getAllOpenCases()
         .then(openCases => {
             res.render('private assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support",
                 sub_page_file: "open",
                 page_data: {
@@ -42,7 +42,7 @@ module.exports = (server) => {
         .getAllClosedCases()
         .then(closedCases => {
             res.render('private assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support",
                 sub_page_file: "closed",
                 page_data: {
@@ -80,7 +80,7 @@ module.exports = (server) => {
                 });
             } catch(_) {}
             res.render('private assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support",
                 sub_page_file: "respond",
                 page_data: {

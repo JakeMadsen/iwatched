@@ -5,7 +5,10 @@
   var __rawTitle = (typeof page_title !== 'undefined' && page_title != null) ? String(page_title) : '';
   var __suffix = __rawTitle.replace(/^\s*iWatched(\.xyz)?\s*-\s*/i,'').trim();
   var __titleOut = 'iWatched' + (__suffix ? (' - ' + __suffix) : '');
-  var __desc = (typeof page_description !== 'undefined' && page_description) ? String(page_description) : 'A better way to see what you\'ve seen.';
+  var __desc = (typeof page_description !== 'undefined' && page_description)
+    ? String(page_description)
+    : 'Track, remember, and share your movies and shows. Build your complete watch history and stats.';
+  var __abs = (typeof abs_url !== 'undefined' && abs_url) ? String(abs_url) : 'https://iwatched.app';
 %>
 <title><%= __titleOut %></title>
 
@@ -21,7 +24,8 @@
 <meta property="og:title" content="<%= __titleOut %>">
 <meta property="og:description" content="<%= __desc %>">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://iwatched.app">
+<link rel="canonical" href="<%= __abs %>">
+<meta property="og:url" content="<%= __abs %>">
 <meta property="og:image" content="https://iwatched.app/static/style/img/standard/standard_banner.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<%= __titleOut %>">

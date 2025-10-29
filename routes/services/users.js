@@ -14,6 +14,8 @@ const path      = require('path');
 const mongoose  = require('mongoose');
 let storage = null;
 try { storage = require('../../bin/server/config/storage'); } catch (_) { storage = null; }
+let imgProc = null;
+try { imgProc = require('../../bin/server/utils/imageProcessing'); } catch (_) { imgProc = null; }
 
 
 /*
@@ -109,6 +111,7 @@ module.exports = {
                         
                     } catch (error) {
                         console.log("Update user catch error:", error)
+                        return reject({ error: error, custom_error: (error && error.message) || 'Failed to process image', code: error && (error.code || null) })
                     }
 
                     
@@ -171,53 +174,38 @@ module.exports = {
 **************************/
 async function saveProfileImages(user_id, new_image, old_image, type) {
     if (!new_image) return;
-    const filename = `${type}_${user_id}.${getFileExtention(new_image.name || '')}`;
-    const relKey = `style/img/profile_images/users/${user_id}/${filename}`;
-
-    const useS3 = !!(storage && storage.isEnabled && storage.isEnabled());
-
     try {
+        if (!imgProc || typeof imgProc.processProfileImage !== 'function') {
+            throw Object.assign(new Error('Image processor missing'), { code: 'processor_missing' });
+        }
+        // Pull data buffer
+        const raw = (new_image.data && Buffer.isBuffer(new_image.data)) ? new_image.data
+                   : (new_image.tempFilePath ? fs.readFileSync(new_image.tempFilePath) : null);
+        if (!raw) throw Object.assign(new Error('No file data available for upload'), { code: 'no_data' });
+
+        // Validate + compress
+        const processed = await imgProc.processProfileImage(raw, type);
+        const filename = `${type}_${user_id}.${processed.ext}`;
+        const relKey = `style/img/profile_images/users/${user_id}/${filename}`;
+
+        const useS3 = !!(storage && storage.isEnabled && storage.isEnabled());
         if (useS3) {
-            // Delete old object if present
-            if (old_image) {
-                try { await storage.deleteObject(`style/img/profile_images/users/${user_id}/${old_image}`); } catch (_) {}
-            }
-            // Get bytes from express-fileupload
-            const body = (new_image.data && Buffer.isBuffer(new_image.data)) ? new_image.data : null;
-            const contentType = new_image.mimetype || 'application/octet-stream';
-            if (!body) {
-                // Fallback to temp file if configured
-                if (new_image.tempFilePath) {
-                    const bytes = fs.readFileSync(new_image.tempFilePath);
-                    await storage.putObject(relKey, bytes, contentType);
-                } else {
-                    throw new Error('No file data available for upload');
-                }
-            } else {
-                await storage.putObject(relKey, body, contentType);
-            }
-            // Mutate the name so callers persist it to user.profile.*
-            new_image.name = filename;
+            if (old_image) { try { await storage.deleteObject(`style/img/profile_images/users/${user_id}/${old_image}`); } catch (_) {} }
+            await storage.putObject(relKey, processed.buffer, processed.contentType);
+            new_image.name = filename; // so caller saves it in mongo
             return;
         }
 
-        // Filesystem fallback (dev/local)
+        // FS fallback
         const base = path.join(__dirname, '../../public');
         const dir = path.join(base, 'style', 'img', 'profile_images', 'users', String(user_id));
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
-        }
-        if (old_image && fs.existsSync(path.join(dir, old_image))) {
-            try { fs.unlinkSync(path.join(dir, old_image)); } catch (_) {}
-        }
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        if (old_image && fs.existsSync(path.join(dir, old_image))) { try { fs.unlinkSync(path.join(dir, old_image)); } catch (_) {} }
+        fs.writeFileSync(path.join(dir, filename), processed.buffer);
         new_image.name = filename;
-        if (typeof new_image.mv === 'function') {
-            new_image.mv(path.join(dir, new_image.name), (error) => {
-                if (error) console.error('save image : error', error);
-            });
-        }
     } catch (e) {
         console.error('saveProfileImages failure:', e);
+        throw e;
     }
 }
 

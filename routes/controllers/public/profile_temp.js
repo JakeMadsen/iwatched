@@ -38,7 +38,7 @@ module.exports = (server) => {
     const u = res.locals.user;
     const header = await buildHeaderData(u._id);
     res.render('public assets/template.ejs', {
-      page_title: 'iWatched.xyz - Temp Profile',
+      page_title: 'iWatched - Temp Profile',
       page_file: 'profile_temp',
       page_subFile: 'main',
       page_data: {
@@ -56,7 +56,7 @@ module.exports = (server) => {
     const u = res.locals.user;
     const header = await buildHeaderData(u._id);
     res.render('public assets/template.ejs', {
-      page_title: 'iWatched.xyz - Temp Watched Movies',
+      page_title: 'iWatched - Temp Watched Movies',
       page_file: 'profile_temp',
       page_subFile: 'watched',
       page_data: {
@@ -74,7 +74,7 @@ module.exports = (server) => {
     if (res.locals.user == null) return next('route');
     const u = res.locals.user;
     res.render('public assets/template.ejs', {
-      page_title: 'iWatched.xyz - Temp Favourites',
+      page_title: 'iWatched - Temp Favourites',
       page_file: 'profile_temp',
       page_subFile: 'favourited',
       page_data: { user: u },
@@ -87,7 +87,7 @@ module.exports = (server) => {
     if (res.locals.user == null) return next('route');
     const u = res.locals.user;
     res.render('public assets/template.ejs', {
-      page_title: 'iWatched.xyz - Temp Saved',
+      page_title: 'iWatched - Temp Saved',
       page_file: 'profile_temp',
       page_subFile: 'saved',
       page_data: { user: u },

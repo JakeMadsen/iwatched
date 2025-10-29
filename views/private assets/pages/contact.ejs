@@ -1,5 +1,35 @@
 <div class="container" style="margin-top:10px;">
   <h3>Contact messages</h3>
+  <div style="display:flex;gap:12px;align-items:center;margin:6px 0 12px;">
+    <% function linkFor(params){
+         function esc(s){ return encodeURIComponent(String(s)); }
+         var base='/admin/contact?';
+         var p={ page:(page_data.page||1), per:(page_data.per||20), sort:(page_data.sort||'new'), status:(page_data.status||'all') };
+         Object.keys(params||{}).forEach(function(k){ p[k]=params[k]; });
+         return base + 'page='+esc(p.page)+'&per='+esc(p.per)+'&sort='+esc(p.sort)+'&status='+esc(p.status);
+       } %>
+    <div>
+      <span class="text-muted">Filter:</span>
+      <a href="<%= linkFor({ status:'all', page:1 }) %>" class="btn btn-sm <%= (page_data.status==='all'?'btn-primary':'btn-secondary') %>">All</a>
+      <a href="<%= linkFor({ status:'clean', page:1 }) %>" class="btn btn-sm <%= (page_data.status==='clean'?'btn-primary':'btn-secondary') %>">Clean</a>
+      <a href="<%= linkFor({ status:'spam', page:1 }) %>" class="btn btn-sm <%= (page_data.status==='spam'?'btn-danger':'btn-secondary') %>">Spam</a>
+    </div>
+    <div>
+      <span class="text-muted">Sort:</span>
+      <a href="<%= linkFor({ sort:'new' }) %>" class="btn btn-sm <%= (page_data.sort==='new'?'btn-primary':'btn-secondary') %>">Newest</a>
+      <a href="<%= linkFor({ sort:'old' }) %>" class="btn btn-sm <%= (page_data.sort==='old'?'btn-primary':'btn-secondary') %>">Oldest</a>
+      <a href="<%= linkFor({ sort:'title' }) %>" class="btn btn-sm <%= (page_data.sort==='title'?'btn-primary':'btn-secondary') %>">Title</a>
+      <a href="<%= linkFor({ sort:'type' }) %>" class="btn btn-sm <%= (page_data.sort==='type'?'btn-primary':'btn-secondary') %>">Type</a>
+      <a href="<%= linkFor({ sort:'email' }) %>" class="btn btn-sm <%= (page_data.sort==='email'?'btn-primary':'btn-secondary') %>">Email</a>
+      <a href="<%= linkFor({ sort:'status' }) %>" class="btn btn-sm <%= (page_data.sort==='status'?'btn-primary':'btn-secondary') %>">Status</a>
+    </div>
+    <div>
+      <span class="text-muted">Per page:</span>
+      <% [20,50,100].forEach(function(n){ %>
+        <a href="<%= linkFor({ per:n, page:1 }) %>" class="btn btn-sm <%= (page_data.per===n?'btn-primary':'btn-secondary') %>"><%= n %></a>
+      <% }) %>
+    </div>
+  </div>
   <div class="dropdown-divider"></div>
   <% if ((page_data.messages||[]).length === 0) { %>
     <p style="opacity:.75;">No messages yet.</p>
@@ -11,6 +41,8 @@
           <th>Type</th>
           <th>From</th>
           <th>Email</th>
+          <th>Received</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -29,17 +61,49 @@
               <% } %>
             </td>
             <td><a href="mailto:<%= m.email %>" style="color:lightblue;"><%= m.email %></a></td>
+            <td><%= m.created_at ? new Date(m.created_at).toLocaleString() : '-' %></td>
+            <td>
+              <% if (m.is_spam) { %>
+                <span class="badge badge-danger" title="<%= m.spam_reason || '' %>">Spam</span>
+              <% } else { %>
+                <span class="badge badge-success">Clean</span>
+              <% } %>
+            </td>
             <td>
               <button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse" data-target="#c_<%= m._id %>">View</button>
+              <form action="/admin/contact/<%= m._id %>/delete?<%= 'page='+encodeURIComponent(page_data.page)+'&per='+encodeURIComponent(page_data.per)+'&sort='+encodeURIComponent(page_data.sort)+'&status='+encodeURIComponent(page_data.status) %>" method="POST" style="display:inline;" onsubmit="return confirm('Delete this message?');">
+                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+              </form>
             </td>
           </tr>
           <tr class="collapse" id="c_<%= m._id %>">
             <td colspan="5" style="background:#1b1b1b;">
-              <pre style="white-space:pre-wrap; color:#e0e0e0; margin:0; padding:10px; background:#1b1b1b; border:none;"><%= m.text %></pre>
+              <div style="padding:10px;">
+                <div style="opacity:.75; font-size:12px; margin-bottom:6px;">
+                  <strong>Received:</strong> <%= m.created_at ? new Date(m.created_at).toLocaleString() : '-' %> &nbsp;
+                  <% if (m.ip) { %> <strong>IP:</strong> <%= m.ip %> &nbsp; <% } %>
+                  <% if (m.ua) { %> <strong>UA:</strong> <span style="word-break:break-all;"><%= m.ua %></span> <% } %>
+                </div>
+                <pre style="white-space:pre-wrap; color:#e0e0e0; margin:0; background:transparent; border:none;"> <%= m.text %></pre>
+              </div>
             </td>
           </tr>
         <% }) %>
       </tbody>
     </table>
+  <% } %>
+
+  <% if (page_data && page_data.total > 0) { %>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+      <div>
+        Page <strong><%= page_data.page %></strong> of <strong><%= Math.max(1, Math.ceil(page_data.total / page_data.per)) %></strong>
+        <span class="text-muted">(<%= page_data.total %> total)</span>
+      </div>
+      <div>
+        <% var pages = Math.max(1, Math.ceil(page_data.total / page_data.per)); %>
+        <a class="btn btn-sm btn-secondary <%= (page_data.page<=1 ? 'disabled':'') %>" href="<%= linkFor({ page: Math.max(1, page_data.page-1) }) %>">Prev</a>
+        <a class="btn btn-sm btn-secondary <%= (page_data.page>=pages ? 'disabled':'') %>" href="<%= linkFor({ page: Math.min(pages, page_data.page+1) }) %>">Next</a>
+      </div>
+    </div>
   <% } %>
 </div>

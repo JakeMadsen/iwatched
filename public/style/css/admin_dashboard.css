@@ -8,6 +8,9 @@ body.admin-app { background: #0b0f1a; color: #e6ebff; font-family: Inter, Poppin
 #sidebar .components li > a { color: #aab4e3; }
 #sidebar .components li > a:hover { color: #e6ebff; background: rgba(64,76,140,.24); }
 #sidebar .components .collapse a { padding-left: 38px; }
+/* Section headers */
+#sidebar .components .menu-section { padding: 8px 14px; text-transform: uppercase; font-size: 11px; letter-spacing: .08em; opacity: .7; margin-top: 10px; }
+#sidebar .components li > a i { width: 18px; text-align:center; margin-right: 8px; }
 
 /* Top nav */
 .admin-navbar { background: linear-gradient(180deg, rgba(12,17,32,.95), rgba(12,17,32,.85)); border-bottom: 1px solid rgba(90,100,150,.25); box-shadow: 0 10px 24px rgba(4,6,16,.3); }
@@ -41,4 +44,3 @@ body.admin-app { background: #0b0f1a; color: #e6ebff; font-family: Inter, Poppin
 
 /* Misc */
 .mt-3 { margin-top: 1rem !important; }
-

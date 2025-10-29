@@ -10,7 +10,7 @@ module.exports = (server) => {
         .getAllCasesFromUser(req.user._id)
         .then(cases => {
             res.render('public assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support",
                 page_data: {
                     open_cases: cases.open_cases,
@@ -39,7 +39,7 @@ module.exports = (server) => {
             .getAllCasesFromUser(req.user._id)
             .then(cases => {
                 res.render('public assets/template.ejs', {
-                    page_title: "iWatched.xyz - Home",
+                    page_title: "iWatched - Home",
                     page_file: "support",
                     page_data: {
                         open_cases: cases.open_cases,
@@ -52,7 +52,7 @@ module.exports = (server) => {
         })
         .catch(error => {
             res.render('public assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support",
                 page_data: {
                     error: true
@@ -86,7 +86,7 @@ module.exports = (server) => {
                 });
             } catch(_) {}
             res.render('public assets/template.ejs', {
-                page_title: "iWatched.xyz - Home",
+                page_title: "iWatched - Home",
                 page_file: "support-case",
                 page_data: {
                     found_case: foundCase,

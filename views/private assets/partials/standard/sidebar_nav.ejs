@@ -6,105 +6,62 @@
     </div>
 
     <ul class="list-unstyled components">
-        <!-- Go to index -->
-        <li class="">
-            <a href="/admin">
-                <i class="fas fa-home"></i>
-                Home
-            </a>
+        <li class="menu-section">Dashboard</li>
+        <li>
+            <a href="/admin"><i class="fas fa-home"></i> Home</a>
+        </li>
+        <li>
+            <a href="/admin/api-metrics"><i class="fas fa-chart-bar"></i> API Metrics</a>
         </li>
 
-        <!-- Inbox dropdown -->
-        <li class="">
+        <li class="menu-section">Inbox</li>
+        <li>
             <a href="#inboxSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-inbox"></i>
-                Inbox
+                <i class="fas fa-inbox"></i> Inbox
             </a>
             <ul class="collapse list-unstyled" id="inboxSubmenu">
-                <li class="">
-                    <a href="/admin/contact">
-                        <i class="fas fa-envelope-open"></i>
-                        Contact messages
-                    </a>
-                </li>
-                <li class="">
-                    <a href="/admin/support">
-                        <i class="fas fa-life-ring"></i>
-                        Support
-                    </a>
-                </li>
-                <li class="">
-                    <a href="/admin/announcements">
-                        <i class="fas fa-bullhorn"></i>
-                        Announcements
-                    </a>
-                </li>
-                <li class="">
-                    <a href="/admin/reports">
-                        <i class="fas fa-flag"></i>
-                        Reports
-                    </a>
-                </li>
+                <li><a href="/admin/contact"><i class="fas fa-envelope-open"></i> Contact messages</a></li>
+                <li><a href="/admin/support"><i class="fas fa-life-ring"></i> Support</a></li>
+                <li><a href="/admin/announcements"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+                <li><a href="/admin/reports"><i class="fas fa-flag"></i> Reports</a></li>
             </ul>
         </li>
 
-        <!-- Users dropdown -->
-        <li class="">
+        <li class="menu-section">Users</li>
+        <li>
             <a href="#usersSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-users"></i>
-                Users
+                <i class="fas fa-users"></i> Users
             </a>
             <ul class="collapse list-unstyled" id="usersSubmenu">
-                <li class=""><a href="/admin/users"><i class="fas fa-list"></i> All users</a></li>
-                <li class=""><a href="/admin/bans"><i class="fas fa-user-slash"></i> Banned users</a></li>
-                <li class=""><a href="/admin/users/create"><i class="fas fa-user-plus"></i> Create user</a></li>
+                <li><a href="/admin/users"><i class="fas fa-list"></i> All users</a></li>
+                <li><a href="/admin/bans"><i class="fas fa-user-slash"></i> Banned users</a></li>
+                <li><a href="/admin/users/create"><i class="fas fa-user-plus"></i> Create user</a></li>
             </ul>
-        </li>  
-
-        <!-- Badges management -->
-        <li class="">
-            <a href="/admin/badges">
-                <i class="fas fa-award"></i>
-                Badges
-            </a>
         </li>
 
-        <!-- Other minor things -->
-        <li class="">
+        <li class="menu-section">Content</li>
+        <li>
+            <a href="/admin/badges"><i class="fas fa-certificate"></i> Badges</a>
+        </li>
+        <li>
+            <a href="/admin/uploads"><i class="fas fa-image"></i> Uploads Moderation</a>
+        </li>
+
+        <li class="menu-section">System</li>
+        <li>
             <a href="#otherSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                <i class="fas fa-cog"></i>
-                Other
+                <i class="fas fa-cog"></i> System
             </a>
             <ul class="collapse list-unstyled" id="otherSubmenu">
-                <li class="">
-                    <a href="/admin/restrictedUrls">
-                        <i class="fas fa-list"></i>
-                        URL Restrictions
-                    </a>
-                </li>
-                <li class="">
-                    <a href="/admin/personas">
-                        <i class="fas fa-user-ninja"></i>
-                        Moderator nicknames
-                    </a>
-                </li>
+                <li><a href="/admin/admins"><i class="fas fa-user-shield"></i> Admins & Roles</a></li>
+                <li><a href="/admin/audit"><i class="fas fa-clipboard-list"></i> Admin Audit</a></li>
+                <li><a href="/admin/restrictedUrls"><i class="fas fa-list"></i> URL Restrictions</a></li>
+                <li><a href="/admin/personas"><i class="fas fa-user-ninja"></i> Moderator nicknames</a></li>
             </ul>
         </li>
 
-        <!-- return to website -->
-        <li >
-            <a href="/">
-                <i class="fas fa-home"></i>
-                Return to iWatched
-            </a>
-        </li>
-
-        <!-- log out -->
-        <li >
-            <a href="/logout">
-                <i class="fas fa-sign-out-alt"></i>
-                Log out
-            </a>
-        </li>
+        <li class="menu-section">Exit</li>
+        <li><a href="/"><i class="fas fa-home"></i> Return to iWatched</a></li>
+        <li><a href="/logout"><i class="fas fa-sign-out-alt"></i> Log out</a></li>
     </ul>
 </nav>

@@ -93,7 +93,7 @@ module.exports = function(server){
       } catch(_){}
 
       res.render('public assets/template.ejs', {
-        page_title: 'iWatched.xyz - Recommendations',
+        page_title: 'iWatched - Recommendations',
         page_file: 'recommendations',
         page_subFile: 'main',
         page_data: Object.assign({
@@ -181,7 +181,7 @@ module.exports = function(server){
       } catch(_){}
 
       res.render('public assets/template.ejs', {
-        page_title: 'iWatched.xyz - Recommendations',
+        page_title: 'iWatched - Recommendations',
         page_file: 'recommendations',
         page_subFile: 'main',
         page_data: Object.assign({ sent: sentEnriched, received: receivedEnriched, user: res.locals.user }, header),

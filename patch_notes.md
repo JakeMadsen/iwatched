@@ -8,6 +8,48 @@ Directive for contributors:
 
 ---
 
+## 2025-10-29T00:00Z - Storage, uploads, contact anti-spam, admin UI, and SEO
+
+- Avatars/Banners to S3 with proxy and migration
+  - Added S3/Tigris helper with `putObject/deleteObject/streamToResponse/list` and proxy route so existing URLs keep working.
+  - Uploads now go to bucket under `style/img/profile_images/users/:id/…` and are streamed at `/static/style/img/profile_images/users/...`.
+  - Migration script to push existing local files: `npm run migrate:profile-images`.
+  - Files: `bin/server/config/storage.js`, `bin/server/config/serverSetup.js`, `routes/services/users.js`, `scripts/migrate_profile_images_to_s3.js`, `package.json`.
+
+- Upload limits and image processing
+  - Client + server limits: Free 5MB, Premium 8MB; friendly error messaging on `/users/settings`.
+  - Compress + sanitize with `sharp`: avatars 512x512 WebP, banners 1600x400 WebP; MIME sniffing via `file-type`.
+  - Files: `views/public assets/partials/profile/settings.ejs`, `routes/controllers/public/profile.js`, `bin/server/utils/imageProcessing.js`.
+
+- Contact form anti‑spam and CAPTCHA
+  - Added honeypot, 3s timing check, IP rate‑limit (5/hour), heuristic text filter, IP/UA capture.
+  - Optional reCAPTCHA v2 or hCaptcha; auto‑selects reCAPTCHA when provided; fallback to hCaptcha.
+  - Files: `routes/controllers/public/contact.js`, `bin/server/utils/antiSpam.js`, `bin/server/utils/rateLimit.js`, `views/public assets/pages/contact.ejs`, `db/models/contactMessages.js`.
+
+- Admin Contact improvements
+  - Pagination, sorting, status badge (Spam/Clean), Received column, and Delete action.
+  - Files: `routes/controllers/private/contact.js`, `views/private assets/pages/contact.ejs`.
+
+- Admin pages (visual) and moderation tool
+  - Admins & Roles (visual): `GET /admin/admins` → `views/private assets/pages/admins.ejs`.
+  - Admin Audit (visual): `GET /admin/audit` → `views/private assets/pages/audit.ejs`.
+  - Uploads Moderation (functional): list latest avatars/banners (S3 or FS), delete file and clear user reference.
+    - Files: `routes/controllers/private/uploads.js`, `views/private assets/pages/uploads_moderation.ejs`.
+  - Wired routes in `routes/controllers/index.js` and sidebar links.
+
+- Admin dashboard polish
+  - “API Metrics” button on top; unique visits (24h) counter (by IP) and live polling.
+  - Files: `views/private assets/pages/index.ejs`, `bin/server/metrics.js`.
+
+- Admin sidebar restructure + icon fix
+  - Grouped sections (Dashboard, Inbox, Users, Content, System, Exit). Replaced Badges icon with `fa-certificate`.
+  - Files: `views/private assets/partials/standard/sidebar_nav.ejs`, `public/style/css/admin_dashboard.css`.
+
+- Branding & SEO
+  - Dropped `.xyz` from titles; canonical tags and dynamic `og:url`; `robots.txt` + `sitemap.xml`.
+  - Optional `PRIMARY_HOST` redirect support (leave unset if not needed).
+  - Files: `views/public assets/partials/standard/head.ejs`, `public/robots.txt`, `public/sitemap.xml`, multiple route title updates, `public/manifest.json`.
+
 ## 2025-10-27T13:00Z - SEO: site name, icon, and snippet polish
 
 - Added rich head metadata to improve how the homepage appears in Google and social shares.

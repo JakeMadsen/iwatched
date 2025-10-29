@@ -81,5 +81,21 @@ module.exports = {
    */
   isEnabled() { return buildS3().enabled; },
   bucketName() { const cfg = buildS3(); return cfg.enabled ? cfg.bucket : null; }
+  ,
+  /**
+   * List objects by prefix (S3-only). Returns [{ key, size, lastModified }]
+   */
+  async list(prefix, maxKeys = 200) {
+    const cfg = buildS3();
+    if (!cfg.enabled) return [];
+    const out = [];
+    let token = undefined;
+    do {
+      const res = await cfg.s3.listObjectsV2({ Bucket: cfg.bucket, Prefix: prefix || '', ContinuationToken: token, MaxKeys: Math.min(1000, maxKeys) }).promise();
+      (res.Contents || []).forEach(o => { out.push({ key: o.Key, size: o.Size, lastModified: o.LastModified }); });
+      token = res.IsTruncated ? res.NextContinuationToken : undefined;
+      if (out.length >= maxKeys) break;
+    } while (token);
+    return out;
+  }
 }
-
