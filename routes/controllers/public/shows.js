@@ -8,12 +8,14 @@ module.exports = function (server) {
     server.get('/shows', 
         async function(req, res) {
             const genres = await tmdService.genreTvList();
+            let current = null; try { const g = (req.query && req.query.genre) ? String(req.query.genre) : null; if (g) current = decodeURIComponent(g).toLowerCase().trim(); } catch(_){}
             res.render('public assets/template.ejs', {
                 page_title: "iWatched - Series",
                 page_file: "shows",
                 page_subFile: "all",
                 page_data: {
-                    genres: (genres && genres.genres) ? genres.genres : []
+                    genres: (genres && genres.genres) ? genres.genres : [],
+                    current_genre: current
                 },
                 user: req.user
             });

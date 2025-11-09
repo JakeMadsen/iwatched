@@ -19,8 +19,11 @@
   <div class="th-shell">
     <div class="th-header__bar">
       <div class="th-logo">
-        <span class="th-logo__word">iWatched</span>
-        <span class="th-badge">BETA</span>
+        <% var __homeHref = '/'; try { if (typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.home_logo_to_profile) { __homeHref = (user.profile.custom_url && ('/' + user.profile.custom_url)) || ('/' + user._id); } } catch(_){} %>
+        <a href="<%= __homeHref %>" class="th-logo__link" aria-label="Home">
+          <span class="th-logo__word">iWatched</span>
+          <span class="th-badge">BETA</span>
+        </a>
       </div>
 
       <nav class="th-nav th-nav--desktop" aria-label="Main navigation">

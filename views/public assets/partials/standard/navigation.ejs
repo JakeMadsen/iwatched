@@ -1,7 +1,8 @@
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a href="/" class="navbar-brand">iWatched BETA</a>
+            <% var __homeHref = '/'; try { if (typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.home_logo_to_profile) { __homeHref = (user.profile.custom_url && ('/' + user.profile.custom_url)) || ('/' + user._id); } } catch(_){} %>
+            <a href="<%= __homeHref %>" class="navbar-brand">iWatched BETA</a>
 
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

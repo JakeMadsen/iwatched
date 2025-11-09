@@ -52,14 +52,20 @@
         <form id="site_prefs_form" action="/<%= user._id %>/settings" method="POST">
             <input type="hidden" name="pref_show_quick_actions" value="0">
             <div style="margin:8px 0 12px; display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="pref_show_quick_actions" name="pref_show_quick_actions" value="1" <%= (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions) ? 'checked' : '' %> />
+                <input type="checkbox" id="pref_show_quick_actions" name="pref_show_quick_actions" value="1" <%= ((page_data && page_data.user && page_data.user.profile && page_data.user.profile.preferences && page_data.user.profile.preferences.show_quick_actions) || (user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions)) ? 'checked' : '' %> />
                 <label for="pref_show_quick_actions" style="margin:0;">Always show Quick Actions</label>
             </div>
 
             <input type="hidden" name="pref_hide_watched_in_search" value="0">
             <div style="margin:8px 0 12px; display:flex; align-items:center; gap:10px;">
-                <input type="checkbox" id="pref_hide_watched_in_search" name="pref_hide_watched_in_search" value="1" <%= (user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search) ? 'checked' : '' %> />
+                <input type="checkbox" id="pref_hide_watched_in_search" name="pref_hide_watched_in_search" value="1" <%= ((page_data && page_data.user && page_data.user.profile && page_data.user.profile.preferences && page_data.user.profile.preferences.hide_watched_in_search) || (user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search)) ? 'checked' : '' %> />
                 <label for="pref_hide_watched_in_search" style="margin:0;">Hide movies/shows I've already watched in search results</label>
+            </div>
+
+            <input type="hidden" name="pref_home_logo_to_profile" value="0">
+            <div style="margin:8px 0 12px; display:flex; align-items:center; gap:10px;">
+                <input type="checkbox" id="pref_home_logo_to_profile" name="pref_home_logo_to_profile" value="1" <%= ((page_data && page_data.user && page_data.user.profile && page_data.user.profile.preferences && page_data.user.profile.preferences.home_logo_to_profile) || (user && user.profile && user.profile.preferences && user.profile.preferences.home_logo_to_profile)) ? 'checked' : '' %> />
+                <label for="pref_home_logo_to_profile" style="margin:0;">Clicking the iWatched logo takes me to my profile</label>
             </div>
 
             <div style="opacity:.6; pointer-events:none; margin:10px 0 6px;">
@@ -88,6 +94,7 @@
         <h2 class="mb-0">Profile Settings</h2>
         <button class="btn btn-sm btn-dark" id="profile_settings_toggle_btn" aria-expanded="false" title="Expand/collapse"><i class="fas fa-chevron-down"></i></button>
     </div>
+    <p class="text" style="margin-top:6px;">Manage your profile details, visibility, and images.</p>
     <div id="profile_settings_body" style="display:none;">
 
     <form id="profile_settings_form" action="/<%= user._id %>/settings" method="POST" encType="multipart/form-data">
@@ -203,7 +210,24 @@
         <button type="submit" class="btn btn-primary">Update Settings</button>
     </form>
     </div>
-    
+
+    <!-- GDPR & Privacy -->
+    <div class="settings-card" style="margin-top:24px;">
+        <div class="d-flex align-items-center justify-content-between" style="margin-top:-6px;">
+            <h2 class="mb-0">GDPR & Privacy</h2>
+            <button class="btn btn-sm btn-dark" id="gdpr_toggle_btn" aria-expanded="false" title="Expand/collapse"><i class="fas fa-chevron-down"></i></button>
+        </div>
+        <div id="gdpr_body" style="display:none;">
+            <div class="text" style="margin:6px 0 12px;">Download your data or manage account privacy. Exports are limited to once per day.</div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a class="btn btn-secondary" id="gdpr_export_btn" href="/<%= (user && user.profile && user.profile.custom_url) ? user.profile.custom_url : user._id %>/settings/export">Download my data</a>
+                <button class="btn btn-outline-warning" type="button" id="gdpr_deactivate_btn">De-activate account</button>
+                <button class="btn btn-danger" type="button" id="gdpr_delete_btn">Permanently delete account</button>
+            </div>
+            <small class="text-muted" style="display:block; margin-top:8px;">Download includes Profile_Data.json, Movie_Data.json and Show_Data.json in a zip. Movies and shows are exported separately due to size.</small>
+        </div>
+    </div>
+
     <script>
         var password = document.getElementById("user_password")
             , confirm_password = document.getElementById("user_password_confirm");
@@ -221,6 +245,76 @@
     </script>
     <script>
       (function(){
+        document.addEventListener('DOMContentLoaded', function(){
+          // Auto-save Site Preferences on toggle
+          try {
+            var spForm = document.getElementById('site_prefs_form');
+            function savePrefs(){
+              try {
+                if (!spForm) return;
+                var url = spForm.action + '?ajax=1';
+                var data = new URLSearchParams(new FormData(spForm)).toString();
+                fetch(url, { method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: data })
+                  .then(function(r){ return r.ok ? r.json() : r.json().then(function(j){ throw j||{}; }); })
+                  .then(function(){ try { window.showToast && showToast('Preferences saved','success'); } catch(_){} })
+                  .catch(function(){ try { window.showToast && showToast('Failed to save preferences','error'); } catch(_){} });
+              } catch(_){}
+            }
+            ;['pref_show_quick_actions','pref_hide_watched_in_search','pref_home_logo_to_profile'].forEach(function(id){
+              var el = document.getElementById(id); if (el) el.addEventListener('change', savePrefs);
+            });
+          } catch(_){}
+          // Toggle GDPR section
+          try {
+            var gBtn = document.getElementById('gdpr_toggle_btn');
+            var gBody = document.getElementById('gdpr_body');
+            if (gBtn && gBody){
+              gBtn.addEventListener('click', function(e){ e.preventDefault(); var vis = gBody.style.display !== 'none'; gBody.style.display = vis ? 'none' : 'block'; gBtn.setAttribute('aria-expanded', String(!vis)); });
+            }
+          } catch(_){}
+
+          // De-activate account
+          try {
+            var deact = document.getElementById('gdpr_deactivate_btn');
+            if (deact){
+              deact.addEventListener('click', function(){
+                if (!confirm('De-activate your account? You can contact support to reactivate later.')) return;
+                var url = '/<%= (user && user.profile && user.profile.custom_url) ? user.profile.custom_url : user._id %>/settings/deactivate';
+                fetch(url, { method:'POST' })
+                  .then(function(r){ if(!r.ok) return r.json().then(function(j){ throw j||{}; }); return r.json(); })
+                  .then(function(){ window.location.href = '/logout'; })
+                  .catch(function(err){
+                    var msg = (err && err.message) || 'Failed to de-activate account.';
+                    try { window.showToast && showToast(msg, 'error'); } catch(_) { alert(msg); }
+                  });
+              });
+            }
+          } catch(_){}
+        });
+      })();
+    </script>
+    <script>
+      (function(){
+        // GDPR actions
+        try {
+          var delBtn = document.getElementById('gdpr_delete_btn');
+          if (delBtn) {
+            delBtn.addEventListener('click', function(){
+              try {
+                var pwd = window.prompt('Please confirm your password to permanently delete your account. This cannot be undone.');
+                if (pwd === null) return; // cancelled
+                var url = '/<%= (user && user.profile && user.profile.custom_url) ? user.profile.custom_url : user._id %>/settings/delete';
+                fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ password: pwd }) })
+                  .then(function(r){ if(!r.ok) return r.json().then(function(j){ throw j||{}; }); return r.json(); })
+                  .then(function(){ window.location.href = '/logout'; })
+                  .catch(function(err){
+                    var msg = (err && err.message) || 'Failed to delete account. Please check your password and try again.';
+                    try { window.showToast && showToast(msg, 'error'); } catch(_) { alert(msg); }
+                  });
+              } catch(_){}
+            });
+          }
+        } catch(_){}
         document.addEventListener('DOMContentLoaded', function(){
           try {
             var form = document.getElementById('profile_settings_form');

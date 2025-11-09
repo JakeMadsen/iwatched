@@ -1,102 +1,283 @@
+<style>
+  @media (min-width: 992px){
+    .movies-sidebar{ position: sticky; top: 84px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px; }
+  }
+  /* Scroll-to-top button */
+  #scroll_top_btn{ position: fixed; right: 24px; bottom: 24px; z-index: 1000; display: none; }
+  #scroll_top_btn.show{ display: inline-flex; }
+</style>
+
 <div class="container" style="margin-top: 10px;">
-  <div class="d-flex flex-column flex-md-row align-items-md-center">
-    <div class="mr-md-4" style="flex:0 0 auto;">
-      <h1 class="mb-2" style="font-size: 28px;">Browse movies</h1>
-      <div style="opacity:.7; font-size: 14px;">Find movies by title or genre</div>
-    </div>
-    <form class="ml-md-auto mt-3 mt-md-0" style="flex:1 1 auto; max-width: 520px;" onsubmit="event.preventDefault(); searchMovies();">
-      <div class="input-group">
-        <input id="search_input" name="search_input" type="text" class="form-control" placeholder="Search for a movie...">
+  <div class="row">
+    <!-- Main content -->
+    <section class="col-12">
+      <div class="d-flex flex-column flex-md-row align-items-md-center" id="movies_header_block">
+        <div class="mr-md-4" style="flex:0 0 auto;">
+          <h1 class="mb-2" style="font-size: 28px;">Browse movies</h1>
+          <div style="opacity:.7; font-size: 14px;">Find movies by title or genre</div>
+        </div>
+        <form id="movies_search_form" class="ml-md-auto mt-3 mt-md-0" style="flex:1 1 auto; max-width: 520px;" onsubmit="event.preventDefault(); searchMovies();">
+          <div class="input-group">
+            <input id="search_input" name="search_input" type="text" class="form-control" placeholder="Search for a movie...">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <% if ((page_data.genres||[]).length) { %>
+        <div class="mt-3" id="movies_genres_inline"><% /* Inline genres (visible by default) */ %>
+          <% var __currList = (page_data && page_data.current_genres) ? page_data.current_genres.map(function(s){return String(s).toLowerCase();}) : []; %>
+          <% page_data.genres.forEach(function (genre){ 
+               var gname = String(genre.name||'');
+               var slug = gname.toLowerCase();
+               var isA = (__currList.indexOf(slug) !== -1);
+          %>
+            <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %> mr-2 mb-2" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <style>
+        /* Spacing and background cleanup for the movies grid */
+        #movies_holder{ margin-top: 18px; background: transparent !important; }
+        #movies_holder .row{ background: transparent !important; }
+        #movies_holder > [class^='col-'],
+        #movies_holder > [class*=' col-'],
+        #movies_holder [class^='col-'],
+        #movies_holder [class*=' col-']{
+          background: transparent !important; box-shadow: none !important;
+        }
+        /* Ensure poster overlay is clipped to poster bounds and clickable area matches poster only */
+        #movies_holder .image-box{ text-align: center; }
+        #movies_holder .image-box > a{ position: relative; display:inline-block; overflow:hidden; }
+        #movies_holder .image-box img{ display:block; }
+      </style>
+      <div id="movies_holder" class="row"></div>
+
+      <div id="view_more" style="display: none;">
+        <div class="page-load-status">
+          <div class="loader-ellips infinite-scroll-request">
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+          </div>
+          <p class="infinite-scroll-last">End of content</p>
+          <p class="infinite-scroll-error">No more pages to load</p>
+        </div>
+
+        <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Floating sidebar (desktop) -->
+<style>
+  @media (min-width: 992px){
+    .movies-floating-sidebar{ position: fixed; left: 16px; top: 112px; width: 220px; max-height: calc(100vh - 120px); overflow-y: auto; z-index: 9999; }
+  }
+  .movies-floating-sidebar{ display: none; }
+  .movies-floating-sidebar.show{ display: block; }
+  /* Compact, wrapping pills that fill available width without overlapping movies */
+  .movies-floating-sidebar .genre-list{ display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; align-items:flex-start; }
+  .movies-floating-sidebar .genre-list a{
+    display:inline-flex !important; width:auto !important; white-space:nowrap;
+    font-size:12px; line-height:1.2; padding:4px 10px; border-radius:999px;
+    background: rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18);
+  }
+  /* Make the currently active genre in the sidebar very obvious */
+  .movies-floating-sidebar .genre-list a[aria-current="true"],
+  .movies-floating-sidebar a.badge-accent{
+    background: rgba(160,109,242,.36) !important;
+    border-color: rgba(160,109,242,.75) !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(160,109,242,.15);
+  }
+  .genre-active-tag{ font-size:10px; margin-left:6px; opacity:.8; }
+  .movies-floating-sidebar .genre-filter{ margin-bottom:8px; position:sticky; top:0; padding:4px 0; background:transparent; }
+  .movies-floating-sidebar .genre-filter input{ width:100%; padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.04); color:#fff; font-size:12px; }
+  /* Nicer search buttons for both bars */
+  #movies_search_form .btn, .movies-floating-sidebar .genre-filter .btn{ 
+    background: rgba(160,109,242,.22); color:#e7dbff; border:1px solid rgba(160,109,242,.45); 
+  }
+  #movies_search_form .btn:hover, .movies-floating-sidebar .genre-filter .btn:hover{ 
+    background: rgba(160,109,242,.35); color:#fff; border-color: rgba(160,109,242,.6);
+  }
+</style>
+<div id="movies_floating_sidebar" class="movies-floating-sidebar" aria-hidden="true">
+  <h5 class="mb-2">Genres</h5>
+  <div class="genre-filter">
+    <form id="sidebar_search_form" onsubmit="event.preventDefault();">
+      <div class="input-group input-group-sm">
+        <input id="sidebar_search_input" type="text" placeholder="Search for a movie..." aria-label="Search movies" class="form-control">
         <div class="input-group-append">
-          <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+          <button class="btn" type="submit"><i class="fas fa-search"></i></button>
         </div>
       </div>
     </form>
   </div>
-
-  <% if ((page_data.genres||[]).length) { %>
-    <div class="mt-3">
-      <% page_data.genres.forEach(function (genre){ %>
-        <a class="badge badge-pill badge-secondary mr-2 mb-2" href="?genre=<%= encodeURIComponent(genre.name.toLowerCase()) %>"><%= genre.name %></a>
+  <div class="genre-list">
+    <% if ((page_data.genres||[]).length) { %>
+      <% var __curr2 = (page_data && page_data.current_genres) ? page_data.current_genres.map(function(s){return String(s).toLowerCase();}) : []; %>
+      <% page_data.genres.forEach(function (genre){ 
+           var gname = String(genre.name||'');
+           var slug = gname.toLowerCase();
+           var isA = (__curr2.indexOf(slug) !== -1);
+      %>
+        <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %>" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
       <% }); %>
-    </div>
-  <% } %>
-</div>
-
-<div class="container">
-  <div id="movies_holder" class="row"></div>
-
-  <div id="view_more" style="display: none;">
-    <div class="page-load-status">
-      <div class="loader-ellips infinite-scroll-request">
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-      </div>
-      <p class="infinite-scroll-last">End of content</p>
-      <p class="infinite-scroll-error">No more pages to load</p>
-    </div>
-
-    <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
+    <% } else { %>
+      <small class="text-muted">No genres</small>
+    <% } %>
   </div>
 </div>
 
+<!-- Scroll to top button (desktop) -->
+<button id="scroll_top_btn" class="btn btn-secondary btn-sm" aria-label="Scroll to top" title="Scroll to top">
+  <i class="fas fa-arrow-up"></i>
+  <span class="sr-only">Top</span>
+</button>
+
+<script>
+  (function(){
+    try {
+      var btn = document.getElementById('scroll_top_btn');
+      var onScroll = function(){
+        if (!btn) return; var y = window.scrollY || document.documentElement.scrollTop; btn.classList.toggle('show', y > 300);
+      };
+      window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+      if (btn){ btn.addEventListener('click', function(e){ e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }); }
+    } catch(_){}
+  })();
+  (function(){
+    // Floating sidebar visibility logic (desktop only)
+    try {
+      var sidebar = document.getElementById('movies_floating_sidebar');
+      var holder = document.getElementById('movies_holder');
+      var headerBlock = document.getElementById('movies_header_block');
+      var threshold = 700; // fallback
+      var inlineList = document.getElementById('movies_genres_inline');
+      function positionSidebar(){
+        try {
+          if (!sidebar) return;
+          var cont = document.getElementById('movies_holder');
+          if (!cont) return;
+          var rect = cont.getBoundingClientRect(); // viewport coordinates
+          var leftPad = 16; // CSS left for the sidebar
+          var gap = 16;     // gap between sidebar and movies grid
+          var available = Math.max(140, Math.floor(rect.left - leftPad - gap));
+          sidebar.style.left = leftPad + 'px';
+          sidebar.style.width = available + 'px';
+          // Space from header/nav dynamically
+          var hdr = document.querySelector('[data-th-header]');
+          var h = hdr ? hdr.getBoundingClientRect().height : 96;
+          sidebar.style.top = Math.max(80, Math.round(h + 16)) + 'px';
+          sidebar.style.maxHeight = 'calc(100vh - ' + Math.max(100, Math.round(h + 28)) + 'px)';
+        } catch(_){}
+      }
+      function computeThreshold(){
+        try {
+          if (!holder) return;
+          // Show as soon as the grid region starts to scroll under the header,
+          // with a small nudge equal to ~half a row for polish. This avoids large
+          // thresholds that depend on zoom or poster heights.
+          var hTop = holder.getBoundingClientRect().top + window.scrollY;
+          var nudge = 60; // default nudge
+          var card = holder.querySelector('.image-box');
+          if (card){
+            var ch = card.getBoundingClientRect().height;
+            if (!isNaN(ch) && ch > 0) nudge = Math.min(Math.round(ch * 0.5), 120);
+          }
+          threshold = Math.max(0, hTop - 80 + nudge);
+        } catch(_){}
+      }
+      function update(){
+        try {
+          if (!sidebar) return;
+          var isDesktop = window.matchMedia && window.matchMedia('(min-width: 992px)').matches;
+          if (!isDesktop){ sidebar.classList.remove('show'); return; }
+          if (!holder) holder = document.getElementById('movies_holder');
+          // Recompute threshold frequently to be resilient to zoom/layout changes
+          computeThreshold();
+          positionSidebar();
+          var y = window.scrollY || document.documentElement.scrollTop;
+          var effective = Math.max(80, threshold || 0); // appear after a small scroll
+          var showFloat = y > effective;
+          if (showFloat) {
+            sidebar.classList.add('show');
+            if (inlineList) inlineList.style.display = 'none';
+          } else {
+            sidebar.classList.remove('show');
+            if (inlineList) inlineList.style.display = '';
+          }
+        } catch(_){}
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', function(){ setTimeout(computeThreshold, 100); setTimeout(positionSidebar, 120); setTimeout(update, 140); });
+      // Run immediately in case DOMContentLoaded already fired
+      computeThreshold(); positionSidebar(); update();
+      // Sidebar search proxies the main search bar
+      (function(){
+        try {
+          var mainForm = document.getElementById('movies_search_form');
+          var mainInput = document.getElementById('search_input');
+          var sbForm = document.getElementById('sidebar_search_form');
+          var sbInput = document.getElementById('sidebar_search_input');
+          if (mainInput && sbInput){ sbInput.value = mainInput.value || ''; }
+          if (mainInput && sbInput){
+            sbInput.addEventListener('input', function(){ try { mainInput.value = sbInput.value; } catch(_){} });
+            mainInput.addEventListener('input', function(){ try { sbInput.value = mainInput.value; } catch(_){} });
+          }
+          if (sbForm){
+            sbForm.addEventListener('submit', function(e){ e.preventDefault(); try { if (mainInput) mainInput.value = sbInput.value; } catch(_){}
+              try { searchMovies(); } catch(_) { try { mainForm && mainForm.dispatchEvent(new Event('submit', { bubbles:true })); } catch(_){} }
+            });
+          }
+        } catch(_){}
+      })();
+      // Expose so search_movies can hint after appends
+      window.__updateMoviesSidebar = function(){ try { computeThreshold(); positionSidebar(); update(); } catch(_){} };
+    } catch(_){}
+  })();
+</script>
 
 <% if(typeof user != 'undefined') { %>
     <script type="text/html" id="movie-template">
         <div class="col-md-2 image-box" data-tmd-id="{{id}}">
             <a href="/movies/{{id}}-{{slug}}">
-            <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}"
-                alt="" 
+              <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}" alt=""
                 onload="    
                     checkIfFavourited('<%= user._id %>', '{{id}}')
                     checkIfWatched('<%= user._id %>', '{{id}}')
                     checkIfSaved('<%= user._id %>', '{{id}}')
                 ">
-            </a>
-            <div class="movie-hover image-box-description">
+              <div class="movie-hover image-box-description">
                 <div class="movie-title" title="{{title}}">{{title}}</div>
                 <div class="movie-actions">
-                    <i  class="far fa-check-circle fa-2x icon-white" 
-                        id="add_watched_movie_{{id}}"
-                        onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;" >
-                    </i>
-                    <i  class="fas fa-check-circle fa-2x icon-green" 
-                        id="remove_watched_movie_{{id}}"  
-                        onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;">
-                    </i>
-                    <i  class="far fa-heart fa-2x icon-white" 
-                        id="add_favourited_movie_{{id}}" 
-                        onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                    </i>
-                    <i  class="fas fa-heart fa-2x icon-red" 
-                        id="remove_favourited_movie_{{id}}" 
-                        onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                    </i>
-                    <i  class="far fa-bookmark fa-2x icon-white"
-                        id="add_saved_movie_{{id}}" 
-                        onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                    </i>
-                    <i class="fas fa-bookmark fa-2x icon-blue"
-                        id="remove_saved_movie_{{id}}" 
-                        onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                    </i>
+                  <i class="far fa-check-circle fa-2x icon-white" id="add_watched_movie_{{id}}" onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_movie_{{id}}" onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="far fa-heart fa-2x icon-white" id="add_favourited_movie_{{id}}" onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_movie_{{id}}" onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="far fa-bookmark fa-2x icon-white" id="add_saved_movie_{{id}}" onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                  <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_movie_{{id}}" onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
                 </div>
-            </div>
+              </div>
+            </a>
         </div>
     </script>
 <% } else { %>
     <script type="text/html" id="movie-template">
         <div class="col-md-2 image-box" data-tmd-id="{{id}}">
             <a href="/movies/{{id}}-{{slug}}">
-                    <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}"
-                        alt="">
+                <img name="movie_id_{{id}}" class="img-fluid image-box-hover" loading="lazy" decoding="async" src="https://image.tmdb.org/t/p/w342/{{poster_path}}" alt="">
+                <div class="movie-hover image-box-description">
+                    <div class="movie-title" title="{{title}}">{{title}}</div>
+                    <div class="movie-actions"></div>
+                </div>
             </a>
-            <div class="movie-hover image-box-description">
-                <div class="movie-title" title="{{title}}">{{title}}</div>
-                <div class="movie-actions"></div>
-            </div>
         </div>
     </script>
 <% } %>

@@ -21,7 +21,8 @@
     window.SITE_PREFS = {
       userId: <%- JSON.stringify((typeof user !== 'undefined' && user && user._id) ? String(user._id) : null) %>,
       showQuickActions: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.show_quick_actions)) %>,
-      hideWatchedInSearch: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search)) %>
+      hideWatchedInSearch: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.hide_watched_in_search)) %>,
+      homeLogoToProfile: <%- JSON.stringify(!!(typeof user !== 'undefined' && user && user.profile && user.profile.preferences && user.profile.preferences.home_logo_to_profile)) %>
     };
   } catch(_){}
   // simple helper

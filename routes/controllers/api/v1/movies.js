@@ -44,21 +44,33 @@ module.exports = function (server) {
     });
 
     server.get('/api/v1/movies/search_genre/:genre/:page?', async (req, res) => {
-        let genres = await tmdService.genreMovieList();
-        let genre_id
-        genres.genres.forEach(genre => {
-            if (req.params.genre.toString() == genre.name.toLowerCase())
-                genre_id = genre.id
-        });
+        // Support multi-genre: comma "," = AND, pipe "|" = OR
+        let list = [];
+        try { const raw = decodeURIComponent(String(req.params.genre||'')); list = raw.split(/[|,]/).map(s => s.trim().toLowerCase()).filter(Boolean); } catch(_){}
+
+        // Map slugs to TMDb IDs
+        const g = await tmdService.genreMovieList().catch(()=>({ genres: [] }));
+        const nameToId = new Map(((g && g.genres) || []).map(x => [String(x.name).toLowerCase(), String(x.id)]));
+        function replaceNamesWithIds(input){
+            const parts = String(input||'').split(/([|,])/); // keep delimiters
+            return parts.map(p => {
+                if (p === '|' || p === ',') return p;
+                const k = String(p).toLowerCase().trim();
+                const id = nameToId.get(k); return id ? id : '';
+            }).join('').replace(/\|{2,}|,{2,}/g, ',').replace(/^,|,$/g,'');
+        }
+        let idsString = replaceNamesWithIds(req.params.genre||'');
+        if (!idsString){ const single = list[0] ? nameToId.get(list[0]) : null; if (single) idsString = String(single); }
 
         const parameters = {
-            id: genre_id,
+            with_genres: idsString,
+            sort_by: 'popularity.desc',
             page: req.params.page || 1,
             include_adult: false
         }
 
         tmdService
-            .genreMovies(parameters)
+            .discoverMovie(parameters)
             .then(async results => {
                 try {
                     // Filter out rumored/unreleased-ish items

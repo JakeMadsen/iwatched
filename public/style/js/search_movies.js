@@ -27,7 +27,6 @@
             try { g = decodeURIComponent(String(g).replace(/\+/g, ' ')); } catch (e) { /* noop */ }
             searchMovies(g);
             console.log("Searching by genre: " + urlParams.genre);
-            return;
         }
 
         // Support landing on /movies?search_input=iron+man
@@ -146,6 +145,7 @@ function searchMovies(genre) {
         var itemsHTML = items.join('');
         var $items = $(itemsHTML);
         $container.infiniteScroll('appendItems', $items);
+        try { if (typeof window.__updateMoviesSidebar === 'function') { setTimeout(window.__updateMoviesSidebar, 50); } } catch(_){}
         try {
           if (window.StatusStore){
             var idsToPrefetch = (results||[]).map(function(m){ return m && m.id; }).filter(Boolean);
@@ -188,6 +188,7 @@ function searchMovies(genre) {
     // When items are appended, decide if we should pause auto-loading
     $container.on('append.infiniteScroll', function(){
         autoLoadCount++;
+        try { if (typeof window.__updateMoviesSidebar === 'function') { setTimeout(window.__updateMoviesSidebar, 10); } } catch(_){}
         // After several auto loads, pause auto-loading and show button
         if (autoLoadCount >= 4) {
             $container.infiniteScroll('option', { loadOnScroll: false });
@@ -239,6 +240,38 @@ function searchMovies(genre) {
         return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').substring(0,80);
     }
 }
+
+// Multi-select genre toggles (movies)
+(function(){
+  function parseGenres(q){ try { return String(q||'').split(/[|,]/).map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean); } catch(_) { return []; } }
+  function buildParam(arr){ return arr.join(','); }
+  function setPillState(a, on){
+    try {
+      a.classList.remove('badge-accent');
+      a.classList.remove('badge-secondary');
+      a.classList.add(on ? 'badge-accent' : 'badge-secondary');
+      if (on) a.setAttribute('aria-current','true'); else a.removeAttribute('aria-current');
+    } catch(_){}
+  }
+  function setActive(listEl, set){
+    try {
+      if (!listEl) return;
+      var anchors = Array.prototype.slice.call(listEl.querySelectorAll('a[href*="?genre="]'));
+      anchors.forEach(function(a){ var slug=(a.textContent||'').toLowerCase().trim(); var on=set.has(slug); setPillState(a, on); });
+    } catch(_){}
+  }
+  function attach(listSelector){
+    try {
+      var el = document.querySelector(listSelector); if (!el) return;
+      var params = new URLSearchParams(location.search); var set = new Set(parseGenres(params.get('genre')));
+      setActive(el, set);
+      el.addEventListener('click', function(e){ var a = e.target.closest('a[href*="?genre="]'); if(!a) return; e.preventDefault(); var slug=(a.textContent||'').toLowerCase().trim(); if(set.has(slug)) set.delete(slug); else set.add(slug); var out = buildParam(Array.from(set)); try{ history.replaceState(null,'', location.pathname + (out?('?genre='+encodeURIComponent(out)):'') ); }catch(_){}
+        setActive(el,set); var other=(listSelector.indexOf('movies_genres_inline')!==-1)?document.querySelector('#movies_floating_sidebar .genre-list'):document.getElementById('movies_genres_inline'); setActive(other,set); $('#movies_holder').empty(); searchMovies(out||null);
+      });
+    } catch(_){}
+  }
+  window.addEventListener('DOMContentLoaded', function(){ attach('#movies_genres_inline'); attach('#movies_floating_sidebar .genre-list'); });
+})();
 
 function parseQueryString(url) {
     var urlParams = {};

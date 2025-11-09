@@ -25,7 +25,9 @@ var userSchema = mongoose.Schema({
             // on posters without requiring hover
             show_quick_actions: { type: Boolean, default: false },
             // When true, search endpoints and UI hide items already watched
-            hide_watched_in_search: { type: Boolean, default: false }
+            hide_watched_in_search: { type: Boolean, default: false },
+            // When true, clicking the iWatched logo navigates to the user's profile instead of home
+            home_logo_to_profile: { type: Boolean, default: false }
         },
         inactive:           { type: Boolean, default: false },  
         banner_image:       { type: String, default: null },
@@ -159,6 +161,14 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
             const str2 = String(val2).toLowerCase();
             const enabled2 = (str2 === '1' || str2 === 'true' || str2 === 'on' || str2 === 'yes');
             this.profile.preferences.hide_watched_in_search = !!enabled2;
+        }
+        // Home logo preference
+        const v3 = body.pref_home_logo_to_profile;
+        if (typeof v3 !== 'undefined'){
+            let val3 = v3; if (Array.isArray(val3) && val3.length) val3 = val3[val3.length-1];
+            const str3 = String(val3).toLowerCase();
+            const enabled3 = (str3 === '1' || str3 === 'true' || str3 === 'on' || str3 === 'yes');
+            this.profile.preferences.home_logo_to_profile = !!enabled3;
         }
         try { this.markModified('profile.preferences'); } catch(_){}
     } catch(_){}

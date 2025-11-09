@@ -6,7 +6,35 @@ Directive for contributors:
 - Keep entries concise; reference files/paths in backticks where helpful.
 - Group related bullets; prefer links (paths) to the exact files changed.
 
----
+
+## 2025-11-09T18:00Z - Movies/Shows UI revamp, multi-genre search, GDPR export/delete, and logo preference
+
+- Movies (desktop)
+  - Added floating left genre sidebar with compact, wrapping pills; synced with inline list; strong active styling.
+  - Sidebar includes a compact search bar that proxies the main search.
+  - Multi-genre filtering (AND by default): toggle multiple chips; URL `?genre=a,b`; API uses TMDB `discoverMovie` with `with_genres` (supports `|` for OR).
+  - Clipped hover gradient to poster; removed row-wide dark bands; added spacing between chips and grid.
+  - Fixed scroll-to-top button and layout spacing from navbar; kept poster size intact.
+  - Files: `views/public assets/partials/movies/all.ejs`, `public/style/js/search_movies.js`, `routes/controllers/api/v1/movies.js`, `routes/controllers/public/movies.js`.
+
+- Shows (desktop)
+  - 3×6 scrollable grid container with infinite load (removed "View more"); active genre highlight.
+  - Clipped hover gradient to poster; added spacing between chips and grid.
+  - Files: `views/public assets/partials/shows/all.ejs`, `public/style/js/search_shows.js`.
+
+- GDPR & Privacy on Settings
+  - Export zip with `Profile_Data.json`, `Movie_Data.json`, `Show_Data.json` (sanitized sessions; excludes password/private keys). Rate-limited to 1/24h.
+  - Permanent delete endpoint (password required) with cascading cleanup; De-activate account flag and UI.
+  - Files: `routes/controllers/public/profile.js`, `views/public assets/partials/profile/settings.ejs`, `package.json` (added `archiver`).
+
+- Logo preference
+  - New setting: clicking the iWatched logo navigates to user profile; applied in header and nav.
+  - Files: `db/models/user.js`, `views/public assets/partials/standard/header.ejs`, `views/public assets/partials/standard/navigation.ejs`, `views/public assets/partials/profile/settings.ejs`, `views/public assets/partials/standard/scripts.ejs`.
+
+- Documentation
+  - Added Dependencies section describing all runtime packages.
+  - File: `documention.md`.
+
 
 ## 2025-11-09T00:00Z - Admin tools for runtime recalculation, caching, API robustness, and legacy cleanup
 

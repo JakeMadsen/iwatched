@@ -62,6 +62,7 @@ function searchShows(genre) {
   var consecutiveEmptyPages = 0;
   var autoLoadCount = 0;
   try {
+    var isDesktop = window.matchMedia && window.matchMedia('(min-width: 992px)').matches;
     $container = $holder.infiniteScroll({
       path: function () {
         var base = link;
@@ -79,7 +80,8 @@ function searchShows(genre) {
       prefill: false,
       scrollThreshold: 400,
       status: '.page-load-status',
-      history: false
+      history: false,
+      elementScroll: isDesktop
     });
   } catch (error) {
     console.log(error);
@@ -118,6 +120,7 @@ function searchShows(genre) {
     var itemsHTML = items.join('');
     var $items = $(itemsHTML);
     $container.infiniteScroll('appendItems', $items);
+    try { if (typeof window.__adjustShowsGridHeight === 'function') { setTimeout(window.__adjustShowsGridHeight, 50); } } catch(_){}
     try {
       if (window.StatusStore){
         var idsToPrefetch = (results||[]).map(function(s){ return s && s.id; }).filter(Boolean);
@@ -156,6 +159,7 @@ function searchShows(genre) {
 
   $container.on('append.infiniteScroll', function(){
     autoLoadCount++;
+    try { if (typeof window.__adjustShowsGridHeight === 'function') { setTimeout(window.__adjustShowsGridHeight, 10); } } catch(_){}
     if (autoLoadCount >= 4) {
       $container.infiniteScroll('option', { loadOnScroll: false });
       $viewMoreButton.show();

@@ -1,3 +1,21 @@
+<style>
+  @media (min-width: 992px){
+    #shows_holder{ overflow-y: auto; }
+  }
+  .genre-active-tag{ font-size:10px; margin-left:6px; opacity:.8; }
+  /* Space between genre pills and grid, remove any row-wide background */
+  #shows_holder{ margin-top: 18px; background: transparent !important; }
+  #shows_holder .row{ background: transparent !important; }
+  #shows_holder > [class^='col-'],
+  #shows_holder > [class*=' col-'],
+  #shows_holder [class^='col-'],
+  #shows_holder [class*=' col-']{ background: transparent !important; box-shadow: none !important; }
+  /* Constrain overlay to poster and make only poster clickable */
+  #shows_holder .image-box{ text-align:center; }
+  #shows_holder .image-box > a{ position: relative; display:inline-block; overflow:hidden; }
+  #shows_holder .image-box img{ display:block; }
+</style>
+
 <div class="container" style="margin-top: 10px;">
   <div class="d-flex flex-column flex-md-row align-items-md-center">
     <div class="mr-md-4" style="flex:0 0 auto;">
@@ -16,8 +34,13 @@
 
   <% if ((page_data.genres||[]).length) { %>
     <div class="mt-3">
-      <% page_data.genres.forEach(function (genre){ %>
-        <a class="badge badge-pill badge-secondary mr-2 mb-2" href="?genre=<%= encodeURIComponent(genre.name.toLowerCase()) %>"><%= genre.name %></a>
+      <% var __curr = (page_data && page_data.current_genre) ? String(page_data.current_genre).toLowerCase() : ''; %>
+      <% page_data.genres.forEach(function (genre){ 
+           var gname = String(genre.name||'');
+           var slug = gname.toLowerCase();
+           var isA = (slug === __curr);
+      %>
+        <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %> mr-2 mb-2" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
       <% }); %>
     </div>
   <% } %>
@@ -37,10 +60,33 @@
       <p class="infinite-scroll-last">End of content</p>
       <p class="infinite-scroll-error">No more pages to load</p>
     </div>
-
-    <p><button type="button" class="btn btn-primary btn-lg btn-block view-more-button">View more</button></p>
+    <!-- Removed View More button for continuous scroll on shows -->
   </div>
 </div>
+
+<script>
+  (function(){
+    function adjustShowsGridHeight(){
+      try {
+        var holder = document.getElementById('shows_holder');
+        if (!holder) return;
+        var isDesktop = window.matchMedia('(min-width: 992px)').matches;
+        if (!isDesktop){ holder.style.maxHeight=''; return; }
+        // Measure a sample item to fit exactly 3 rows
+        var sample = holder.querySelector('.image-box');
+        if (!sample){ return; }
+        var box = sample.getBoundingClientRect();
+        var gap = 16; // approximate vertical spacing between rows
+        var height = Math.round((box.height * 3) + (gap * 2));
+        holder.style.maxHeight = height + 'px';
+      } catch(_){}
+    }
+    window.addEventListener('resize', function(){ adjustShowsGridHeight(); });
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(adjustShowsGridHeight, 300); });
+    // Expose for search_shows.js to call after appends
+    window.__adjustShowsGridHeight = adjustShowsGridHeight;
+  })();
+</script>
 
 <script type="text/html" id="show-template">
   <div class="col-md-2 image-box" data-tmd-id="{{id}}">
@@ -50,19 +96,19 @@
         onload="checkIfFavouritedShow('<%= user._id %>', '{{id}}'); checkIfWatchedShow('<%= user._id %>', '{{id}}'); checkIfSavedShow('<%= user._id %>', '{{id}}');"
         <% } %>
       >
-    </a>
-    <div class="movie-hover image-box-description">
-      <div class="movie-title" title="{{name}}">{{name}}</div>
-      <div class="movie-actions">
-        <% if (typeof user != 'undefined') { %>
-        <i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_{{id}}" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_{{id}}" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_{{id}}" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_{{id}}" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_{{id}}" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_{{id}}" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
-        <% } %>
+      <div class="movie-hover image-box-description">
+        <div class="movie-title" title="{{name}}">{{name}}</div>
+        <div class="movie-actions">
+          <% if (typeof user != 'undefined') { %>
+          <i class="far fa-check-circle fa-2x icon-white" id="add_watched_show_{{id}}" onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <i class="fas fa-check-circle fa-2x icon-green" id="remove_watched_show_{{id}}" onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '{{id}}', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <i class="far fa-heart fa-2x icon-white" id="add_favourited_show_{{id}}" onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <i class="fas fa-heart fa-2x icon-red" id="remove_favourited_show_{{id}}" onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <i class="far fa-bookmark fa-2x icon-white" id="add_saved_show_{{id}}" onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <i class="fas fa-bookmark fa-2x icon-blue" id="remove_saved_show_{{id}}" onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '{{id}}', '<%= user.permissions.user_private_key %>'); return false;"></i>
+          <% } %>
+        </div>
       </div>
-    </div>
+    </a>
   </div>
   </script>

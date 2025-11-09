@@ -7,12 +7,21 @@ module.exports = (server) => {
     
     server.get('/movies', async (req, res) => {
         const genres = await tmdService.genreMovieList()
+        let currentList = [];
+        try {
+            const g = (req.query && req.query.genre) ? String(req.query.genre) : null;
+            if (g) {
+                const raw = decodeURIComponent(g).toLowerCase();
+                currentList = raw.split(/[|,]/).map(s => s.trim()).filter(Boolean);
+            }
+        } catch(_){}
         res.render('public assets/template.ejs', {
             page_title: "iWatched - Movies",
             page_file: "movies",
             page_subFile: "all",
             page_data: {
-                genres: genres.genres
+                genres: genres.genres,
+                current_genres: currentList
             },
             user: req.user
         });

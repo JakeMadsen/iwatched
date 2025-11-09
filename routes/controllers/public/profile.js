@@ -7,6 +7,15 @@ const enforceProfileVisibility = require('../../middleware/enforceProfileVisibil
 const UserShowTotals = require('../../../db/models/userShowTotals');
 const UserMovieTotals = require('../../../db/models/userMovieTotals');
 const UserMovie = require('../../../db/models/userMovie');
+const User = require('../../../db/models/user');
+const UserUrls = require('../../../db/models/userUrls');
+const FriendRequests = require('../../../db/models/friendRequests');
+const SupportMessages = require('../../../db/models/supportMessages');
+const Recommendation = require('../../../db/models/recommendation');
+const Report = require('../../../db/models/report');
+const UserSession = require('../../../db/models/userSession');
+const UserShow = require('../../../db/models/userShow');
+const archiver = require('archiver');
 
 async function __buildHeaderStats(u){
     const userId = u && u._id ? u._id : u;
@@ -39,6 +48,7 @@ async function __buildHeaderStats(u){
 
 module.exports = (server) => {
     console.log('* Profile Routes Loaded Into Server');
+    const __exportRateLimit = new Map(); // userId -> timestamp ms
 
     server.get('/:id', getUser, enforceProfileVisibility, async (req, res, next) => {
 
@@ -59,6 +69,21 @@ module.exports = (server) => {
             }, headerStats),
             user: req.user
         });
+    });
+
+    // JSON endpoint to de-activate account from settings UI
+    server.post('/:id/settings/deactivate', getUser, isCorrectUser, async (req, res) => {
+        try {
+            if (!res.locals.user) return res.status(404).end();
+            const userDoc = await User.findById(res.locals.user._id);
+            if (!userDoc) return res.status(404).json({ ok:false });
+            try { userDoc.profile = userDoc.profile || {}; } catch(_){}
+            userDoc.profile.inactive = true;
+            await userDoc.save();
+            return res.json({ ok:true });
+        } catch (e) {
+            return res.status(500).json({ ok:false, message:'Failed to de-activate' });
+        }
     });
 
     server.get('/:id/friends', getUser, enforceProfileVisibility, async (req, res, next) => {
@@ -421,27 +446,173 @@ module.exports = (server) => {
     });
 
     server.post('/:id/deactivate', getUser, isCorrectUser, async (req, res) => {
-        let user_id = req.user._id;
-        console.log(`User (${user_id}) deleted his profile`)
-
-        User.findById(user_id, function (err, user) {
-            user.remove(function (err, userUpdated) {
-                if (err) return handleError(err);
-                res.redirect('/');
-            });
-        })
+        try {
+            const userId = req.user && req.user._id;
+            if (!userId) return res.redirect('/login');
+            console.log(`User (${userId}) de-activated their profile`)
+            const userDoc = await User.findById(userId);
+            if (!userDoc) return res.redirect('/');
+            try { userDoc.profile = userDoc.profile || {}; } catch(_){}
+            userDoc.profile.inactive = true;
+            await userDoc.save();
+            res.redirect('/');
+        } catch (e) {
+            res.redirect('/');
+        }
     });
 
     server.post('/:id/delete', getUser, isCorrectUser, async (req, res) => {
-        let user_id = req.user._id;
-        console.log(`User (${user_id}) deleted his profile`)
+        // Legacy endpoint: perform hard delete without password (not exposed in UI)
+        // Prefer POST /:id/settings/delete which enforces password.
+        try {
+            const userId = req.user && req.user._id;
+            if (!userId) return res.redirect('/login');
+            console.log(`User (${userId}) deleted their profile via legacy endpoint`);
+            await Promise.all([
+                UserMovie.deleteMany({ user_id: userId }),
+                UserMovieTotals.deleteOne({ user_id: userId }),
+                UserShow.deleteMany({ user_id: userId }),
+                UserShowTotals.deleteOne({ user_id: userId }),
+                UserFriends.deleteOne({ user_id: userId }),
+                FriendRequests.deleteMany({ $or: [ { from_user_id: String(userId) }, { to_user_id: String(userId) } ] }),
+                Recommendation.deleteMany({ $or: [ { sender_id: userId }, { receiver_id: userId } ] }),
+                SupportMessages.deleteMany({ opened_by: userId }),
+                UserSession.deleteMany({ user_id: userId }),
+                UserUrls.deleteMany({ user_id: userId })
+            ]);
+            await User.deleteOne({ _id: userId });
+            try { req.logout && req.logout(); } catch (_) {}
+            return res.redirect('/');
+        } catch (e) {
+            console.error('Legacy delete error:', e);
+            return res.redirect('/');
+        }
+    });
 
-        User.findById(user_id, function (err, user) {
-            user.remove(function (err, userUpdated) {
-                if (err) return handleError(err);
-                res.redirect('/');
+    // GDPR export: returns a zip with Profile_Data.json, Movie_Data.json, Show_Data.json
+    server.get('/:id/settings/export', getUser, isCorrectUser, async (req, res) => {
+        try {
+            if (!res.locals.user) return res.status(404).end();
+            const uid = String(res.locals.user._id);
+            const now = Date.now();
+            const last = __exportRateLimit.get(uid) || 0;
+            const oneDay = 24 * 60 * 60 * 1000;
+            if ((now - last) < oneDay) {
+                const waitMins = Math.ceil((oneDay - (now - last)) / 60000);
+                return res.status(429).json({ ok: false, code: 'rate_limited', message: `Please wait ${waitMins} minute(s) before requesting another export.` });
+            }
+            __exportRateLimit.set(uid, now);
+
+            const userId = res.locals.user._id;
+
+            const [
+                userDoc,
+                userUrls,
+                userFriends,
+                frOut,
+                frIn,
+                supportCases,
+                recSent,
+                recRecv,
+                reportsFiled,
+                sessions,
+                userMovies,
+                movieTotals,
+                userShows,
+                showTotals
+            ] = await Promise.all([
+                (async () => { try { return await User.findById(userId).lean(); } catch (_) { return null; } })(),
+                (async () => { try { return await UserUrls.findOne({ user_id: userId }).lean(); } catch (_) { return null; } })(),
+                (async () => { try { return await UserFriends.findOne({ user_id: userId }).lean(); } catch (_) { return null; } })(),
+                (async () => { try { return await FriendRequests.find({ from_user_id: String(userId) }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await FriendRequests.find({ to_user_id: String(userId) }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await SupportMessages.find({ opened_by: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await Recommendation.find({ sender_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await Recommendation.find({ receiver_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await Report.find({ reporter_user_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await UserSession.find({ user_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await UserMovie.find({ user_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await UserMovieTotals.findOne({ user_id: userId }).lean(); } catch (_) { return null; } })(),
+                (async () => { try { return await UserShow.find({ user_id: userId }).lean(); } catch (_) { return []; } })(),
+                (async () => { try { return await UserShowTotals.findOne({ user_id: userId }).lean(); } catch (_) { return null; } })(),
+            ]);
+
+            const safeUser = (() => {
+                try {
+                    if (!userDoc) return null;
+                    const copy = JSON.parse(JSON.stringify(userDoc));
+                    if (copy.local) copy.local.password = undefined;
+                    if (copy.permissions) copy.permissions.user_private_key = undefined;
+                    return copy;
+                } catch (_) { return null; }
+            })();
+            const safeSessions = (sessions || []).map(s => {
+                const c = Object.assign({}, s);
+                delete c.sid;
+                return c;
             });
-        })
+
+            const profileData = {
+                user: safeUser,
+                urls: userUrls || null,
+                friends: (userFriends && userFriends.friends) || [],
+                friend_requests: { outgoing: frOut || [], incoming: frIn || [] },
+                support_cases: supportCases || [],
+                recommendations: { sent: recSent || [], received: recRecv || [] },
+                reports_filed: reportsFiled || [],
+                sessions: safeSessions
+            };
+
+            const moviesData = { totals: movieTotals || null, movies: userMovies || [] };
+            const showsData = { totals: showTotals || null, shows: userShows || [] };
+
+            const fname = `iwatched_export_${String(userId)}_${new Date().toISOString().replace(/[:.]/g,'-')}.zip`;
+            res.setHeader('Content-Type', 'application/zip');
+            res.setHeader('Content-Disposition', `attachment; filename="${fname}"`);
+            const archive = archiver('zip', { zlib: { level: 9 } });
+            archive.on('error', (err) => { try { res.status(500).end(String(err && err.message || err)); } catch (_) {} });
+            archive.pipe(res);
+            archive.append(Buffer.from(JSON.stringify(profileData, null, 2)), { name: 'Profile_Data.json' });
+            archive.append(Buffer.from(JSON.stringify(moviesData, null, 2)), { name: 'Movie_Data.json' });
+            archive.append(Buffer.from(JSON.stringify(showsData, null, 2)), { name: 'Show_Data.json' });
+            await archive.finalize();
+        } catch (e) {
+            console.error('Export error:', e);
+            try { return res.status(500).json({ ok:false, code:'export_failed', message: 'Failed to generate export' }); } catch (_) {}
+        }
+    });
+
+    // New permanent delete endpoint (requires password)
+    server.post('/:id/settings/delete', getUser, isCorrectUser, async (req, res) => {
+        try {
+            if (!res.locals.user) return res.status(404).end();
+            const userId = res.locals.user._id;
+            const password = (req.body && req.body.password) ? String(req.body.password) : '';
+            const userDoc = await User.findById(userId);
+            if (!userDoc) return res.status(404).json({ ok:false, code:'not_found' });
+            if (!password || !userDoc.validPassword(password)) {
+                return res.status(401).json({ ok:false, code:'invalid_password', message:'Incorrect password' });
+            }
+
+            await Promise.all([
+                UserMovie.deleteMany({ user_id: userId }),
+                UserMovieTotals.deleteOne({ user_id: userId }),
+                UserShow.deleteMany({ user_id: userId }),
+                UserShowTotals.deleteOne({ user_id: userId }),
+                UserFriends.deleteOne({ user_id: userId }),
+                FriendRequests.deleteMany({ $or: [ { from_user_id: String(userId) }, { to_user_id: String(userId) } ] }),
+                Recommendation.deleteMany({ $or: [ { sender_id: userId }, { receiver_id: userId } ] }),
+                SupportMessages.deleteMany({ opened_by: userId }),
+                UserSession.deleteMany({ user_id: userId }),
+                UserUrls.deleteMany({ user_id: userId })
+            ]);
+            await User.deleteOne({ _id: userId });
+            try { req.logout && req.logout(); } catch (_) {}
+            return res.json({ ok: true });
+        } catch (e) {
+            console.error('Permanent delete error:', e);
+            return res.status(500).json({ ok:false, code:'delete_failed', message:'Failed to delete account' });
+        }
     });
 }
 
