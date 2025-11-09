@@ -44,7 +44,7 @@ async function main(){
   }
 
   const mongoUri = await resolveMongoUri();
-  await mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(mongoUri, {});
 
   const User = require(path.join(process.cwd(),'db/models/user'));
   const UserShow = require(path.join(process.cwd(),'db/models/userShow'));
@@ -142,3 +142,4 @@ async function main(){
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
+

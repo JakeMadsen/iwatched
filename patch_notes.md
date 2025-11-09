@@ -8,6 +8,41 @@ Directive for contributors:
 
 ---
 
+## 2025-11-09T00:00Z - Admin tools for runtime recalculation, caching, API robustness, and legacy cleanup
+
+- Admin: Users Tools — Movies and Shows
+  - Added background jobs with polling + cancel-after-current and issue-only logs.
+  - Endpoints:
+    - Movies: `POST/GET /admin/users/tools/recalculate-movies/{start,active,status/:jobId,cancel}`
+    - Shows: `POST/GET /admin/users/tools/recalculate-shows/{start,active,status/:jobId,cancel}`
+  - UI card with progress bars and options: Force TMDB refresh (this run only) and Clear cache; page reconnects after refresh.
+  - Files: `routes/controllers/private/users.js`, `views/private assets/pages/users_tools.ejs`, `views/private assets/partials/standard/sidebar_nav.ejs`.
+
+- Caching + environment
+  - Dev uses OS temp (`%TEMP%/iwatched/cache`); Prod uses `bin/cache` (override via `IWATCHED_CACHE_DIR`).
+  - New caches: `movie_runtime_cache.json`, `show_season_runtime_cache.json`, `show_avg_runtime_cache.json`.
+
+- Movies runtime logic
+  - API `POST /api/v1/user-movies/watch/add` now resolves runtime cache-first: request → in-process cache → `movies` collection → TMDB → REST fallback; writes to in-process cache.
+  - Admin recompute prefers `user_movies.movie_runtime` > 0, then `movies.movie_runtime`, then TMDB; backfills `user_movies.movie_runtime` when 0.
+  - Files: `routes/controllers/api/v1/userMovies.js`, `routes/controllers/private/users.js`.
+
+- Shows runtime logic
+  - Recompute counts only completed seasons; excludes specials (season 0). Uses TMDB season data with per-show average fallback.
+  - Files: `routes/controllers/private/users.js`.
+
+- Legacy cleanup
+  - Removed legacy profile API and legacy models (saved/favourited/watched collections). `getTimeWatched` now reads from totals only.
+  - Files: `routes/controllers/api/v1/profile.js` (deleted), `routes/controllers/index.js`, `routes/services/users.js`, `db/models/*` legacy deletions.
+
+- Reliability fixes
+  - `apiIsCorrectUser` now returns HTTP 401 (was 200 with JSON `{status:401}`), adds warning log.
+  - Frontend watch toggles await responses and revert UI on failure.
+  - Files: `routes/middleware/apiIsCorrectUser.js`, `public/style/js/toggle_watched_movies.js`.
+
+- Misc
+  - Tools sidebar link under Users; avoided nodemon restarts by moving caches in dev.
+
 ## 2025-10-29T00:00Z - Storage, uploads, contact anti-spam, admin UI, and SEO
 
 - Avatars/Banners to S3 with proxy and migration

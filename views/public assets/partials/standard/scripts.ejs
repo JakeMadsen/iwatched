@@ -10,6 +10,12 @@
 <script src="/static/style/js/profile_settings.js"></script>
 <script src="/static/style/js/search_global.js"></script>
 <script>
+  // Enable progressive enhancement animations only when safe/supported
+  try {
+    var prm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!prm) { document.documentElement.classList.add('has-anim'); }
+  } catch(_){}
+  
   // Expose lightweight site preferences to client
   try {
     window.SITE_PREFS = {

@@ -15,32 +15,14 @@ module.exports = (server) => {
             var perPage = 20,
                 page = Math.max(0, req.params.page);
 
-            User
-            .find({})
-            .limit(perPage)
-            .skip(perPage * page)
-            .sort({ 'local.username': 'asc' })
-            .exec((error, users) => {
-                if (error)
-                    res.send({ status: 400, message: "Something went wrong", error: error })
-
-                User.count((error, count) => {
-                    let pages = 1;
-                    if(count / perPage > 1)
-                        pages = count / perPage
-
-                    if (error)
-                        res.send({ status: 400, message: "Something went wrong", error: error })
-                    else
-                        res.send({ 
-                            status: 200, 
-                            page: page, 
-                            total_results: count, 
-                            total_pages: pages, 
-                            results: users
-                        })
-                })
-            })
+            try {
+                const users = await User.find({}).limit(perPage).skip(perPage * page).sort({ 'local.username': 'asc' }).lean();
+                const count = await User.countDocuments({});
+                const pages = count > perPage ? Math.ceil(count / perPage) : 1;
+                return res.send({ status: 200, page, total_results: count, total_pages: pages, results: users });
+            } catch (error) {
+                return res.send({ status: 400, message: "Something went wrong", error });
+            }
         }
     });
 
@@ -51,16 +33,13 @@ module.exports = (server) => {
             res.send({ status: 401, message: "You do not have access without api key" })
         else {
          
-            User
-            .find({_id : req.params.id})
-            .exec((error, user) => {
-                if (error)
-                    res.send({status: 400, message: "Something went wrong", error: error})
-                if(!user)
-                    res.send({status: 404, message: "No user found"})
-                if(user)
-                    res.send({status: 200, user: user})
-            })
+            try {
+                const user = await User.findOne({ _id: req.params.id }).lean();
+                if (!user) return res.send({ status: 404, message: "No user found" });
+                return res.send({ status: 200, user });
+            } catch (error) {
+                return res.send({ status: 400, message: "Something went wrong", error });
+            }
         }
     });
 

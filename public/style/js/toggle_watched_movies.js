@@ -22,7 +22,7 @@ function checkIfWatched(user_id, movie_id){
       .catch(function(error){ try { console.log(error); } catch(_){} });
 }
 
-function movieAddWatched(user_id, movie_id, movie_runtime, user_key) {
+async function movieAddWatched(user_id, movie_id, movie_runtime, user_key) {
     var link = `/api/v1/user-movies/watch/add`;
 
     let headers = new Headers();
@@ -42,14 +42,24 @@ function movieAddWatched(user_id, movie_id, movie_runtime, user_key) {
     };
     var request = new Request(link, init);
 
-    fetch(request).catch(function(err){ try { console.log(err); } catch(_){} });
-
-    $(`#add_watched_movie_${movie_id}`).hide();
-    $(`#remove_watched_movie_${movie_id}`).show();
-    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:true, f:null, s:null }); } catch(_){}
+    try {
+        const resp = await fetch(request);
+        if (!resp.ok) throw new Error('request_failed');
+        const data = await resp.json().catch(()=>({ status: 'ok' }));
+        if (data && (data.status === 'ok' || data.status === 200)){
+            $(`#add_watched_movie_${movie_id}`).hide();
+            $(`#remove_watched_movie_${movie_id}`).show();
+            try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:true, f:null, s:null }); } catch(_){}
+        } else { throw new Error('bad_status'); }
+    } catch (err) {
+        // Revert UI if failed (likely auth key or network)
+        $(`#add_watched_movie_${movie_id}`).show();
+        $(`#remove_watched_movie_${movie_id}`).hide();
+        try { console.warn('Add watched failed for', movie_id, err && err.message); } catch(_){}
+    }
 }
 
-function movieRemoveWatched(user_id, movie_id, movie_runtime, user_key){
+async function movieRemoveWatched(user_id, movie_id, movie_runtime, user_key){
     var link = `/api/v1/user-movies/watch/remove`;
 
     let headers = new Headers();
@@ -69,9 +79,19 @@ function movieRemoveWatched(user_id, movie_id, movie_runtime, user_key){
     };
     var request = new Request(link, init);
 
-    fetch(request).catch(function(err){ try { console.log(err); } catch(_){} });
-
-    $(`#add_watched_movie_${movie_id}`).show();
-    $(`#remove_watched_movie_${movie_id}`).hide();
-    try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:false, f:null, s:null }); } catch(_){}
+    try {
+        const resp = await fetch(request);
+        if (!resp.ok) throw new Error('request_failed');
+        const data = await resp.json().catch(()=>({ status: 'ok' }));
+        if (data && (data.status === 'ok' || data.status === 200)){
+            $(`#add_watched_movie_${movie_id}`).show();
+            $(`#remove_watched_movie_${movie_id}`).hide();
+            try { if (window.StatusStore) StatusStore.put('movie', String(movie_id), { w:false, f:null, s:null }); } catch(_){}
+        } else { throw new Error('bad_status'); }
+    } catch (err) {
+        // Revert UI if failed
+        $(`#add_watched_movie_${movie_id}`).hide();
+        $(`#remove_watched_movie_${movie_id}`).show();
+        try { console.warn('Remove watched failed for', movie_id, err && err.message); } catch(_){}
+    }
 }

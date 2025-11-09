@@ -9,7 +9,6 @@ module.exports = (server) => {
     require("./api/v1/search")(server);
     require("./api/v1/users")(server);
     require("./api/v1/userSessions")(server);
-    require("./api/v1/profile")(server);
     require("./api/v1/friends")(server);
     require("./api/v1/support")(server);
     require("./api/v1/announcements")(server);

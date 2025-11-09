@@ -5,13 +5,19 @@ const userService = require('../services/users');
 
 module.exports = async (req, res, next) => {
     try {
-        let key = req.body.user_key;
-        let user = await userService.getOne(req.body.user_id)
-        if (!user || (user.permissions && user.permissions.user_private_key) !== key) {
-            return res.send({ status: 401, message: "You used the wrong api key" })
+        const key = req.body && req.body.user_key;
+        const uid = req.body && req.body.user_id;
+        if (!key || !uid) {
+            return res.status(401).send({ status: 401, message: 'Unauthorized' });
         }
-        next()
+        const user = await userService.getOne(uid);
+        const ok = !!(user && user.permissions && user.permissions.user_private_key === key);
+        if (!ok) {
+            return res.status(401).send({ status: 401, message: 'Unauthorized' });
+        }
+        return next();
     } catch (e) {
-        res.send({ status: 401, message: "Unauthorized" })
+        try { console.warn('apiIsCorrectUser failed:', e && e.message ? e.message : e); } catch(_){}
+        return res.status(401).send({ status: 401, message: 'Unauthorized' });
     }
 }

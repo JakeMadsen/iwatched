@@ -1,0 +1,165 @@
+<div class="container-fluid" data-page="users-tools">
+  <style>
+    .tools-card .card-header { padding: .5rem .9rem; font-weight: 600; }
+    .tools-card .card-body { padding: .85rem 1rem; }
+    .tools-stats { font-size: .95rem; line-height: 1.35; }
+    .tools-actions .btn { padding: .4rem .75rem; }
+    #logPanel { max-height: 360px; overflow:auto; background:#0b0c10; color:#c9d1d9; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; }
+    /* Wrap long log lines instead of truncating */
+    #logs div { white-space: pre-wrap; word-break: break-word; overflow: visible; text-overflow: initial; }
+    .stat { display:flex; gap:.5rem; justify-content: space-between; margin: .15rem 0; }
+    .stat .label { opacity:.75; }
+    .progress { height: .6rem; background:#1b1f24; }
+    .progress-bar { background:#2f81f7; }
+  </style>
+  <div class="row mb-3">
+    <div class="col">
+      <h2>User Tools</h2>
+      <p class="mb-0">Recalculate movie and show watch time using TMDB runtimes. Items with missing/zero runtime are skipped and noted.</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="card mb-3 tools-card">
+        <div class="card-header">Recalculate Movies Runtime (All Users)</div>
+        <div class="card-body">
+          <div class="tools-actions mb-2">
+            <button id="btnStartMovies" class="btn btn-primary"><i class="fas fa-film"></i> Recalculate Movies</button>
+            <button id="btnCancelMovies" class="btn btn-outline-warning" disabled><i class="fas fa-stopwatch"></i> Cancel after current user</button>
+          </div>
+          <div class="tools-stats">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="moviesForce" data-toggle="tooltip" title="Bypass the runtime caches for this run and fetch fresh data from TMDB when needed. Still prefers stored runtimes on user entries or the Movie collection.">
+              <label class="form-check-label" for="moviesForce">Force TMDB refresh (this run only)</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="moviesClear" data-toggle="tooltip" title="Delete the persisted movie runtime cache before starting. Future runs will rebuild it. Does not modify values in Mongo.">
+              <label class="form-check-label" for="moviesClear">Clear movie runtime cache</label>
+            </div>
+            <div class="stat"><span class="label">Total profiles</span><span class="value" id="statTotalMovies">-</span></div>
+            <div class="stat" style="align-items:center">
+              <span class="label">Current user</span>
+              <span class="value"><span id="statCurrentMovies">-</span> (<span id="statPercentMovies">0</span>%)</span>
+            </div>
+            <div class="progress mb-2" aria-label="Current user progress"><div id="barMovies" class="progress-bar" style="width:0%"></div></div>
+            <div class="stat"><span class="label">Next up</span><span class="value" id="statNextMovies">-</span></div>
+            <div class="stat"><span class="label">Job status</span><span class="value" id="statStatusMovies">idle</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3 tools-card">
+        <div class="card-header">Recalculate Shows Runtime (All Users)</div>
+        <div class="card-body">
+          <div class="tools-actions mb-2">
+            <button id="btnStartShows" class="btn btn-primary"><i class="fas fa-tv"></i> Recalculate Shows</button>
+            <button id="btnCancelShows" class="btn btn-outline-warning" disabled><i class="fas fa-stopwatch"></i> Cancel after current user</button>
+          </div>
+          <div class="tools-stats">
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="showsForce" data-toggle="tooltip" title="Bypass the runtime caches for this run and fetch fresh season/episode data from TMDB when needed. Only completed seasons are counted; specials (S0) are ignored.">
+              <label class="form-check-label" for="showsForce">Force TMDB refresh (this run only)</label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" id="showsClear" data-toggle="tooltip" title="Delete the persisted show runtime caches (per-season minutes and per-show average) before starting. Future runs will rebuild them. Does not modify values in Mongo.">
+              <label class="form-check-label" for="showsClear">Clear show runtime cache</label>
+            </div>
+            <div class="stat"><span class="label">Total profiles</span><span class="value" id="statTotalShows">-</span></div>
+            <div class="stat" style="align-items:center">
+              <span class="label">Current user</span>
+              <span class="value"><span id="statCurrentShows">-</span> (<span id="statPercentShows">0</span>%)</span>
+            </div>
+            <div class="progress mb-2" aria-label="Current user progress"><div id="barShows" class="progress-bar" style="width:0%"></div></div>
+            <div class="stat"><span class="label">Next up</span><span class="value" id="statNextShows">-</span></div>
+            <div class="stat"><span class="label">Job status</span><span class="value" id="statStatusShows">idle</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card mb-3 tools-card">
+        <div class="card-header">On-screen Log</div>
+        <div id="logPanel" class="card-body">
+          <div id="logs"><div>Awaiting action…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    // Movies elements
+    const btnStartMovies = document.getElementById('btnStartMovies');
+    const btnCancelMovies = document.getElementById('btnCancelMovies');
+    const statTotalMovies = document.getElementById('statTotalMovies');
+    const statCurrentMovies = document.getElementById('statCurrentMovies');
+    const statPercentMovies = document.getElementById('statPercentMovies');
+    const statNextMovies = document.getElementById('statNextMovies');
+    const statStatusMovies = document.getElementById('statStatusMovies');
+    const barMovies = document.getElementById('barMovies');
+    const moviesForce = document.getElementById('moviesForce');
+    const moviesClear = document.getElementById('moviesClear');
+    // Shows elements
+    const btnStartShows = document.getElementById('btnStartShows');
+    const btnCancelShows = document.getElementById('btnCancelShows');
+    const statTotalShows = document.getElementById('statTotalShows');
+    const statCurrentShows = document.getElementById('statCurrentShows');
+    const statPercentShows = document.getElementById('statPercentShows');
+    const statNextShows = document.getElementById('statNextShows');
+    const statStatusShows = document.getElementById('statStatusShows');
+    const barShows = document.getElementById('barShows');
+    const showsForce = document.getElementById('showsForce');
+    const showsClear = document.getElementById('showsClear');
+    const logsEl = document.getElementById('logs');
+    let moviesJobId = null, showsJobId = null; let pollTimer = null; let autoscroll = true;
+
+    function renderStatus(kind, data){
+      const isMovies = (kind==='movies');
+      const statTotal = isMovies? statTotalMovies : statTotalShows;
+      const statCurrent = isMovies? statCurrentMovies : statCurrentShows;
+      const statPercent = isMovies? statPercentMovies : statPercentShows;
+      const statNext = isMovies? statNextMovies : statNextShows;
+      const statStatus = isMovies? statStatusMovies : statStatusShows;
+      const bar = isMovies? barMovies : barShows;
+      const btnCancel = isMovies? btnCancelMovies : btnCancelShows;
+      statTotal.textContent = data.total_users != null ? data.total_users : '-';
+      const cu = data.current_user || {}; const label = (cu.username || cu.id || '-')
+      statCurrent.textContent = label; const pct = data.current_progress_percent || 0; statPercent.textContent = pct;
+      bar.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      statNext.textContent = data.next_user || '-'; statStatus.textContent = data.status || 'idle';
+      btnCancel.disabled = !(data && (data.status==='running'));
+      if (Array.isArray(data.logs) && (isMovies ? moviesJobId : showsJobId)){
+        if (!logsEl._lastCount || logsEl._lastCount !== data.logs.length){
+          logsEl.innerHTML = data.logs.map(l=>`<div>${escapeHtml(l)}</div>`).join('');
+          if (autoscroll) logsEl.parentElement.scrollTop = logsEl.parentElement.scrollHeight;
+          logsEl._lastCount = data.logs.length;
+        }
+      }
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
+    async function poll(){
+      if (!moviesJobId){ try { const a = await fetch('/admin/users/tools/recalculate-movies/active').then(r=>r.json()); moviesJobId = a.jobId; } catch(_){} }
+      if (!showsJobId){ try { const a2 = await fetch('/admin/users/tools/recalculate-shows/active').then(r=>r.json()); showsJobId = a2.jobId; } catch(_){} }
+      try {
+        if (moviesJobId){ const st = await fetch(`/admin/users/tools/recalculate-movies/status/${moviesJobId}`).then(r=> r.ok ? r.json() : null); if (st){ renderStatus('movies', st); if (st.status==='done' || st.status==='error'){ moviesJobId=null; } } }
+        if (showsJobId){ const st2 = await fetch(`/admin/users/tools/recalculate-shows/status/${showsJobId}`).then(r=> r.ok ? r.json() : null); if (st2){ renderStatus('shows', st2); if (st2.status==='done' || st2.status==='error'){ showsJobId=null; } } }
+        if (!moviesJobId && !showsJobId && pollTimer){ clearInterval(pollTimer); pollTimer=null; }
+      } catch(_){}
+    }
+    btnStartMovies.addEventListener('click', async function(){
+      try { const r = await fetch('/admin/users/tools/recalculate-movies/start', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ forceRefresh: !!moviesForce.checked, clearCache: !!moviesClear.checked }) }); const j = await r.json(); moviesJobId = j.jobId || moviesJobId; logsEl.innerHTML=''; if (!pollTimer) pollTimer = setInterval(poll, 1000); poll(); } catch(_){}
+    });
+    btnCancelMovies.addEventListener('click', async function(){ if (!moviesJobId) return; try { await fetch('/admin/users/tools/recalculate-movies/cancel', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ jobId: moviesJobId }) }); } catch(_){} });
+    btnStartShows.addEventListener('click', async function(){
+      try { const r = await fetch('/admin/users/tools/recalculate-shows/start', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ forceRefresh: !!showsForce.checked, clearCache: !!showsClear.checked }) }); const j = await r.json(); showsJobId = j.jobId || showsJobId; logsEl.innerHTML=''; if (!pollTimer) pollTimer = setInterval(poll, 1000); poll(); } catch(_){}
+    });
+    try { if (window.$ && $.fn.tooltip) { $('[data-toggle="tooltip"]').tooltip(); } } catch(_){}
+    btnCancelShows.addEventListener('click', async function(){ if (!showsJobId) return; try { await fetch('/admin/users/tools/recalculate-shows/cancel', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ jobId: showsJobId }) }); } catch(_){} });
+    // Initial check
+    pollTimer = setInterval(poll, 1500); poll();
+    document.getElementById('logPanel').addEventListener('scroll', function(){ const el=this; autoscroll = (el.scrollTop + el.clientHeight + 4) >= el.scrollHeight; });
+  })();
+</script>

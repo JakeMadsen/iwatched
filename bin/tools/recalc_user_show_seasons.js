@@ -40,7 +40,7 @@ async function main(){
   const arg = process.argv[2]; const apply = process.argv.includes('--apply');
   if (!arg){ console.error('Usage: node bin/tools/recalc_user_show_seasons.js <user> [--apply]'); process.exit(1); }
   const mongo = await resolveMongoUri();
-  await mongoose.connect(mongo, { useNewUrlParser: true, useUnifiedTopology: true });
+  await mongoose.connect(mongo, {});
   const User = require(path.join(process.cwd(),'db/models/user'));
   const UserShow = require(path.join(process.cwd(),'db/models/userShow'));
   const Totals = require(path.join(process.cwd(),'db/models/userShowTotals'));
@@ -75,3 +75,4 @@ async function main(){
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
+

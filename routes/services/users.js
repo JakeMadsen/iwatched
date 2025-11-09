@@ -1,4 +1,4 @@
-﻿/*
+/*
 *   Mongoose models
 **************************/
 const User                  = require('../../db/models/user');
@@ -22,43 +22,24 @@ try { imgProc = require('../../bin/server/utils/imageProcessing'); } catch (_) {
 *   Exported functions
 **************************/
 module.exports = {
-    getAll: () => {
-        return new Promise(function (resolve, reject) {
-            User.find({}, function (error, users) {
-                if (error)
-                    reject(error, "Could not get users")
-                else
-                    resolve(users)
-            });
-        })
+    getAll: async () => {
+        return await User.find({}).lean();
     },
-    getOne: (user_id) => {
-        return new Promise((resolve, reject) => {
-            const id = String(user_id || '');
-            if (mongoose.Types.ObjectId.isValid(id) === true){
-                User.findOne({ '_id': id }, (error, user) => {
-                    if (error) return reject(error);
-                    if (user) return resolve(user);
-                    return resolve(null);
-                });
-            } else {
-                // Try exact match first
-                User.findOne({ 'profile.custom_url': id }, (error, user) => {
-                    if (error) return reject(error);
-                    if (user) return resolve(user);
-                    // Fallback: case-insensitive match for legacy/casual links
-                    try {
-                        const rx = new RegExp('^' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
-                        User.findOne({ 'profile.custom_url': rx }, (e2, u2) => {
-                            if (e2) return reject(e2);
-                            return resolve(u2 || null);
-                        });
-                    } catch (e) {
-                        return resolve(null);
-                    }
-                });
-            }
-        })
+    getOne: async (user_id) => {
+        const id = String(user_id || '');
+        if (mongoose.Types.ObjectId.isValid(id)){
+            const u = await User.findById(id).lean();
+            return u || null;
+        }
+        const exact = await User.findOne({ 'profile.custom_url': id }).lean();
+        if (exact) return exact;
+        try {
+            const rx = new RegExp('^' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i');
+            const ci = await User.findOne({ 'profile.custom_url': rx }).lean();
+            return ci || null;
+        } catch (_) {
+            return null;
+        }
     },
     saveUser: async (id, content, files) => {
         return new Promise((resolve, reject) => {
@@ -79,14 +60,15 @@ module.exports = {
                     try {
 
                         if (error)
-                            reject({ error: error, custom_error: "Something went wrong with saving settings" })
+                            return reject({ error: error, custom_error: "Something went wrong with saving settings" })
+
+                        if (!user)
+                            return reject({ error: new Error('User not found'), custom_error: "Something went wrong with saving settings" })
 
                         if (JSON.stringify(files) == "{}" || files == null){
                             await user.updateSettings(content)
                         }
-                            
-                        else 
-                        {
+                        else {
                             if (newProfilePicture) {
                                 await saveProfileImages(user._id, newProfilePicture, (user.profile && user.profile.profile_image) || null, "picture");
                                 let newName = `picture_${user._id}.${getFileExtention(newProfilePicture.name)}`;
@@ -103,19 +85,14 @@ module.exports = {
 
                         user.save((error, userUpdated) => {
                             if (error)
-                                reject({ error: error, custom_error: "Something went wrong with saving settings" })
-
-                            else
-                                resolve(userUpdated)
+                                return reject({ error: error, custom_error: "Something went wrong with saving settings" })
+                            return resolve(userUpdated)
                         });
-                        
+
                     } catch (error) {
                         console.log("Update user catch error:", error)
                         return reject({ error: error, custom_error: (error && error.message) || 'Failed to process image', code: error && (error.code || null) })
                     }
-
-                    
-
                 })
         })
     },
@@ -149,17 +126,19 @@ module.exports = {
                 try { return getTimeWatched(Number(mins)||0); } catch(_) { return getTimeWatched(0); }
             }
             if(type == "movies"){
-                UserWatchedMovies.findOne({ 'user_id': user_id }, (error, watchedMovies) => {
+                UserMovieTotals.findOne({ 'user_id': user_id }, (error, totals) => {
                     if(error) return reject(error);
-                    if(watchedMovies) return resolve(asText(watchedMovies.movie_watch_time));
+                    const mins = (totals && typeof totals.total_runtime === 'number') ? totals.total_runtime : 0;
+                    return resolve(asText(mins));
                     // No doc yet → zero time
                     return resolve(asText(0));
                 })
             }
             else if (type == "shows"){
-                UserWatchedShows.findOne({ 'user_id': user_id }, (error, watchedShows) => {
+                UserShowTotals.findOne({ 'user_id': user_id }, (error, totals) => {
                     if(error) return reject(error);
-                    if(watchedShows) return resolve(asText(watchedShows.show_watch_time));
+                    const mins = (totals && typeof totals.total_runtime === 'number') ? totals.total_runtime : 0;
+                    return resolve(asText(mins));
                     return resolve(asText(0));
                 })
             } else {
@@ -231,5 +210,9 @@ function getTimeWatched(runtime) {
 
     return (`${days} ${text2} and ${hours} ${text} and ${minutes} minutes`);
 }
+
+
+
+
 
 

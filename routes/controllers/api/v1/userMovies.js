@@ -16,6 +16,9 @@ const paginateArray = require('../../../services/paginateArray');
 const movieService = require('../../../services/movies');
 const createError = require('http-errors');
 
+// Lightweight in-process runtime cache to avoid extra TMDB calls during server uptime
+const runtimeCache = new Map(); // movieId -> minutes (Number)
+
 async function ensureMovieInDb(tmdbId){
     try {
         const found = await Movie.findOne({ 'tmd_id': String(tmdbId) }).lean();
@@ -54,10 +57,25 @@ module.exports = (server) => {
             const movie_id = String(req.body.movie_id);
             if (!user_id || !movie_id) return res.status(400).send({ status: 400, message: 'Missing user_id or movie_id' });
 
-            // ensure Movie exists
-            const info = await tmdService.movieInfo(movie_id).catch(()=>({ runtime: 0 }));
-            await ensureMovieInDb(movie_id);
-            const runtime = Number(req.body.movie_runtime || info.runtime || 0) || 0;
+            // Resolve runtime with cache-first strategy
+            let info = null; let dbMovie = null; let runtime = 0;
+            // 1) Client-provided
+            runtime = Number(req.body.movie_runtime) || 0;
+            // 2) In-process cache
+            if (!runtime) {
+                const cached = runtimeCache.get(movie_id);
+                if (typeof cached === 'number' && cached > 0) runtime = cached;
+            }
+            // 3) DB movie (persistent cache)
+            if (!runtime) {
+                try { dbMovie = await ensureMovieInDb(movie_id); } catch(_) { dbMovie = null; }
+                if (dbMovie && dbMovie.movie_runtime) runtime = Number(dbMovie.movie_runtime) || 0;
+            }
+            // 4) TMDB
+            if (!runtime) { try { info = await tmdService.movieInfo(movie_id); runtime = Number(info && info.runtime) || 0; } catch(_) { runtime = 0; } }
+            // 5) REST fallback
+            if (!runtime) { try { runtime = Number(await movieService.getMoveRuntimeIfNull(movie_id)) || 0; } catch(_) { runtime = 0; } }
+            if (runtime > 0) runtimeCache.set(movie_id, runtime);
 
             // upsert user-movie doc
             let doc = await UserMovie.findOne({ user_id, movie_id });

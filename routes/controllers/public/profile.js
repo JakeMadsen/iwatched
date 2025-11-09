@@ -281,6 +281,17 @@ module.exports = (server) => {
             return res.redirect('/' + slug + '/badges');
         } catch (_) { return res.redirect('/login'); }
     });
+
+    // Stats page shortcut: /user/stats -> /:slug/stats
+    server.get('/user/stats', async (req, res) => {
+        try {
+            if (!req.user) return res.redirect('/login');
+            const slug = (req.user && req.user.profile && req.user.profile.custom_url)
+                ? req.user.profile.custom_url
+                : String(req.user._id);
+            return res.redirect('/' + slug + '/stats');
+        } catch (_) { return res.redirect('/login'); }
+    });
     server.get('/:id/badges', getUser, enforceProfileVisibility, async (req, res, next) => {
         if (res.locals.user == null) return next('route');
         const Badge = require('../../../db/models/badge');
