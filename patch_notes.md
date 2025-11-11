@@ -1,10 +1,87 @@
 # Patch Notes
 
+## 2025-11-11T13:00Z - Personalize fixes, final layout for controls, new showcases polish
+
+- Personalize bug fix
+  - Fixed SSR-to-client JSON embedding in `user_personalize.ejs` to avoid quote-escape breakage when notes include apostrophes.
+  - Hydrate previews from enriched server data so Favorite Person/Title render on refresh.
+
+- Catalog + Selected UI polish
+  - Restyled catalog items and Add buttons; added live used/max badges (e.g., 1/3, 0/1).
+  - Finalized “Steam-like” controls: up/drag/down/remove appear as a dedicated right-side column per showcase, inside Selected but outside the item box; non-wrapping layout.
+  - Files (key): `public/style/css/profile_personalize.css`, `views/public assets/pages/user_personalize.ejs`.
+
+- Slot-based editing
+  - Favorite Movies/Actors: six editable slots with slot-anchored search popover; closes on select/outside/Escape.
+  - Favorite Person/Title: converted to the same slot popover flow (single slot); note editor sits to the right of the poster in the preview.
+  - My Badges: chooser popover with user’s badges; supports selecting order; preview shows chosen + next empty slot.
+  - Files: `views/public assets/pages/user_personalize.ejs`, `public/style/css/profile_personalize.css`.
+
+- New showcases (v1)
+  - My Favorite Movies, My Favorite Actors, My Favorite Shows (6 slots each), and My Badges (6/12).
+  - Enrichment + public render for each; `/user` now displays them alongside existing showcases.
+  - Files: `routes/controllers/api/v1/userShowcases.js`, `routes/controllers/public/profile.js`,
+           `views/public assets/partials/showcases/{favorite_movies.ejs,favorite_actors.ejs,favorite_shows.ejs,my_badges.ejs}`,
+           `views/public assets/partials/profile/main.ejs`.
+
+- Admin
+  - Added `/admin/showcase-catalog` (list/edit/toggle) and link under Content in admin nav.
+  - Files: `routes/controllers/private/showcaseCatalog.js`, `views/private assets/pages/showcase_catalog.ejs`,
+           `views/private assets/partials/standard/sidebar_nav.ejs`, `routes/controllers/index.js`.
+
 Directive for contributors:
-- Append newest entries to the top (reverse‑chronological).
+- Append newest entries to the top (reverse-chronological).
 - Use ISO 8601 (UTC) timestamps like `YYYY-MM-DDTHH:mmZ`.
 - Keep entries concise; reference files/paths in backticks where helpful.
 - Group related bullets; prefer links (paths) to the exact files changed.
+
+
+## 2025-11-11T00:00Z - Profile showcases system (v1), personalize UI, and visual fixes
+
+- Core model + API
+  - Added showcase catalog and per-user selection models and routes.
+  - API: `GET/PUT /api/v1/user-showcases/:profile_id` to resolve and save layout.
+  - Files: `db/models/showcaseCatalog.js`, `db/models/userShowcase.js`, `routes/controllers/api/v1/userShowcases.js`.
+
+- Personalize page (/:id/personalize)
+  - Catalog + Selected panel, add/remove, mode controls, item count.
+  - Typeahead search for favorites (reuses `/api/v1/search`).
+  - Live preview while editing; dirty-state tracking + beforeunload warning.
+  - Hydrates from API on load to avoid stale SSR state.
+  - Files: `views/public assets/pages/user_personalize.ejs`, `public/style/css/profile_personalize.css`.
+
+- Recent Timeline showcase
+  - Converted legacy “Latest activity” to a showcase (`recent_timeline`).
+  - Modes: mixed, movies_only, shows_only; configurable items (6 or 12).
+  - Titles computed per mode (e.g., “Recently Added Movies/Shows”).
+  - Movies/Shows lists fetched independently; mixed uses unified endpoint.
+  - Files: `views/public assets/partials/showcases/recent_timeline.ejs`, `public/style/js/profile_activity.js`, `routes/controllers/api/v1/userActivity.js`, `routes/controllers/public/profile.js`.
+
+- Favorite showcases
+  - `favorite_person` (mode: actor/director) with note; fetches TMDB person info.
+  - `favorite_title` (mode: movie/show) with note; resolves from DB or TMDB.
+  - Profile partials render image, short description/tagline, and note.
+  - Files: `views/public assets/partials/showcases/favorite_person.ejs`, `views/public assets/partials/showcases/favorite_title.ejs`, `routes/controllers/public/profile.js` (enrichment).
+
+- Profile integration
+  - Profile main renders selected showcases in saved order; seeding defaults.
+  - Added catalog seeding for all three showcases if missing.
+  - Files: `views/public assets/partials/profile/main.ejs`, `routes/controllers/public/profile.js`.
+
+- Quick Actions + overlay fixes
+  - Duplicate poster status now updates across all instances (scoped toggles).
+  - Clipped hover gradient strictly to poster; overlay moved inside link.
+  - Files: `public/style/js/toggle_watched_movies.js`, `public/style/js/toggle_watched_shows.js`, `views/public assets/partials/profile/movie_template.ejs`, `views/public assets/partials/profile/show_template.ejs`, `public/style/css/stylesheet.css`.
+
+- Limits + plan logic
+  - Free: max 3 showcases; Premium: max 6. Enforced server-side on save.
+  - Per-showcase `max_instances`: `recent_timeline` (3), favorites (1).
+  - Files: `routes/controllers/api/v1/userShowcases.js`.
+
+- Notes
+  - Legacy “Latest activity” UI removed; markup clearly labeled when retained.
+  - `/user` redirects to `/:id` (single source); both render same page.
+  - Known follow-ups: add “Reset to saved” in personalize; add more showcases.
 
 
 ## 2025-11-09T18:00Z - Movies/Shows UI revamp, multi-genre search, GDPR export/delete, and logo preference

@@ -50,6 +50,133 @@ module.exports = (server) => {
     console.log('* Profile Routes Loaded Into Server');
     const __exportRateLimit = new Map(); // userId -> timestamp ms
 
+    async function __getShowcasesForUser(u){
+        try {
+            const ShowcaseCatalog = require('../../../db/models/showcaseCatalog');
+            const UserShowcase = require('../../../db/models/userShowcase');
+            // Seed minimal catalog for recent_timeline if missing
+            try {
+                const cnt = await ShowcaseCatalog.countDocuments({}).catch(()=>0);
+                if (!cnt || cnt === 0){
+                    const exists = await ShowcaseCatalog.findOne({ slug: 'recent_timeline' }).lean();
+                    if (!exists){
+                        const def = new ShowcaseCatalog({ slug: 'recent_timeline', title: 'Recent Timeline', description: 'Show a grid of your most recent activity: watched, saved, or favourited movies and shows. Configure to show only movies, only shows, mixed, or favourited only.', tier: 'free', max_instances: 3, active: true, config_schema: { mode: { type: 'enum', values: ['mixed','movies_only','shows_only','favorited_only'], default: 'mixed' } } });
+                        await def.save();
+                    }
+                }
+            } catch(_){}
+            const catalog = await ShowcaseCatalog.find({ active: true }).lean();
+            const catMap = new Map((catalog||[]).map(c => [String(c.slug), c]));
+            let list = await UserShowcase.find({ user_id: u._id, enabled: true }).sort({ order: 1, _id: 1 }).lean();
+            if (!list || list.length === 0){
+                try {
+                    const seed = new UserShowcase({ user_id: u._id, slug: 'recent_timeline', order: 0, config: { mode: 'mixed' }, enabled: true });
+                    await seed.save();
+                    list = [ seed.toObject() ];
+                } catch(_){}
+            }
+            const out = (list||[]).filter(it => catMap.has(String(it.slug))).map(it => {
+                const cfg = (function(cfg){
+                    try {
+                        cfg = cfg||{}; const m = String(cfg.mode||'mixed');
+                        const count = (parseInt(cfg.count,10)===6?6:12);
+                        if (it.slug==='recent_timeline') return { mode: ['mixed','movies_only','shows_only'].includes(m) ? m : 'mixed', count };
+                        if (it.slug==='favorite_person') return { mode: (m==='director'?'director':'actor'), person_id: String(cfg.person_id||''), note: String(cfg.note||'') };
+                        if (it.slug==='favorite_title') return { mode: (m==='show'?'show':'movie'), tmd_id: String(cfg.tmd_id||''), note: String(cfg.note||'') };
+                        return cfg;
+                    } catch(_) { return cfg||{}; }
+                })(it.config);
+                let baseTitle = ((catMap.get(String(it.slug)) || {}).title) || it.slug;
+                if (it.slug === 'recent_timeline'){
+                    if (cfg.mode === 'movies_only') baseTitle = 'Recently Added Movies';
+                    else if (cfg.mode === 'shows_only') baseTitle = 'Recently Added Shows';
+                }
+                return { slug: it.slug, order: it.order || 0, enabled: !!it.enabled, config: cfg, title: baseTitle };
+            }).sort((a,b)=> (a.order||0) - (b.order||0));
+
+            // Resolve data for favorite_* showcases (server-side fetch for display)
+            const Movie = require('../../../db/models/movie');
+            const Show = require('../../../db/models/show');
+            const MovieDb = require('moviedb-promise');
+            const tmdb = new MovieDb(process.env.TMDB_API_KEY || 'ab4e974d12c288535f869686bd72e1da');
+            async function enrichOne(sc){
+                try {
+                    if (sc.slug === 'favorite_title'){
+                        const id = sc.config && sc.config.tmd_id; if (!id) return sc;
+                        if (sc.config.mode === 'movie'){
+                            let m = await Movie.findOne({ tmd_id: String(id) }).lean().catch(()=>null);
+                            if (!m){ try { const info = await tmdb.movieInfo(id); m = { tmd_id: id, movie_title: info && (info.title||info.name||''), poster_path: info && info.poster_path, tagline: info && info.tagline, overview: info && info.overview }; } catch(_){} }
+                            sc.data = { kind: 'movie', id: id, title: (m && (m.movie_title||m.title)) || '', poster: m && m.poster_path, description: (m && (m.tagline||m.overview)) || '' };
+                        } else {
+                            let s = await Show.findOne({ tmd_id: String(id) }).lean().catch(()=>null);
+                            if (!s){ try { const info = await tmdb.tvInfo(id); s = { tmd_id: id, show_title: info && info.name, poster_path: info && info.poster_path, overview: info && info.overview }; } catch(_){} }
+                            sc.data = { kind: 'show', id: id, title: (s && (s.show_title||s.name)) || '', poster: s && s.poster_path, description: (s && s.overview) || '' };
+                        }
+                    } else if (sc.slug === 'favorite_person'){
+                        const pid = sc.config && sc.config.person_id; if (!pid) return sc;
+                        let p = null; try { p = await tmdb.personInfo(pid); } catch(_){}
+                        sc.data = { id: pid, name: (p && p.name) || '', profile: p && p.profile_path, description: (p && p.biography) || '' };
+                    } else if (sc.slug === 'favorite_movies'){
+                        const ids = Array.isArray(sc.config && sc.config.items) ? sc.config.items.slice(0,6) : [];
+                        const Movie = require('../../../db/models/movie');
+                        const items = [];
+                        for (const id of ids){
+                            const sid = String((id && (id.id||id)) || ''); if (!sid) continue;
+                            let m = await Movie.findOne({ tmd_id: sid }).lean().catch(()=>null);
+                            if (!m){ try { const info = await tmdb.movieInfo(sid); m = { tmd_id: sid, movie_title: info && (info.title||info.name||''), poster_path: info && info.poster_path }; } catch(_){} }
+                            items.push({ id: sid, title: (m && (m.movie_title||m.title)) || '', poster: m && m.poster_path, kind: 'movie' });
+                        }
+                        sc.data = { items };
+                    } else if (sc.slug === 'favorite_actors'){
+                        const ids2 = Array.isArray(sc.config && sc.config.items) ? sc.config.items.slice(0,6) : [];
+                        const items2 = [];
+                        for (const pid of ids2){
+                            const sid = String((pid && (pid.id||pid)) || ''); if (!sid) continue;
+                            let p = null; try { p = await tmdb.personInfo(sid); } catch(_){}
+                            items2.push({ id: sid, title: (p && p.name) || '', poster: p && p.profile_path, kind: 'person' });
+                        }
+                        sc.data = { items: items2 };
+                    } else if (sc.slug === 'favorite_shows'){
+                        const ids3 = Array.isArray(sc.config && sc.config.items) ? sc.config.items.slice(0,6) : [];
+                        const Show = require('../../../db/models/show');
+                        const items3 = [];
+                        for (const id of ids3){
+                            const sid = String((id && (id.id||id)) || ''); if (!sid) continue;
+                            let s = await Show.findOne({ tmd_id: sid }).lean().catch(()=>null);
+                            if (!s){ try { const info = await tmdb.tvInfo(sid); s = { tmd_id: sid, show_title: info && info.name, poster_path: info && info.poster_path }; } catch(_){} }
+                            items3.push({ id: sid, title: (s && (s.show_title||s.name)) || '', poster: s && s.poster_path, kind: 'show' });
+                        }
+                        sc.data = { items: items3 };
+                    } else if (sc.slug === 'my_badges'){
+                        try {
+                            const Badge = require('../../../db/models/badge');
+                            const count = parseInt((sc.config && sc.config.count) || 12, 10);
+                            const owned = Array.isArray(res.locals.user && res.locals.user.profile && res.locals.user.profile.user_badges)
+                                ? (res.locals.user.profile.user_badges || [])
+                                : [];
+                            const sel = Array.isArray(sc.config && sc.config.items) ? sc.config.items.slice(0, count) : [];
+                            const items = [];
+                            if (sel.length){
+                                for (const id of sel){
+                                    try { const bd = await Badge.findById(id).lean(); if (bd) items.push({ id: String(bd._id), title: bd.title, icon: bd.icon ? ('/static/style/img/badges/' + bd.icon) : null }); } catch(_){}
+                                }
+                            } else {
+                                for (const b of owned.slice(0, count)){
+                                    try { const bd = await Badge.findById(b.badge_id).lean(); if (bd) items.push({ id: String(bd._id), title: bd.title, icon: bd.icon ? ('/static/style/img/badges/' + bd.icon) : null }); } catch(_){}
+                                }
+                            }
+                            sc.data = { items };
+                        } catch(_){}
+                    }
+                } catch(_){}
+                return sc;
+            }
+            const resolved = [];
+            for (const sc of out){ resolved.push(await enrichOne(sc)); }
+            return resolved;
+        } catch(_) { return []; }
+    }
+
     server.get('/:id', getUser, enforceProfileVisibility, async (req, res, next) => {
 
         if (res.locals.user == null)
@@ -59,16 +186,82 @@ module.exports = (server) => {
 
         let friendsDoc = await UserFriends.findOne({ user_id: res.locals.user._id }).lean();
 
+        const showcases = await __getShowcasesForUser(res.locals.user);
+
         res.render('public assets/template.ejs', {
             page_title: "iWatched - Home",
             page_file: "profile",
             page_subFile: "main",
             page_data: Object.assign({
                 user: res.locals.user,
+                showcases: showcases,
                 friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
             }, headerStats),
             user: req.user
         });
+    });
+
+    // Shortcut: /user -> /:slug (same page as /:id)
+    server.get('/user', async (req, res) => {
+        try {
+            if (!req.user) return res.redirect('/login');
+            const slug = (req.user && req.user.profile && req.user.profile.custom_url) ? req.user.profile.custom_url : String(req.user._id);
+            return res.redirect('/' + slug);
+        } catch(_) { return res.redirect('/login'); }
+    });
+
+    // Personalize page (same user space: /:id/personalize)
+    server.get('/:id/personalize', getUser, isCorrectUser, async (req, res) => {
+        try {
+            if (!res.locals.user) return res.redirect('/login');
+            const ShowcaseCatalog = require('../../../db/models/showcaseCatalog');
+            const headerStats = await __buildHeaderStats(res.locals.user);
+            // Ensure catalog seed (recent timeline + favorite person/title)
+            try {
+                const cnt = await ShowcaseCatalog.countDocuments({}).catch(()=>0);
+                async function ensureOne(slug, doc){ const ex = await ShowcaseCatalog.findOne({ slug }).lean(); if (!ex) { const x = new ShowcaseCatalog(doc); await x.save(); } }
+                if (!cnt || cnt === 0){
+                    await ensureOne('recent_timeline', { slug: 'recent_timeline', title: 'Recent Timeline', description: 'Show a grid of your most recent activity: watched, saved, or favourited movies and shows. Configure to show only movies, only shows, mixed, or favourited only.', tier: 'free', max_instances: 3, active: true, config_schema: { mode: { type: 'enum', values: ['mixed','movies_only','shows_only'], default: 'mixed' }, count: { type:'enum', values:[6,12], default:12 } } });
+                    await ensureOne('favorite_person', { slug: 'favorite_person', title: 'Favorite Person', description: 'Highlight an actor or director you love with a short note.', tier: 'free', max_instances: 1, active: true, config_schema: { mode: { type:'enum', values:['actor','director'], default:'actor' }, person_id: { type:'string', default:'' }, note: { type:'string', default:'' } } });
+                    await ensureOne('favorite_title', { slug: 'favorite_title', title: 'Favorite Title', description: 'Spotlight a favorite movie or show with a personal note.', tier: 'free', max_instances: 1, active: true, config_schema: { mode: { type:'enum', values:['movie','show'], default:'movie' }, tmd_id: { type:'string', default:'' }, note: { type:'string', default:'' } } });
+                    await ensureOne('favorite_movies', { slug:'favorite_movies', title:'My Favorite Movies', description:'Pick up to six favorite movies to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'movie_id', max:6 } } });
+                    await ensureOne('favorite_actors', { slug:'favorite_actors', title:'My Favorite Actors', description:'Pick up to six favorite actors to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'person_id', max:6 } } });
+                    await ensureOne('my_badges', { slug:'my_badges', title:'My Badges', description:'Show up to twelve of your earned badges.', tier:'free', max_instances:1, active:true, config_schema:{ count:{ type:'enum', values:[6,12], default:12 } } });
+                    await ensureOne('favorite_shows', { slug:'favorite_shows', title:'My Favorite Shows', description:'Pick up to six favorite shows to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'show_id', max:6 } } });
+                } else {
+                    // Ensure individual slugs in case catalog exists from earlier deploy
+                    await ensureOne('recent_timeline', { slug: 'recent_timeline', title: 'Recent Timeline', description: 'Show a grid of your most recent activity: watched, saved, or favourited movies and shows. Configure to show only movies, only shows, mixed, or favourited only.', tier: 'free', max_instances: 3, active: true, config_schema: { mode: { type: 'enum', values: ['mixed','movies_only','shows_only'], default: 'mixed' }, count: { type:'enum', values:[6,12], default:12 } } });
+                    await ensureOne('favorite_person', { slug: 'favorite_person', title: 'Favorite Person', description: 'Highlight an actor or director you love with a short note.', tier: 'free', max_instances: 1, active: true, config_schema: { mode: { type:'enum', values:['actor','director'], default:'actor' }, person_id: { type:'string', default:'' }, note: { type:'string', default:'' } } });
+                    await ensureOne('favorite_title', { slug: 'favorite_title', title: 'Favorite Title', description: 'Spotlight a favorite movie or show with a personal note.', tier: 'free', max_instances: 1, active: true, config_schema: { mode: { type:'enum', values:['movie','show'], default:'movie' }, tmd_id: { type:'string', default:'' }, note: { type:'string', default:'' } } });
+                    await ensureOne('favorite_movies', { slug:'favorite_movies', title:'My Favorite Movies', description:'Pick up to six favorite movies to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'movie_id', max:6 } } });
+                    await ensureOne('favorite_actors', { slug:'favorite_actors', title:'My Favorite Actors', description:'Pick up to six favorite actors to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'person_id', max:6 } } });
+                    await ensureOne('my_badges', { slug:'my_badges', title:'My Badges', description:'Show up to twelve of your earned badges.', tier:'free', max_instances:1, active:true, config_schema:{ count:{ type:'enum', values:[6,12], default:12 } } });
+                    await ensureOne('favorite_shows', { slug:'favorite_shows', title:'My Favorite Shows', description:'Pick up to six favorite shows to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'show_id', max:6 } } });
+                }
+            } catch(_){}
+            const [catalog] = await Promise.all([
+                ShowcaseCatalog.find({ active: true }).lean()
+            ]);
+            // Reuse enrichment logic so favorite_* previews have data on refresh
+            const selection = await __getShowcasesForUser(res.locals.user);
+            // Build badges catalog for picker
+            let user_badges_catalog = [];
+            try {
+                const Badge = require('../../../db/models/badge');
+                const owned = Array.isArray(res.locals.user && res.locals.user.profile && res.locals.user.profile.user_badges)
+                    ? (res.locals.user.profile.user_badges || [])
+                    : [];
+                for (const b of owned){
+                    try { const bd = await Badge.findById(b.badge_id).lean(); if (bd) user_badges_catalog.push({ id: String(bd._id), title: bd.title, icon: bd.icon ? ('/static/style/img/badges/' + bd.icon) : null }); } catch(_){}
+                }
+            } catch(_){}
+            res.render('public assets/template.ejs', {
+                page_title: 'iWatched - Personalize Profile',
+                page_file: 'user_personalize',
+                page_data: Object.assign({ user: res.locals.user, showcases_catalog: catalog, showcases_selection: selection, user_badges_catalog }, headerStats),
+                user: req.user
+            });
+        } catch(_) { return res.redirect('/login'); }
     });
 
     // JSON endpoint to de-activate account from settings UI

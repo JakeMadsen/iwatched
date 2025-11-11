@@ -1,0 +1,22 @@
+<% if (config && typeof config === 'object' && (Array.isArray(config.items) || (data && Array.isArray(data.items)))) { %>
+  <% var items = (data && data.items) ? data.items : (config.items||[]).map(function(id){ return { id: String(id), kind:'movie' }; }); %>
+  <% if (items && items.length) { %>
+    <div class="profile-section" style="margin-top:18px;">
+      <div class="profile-section__header">
+        <h3 class="profile-section__title">My Favorite Movies</h3>
+      </div>
+      <div class="profile-grid" style="display:grid; grid-template-columns: repeat(6, minmax(80px,1fr)); gap:10px;">
+        <% items.slice(0,6).forEach(function(it){ var poster = it.poster ? ('https://image.tmdb.org/t/p/w342'+it.poster) : null; %>
+          <a href="/movie/<%= it.id %>" class="profile-card" style="display:block; background:#0f1217; border:1px solid #232a33; border-radius:8px; overflow:hidden;">
+            <div style="position:relative; width:100%; aspect-ratio:2/3; background:#0f1217;">
+              <% if (poster) { %>
+                <img src="<%= poster %>" alt="" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover;">
+              <% } %>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    </div>
+  <% } %>
+<% } %>
+

@@ -244,6 +244,7 @@ h1, h2, h3,h4,  a {
 .image-box {
   position: relative;
   margin-bottom: 20px;
+  overflow: hidden; /* clip hover overlay to poster bounds */
 }
 .image-box-hover {
   opacity: 1;
@@ -301,7 +302,7 @@ h1, h2, h3,h4,  a {
   pointer-events: auto; /* icons remain clickable */
 }
 .movie-hover p {
-  color: #ffffff !important;
+  color: #ffffff !important; /* ensure strong contrast */
   text-align: center;
 }
 .movie-hover .row {
@@ -319,6 +320,7 @@ h1, h2, h3,h4,  a {
 /* Make the whole poster area a consistent click target */
 .image-box a {
   display: block;
+  position: relative; /* anchor becomes positioning context for overlay */
 }
 .image-box {
   cursor: pointer;

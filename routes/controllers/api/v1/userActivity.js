@@ -7,11 +7,16 @@ const Show = require('../../../../db/models/show');
 module.exports = (server) => {
   console.log('* UserActivity Routes Loaded Into Server');
 
-  // Latest mixed activity (movies + shows): watched / favourited / saved
+  // Latest activity (movies + shows) with optional type filter and limit
+  // Query params:
+  //   - limit: number of items to return (default 12, max 60)
+  //   - type: 'movie' | 'show' (optional)
   server.get('/api/v1/user-activity/latest/:profile_id', async (req, res) => {
     try {
       const user = await User.findById(req.params.profile_id).lean();
       if (!user) return res.status(404).send({ status: 404, message: 'No user found' });
+      let limit = parseInt(req.query.limit, 10); if (!isFinite(limit) || limit <= 0) limit = 12; limit = Math.min(60, Math.max(1, limit));
+      const typeFilter = (req.query.type === 'movie' || req.query.type === 'show') ? String(req.query.type) : null;
 
       const [mDocs, sDocs] = await Promise.all([
         UserMovie.find({ user_id: user._id, $or: [
@@ -43,9 +48,10 @@ module.exports = (server) => {
         return { type: 'show', id: String(d.show_id), ts: maxDate(d.show_watched, d.show_bookmarked, d.show_favorite, seasonMax, d.date_updated), w: watched, f: !!d.show_favorite, s: !!d.show_bookmarked };
       }).filter(a => a.ts>0);
 
-      const combined = mActs.concat(sActs);
+      let combined = mActs.concat(sActs);
+      if (typeFilter) combined = combined.filter(x => x && x.type === typeFilter);
       combined.sort((a,b)=> b.ts - a.ts);
-      const top = combined.slice(0, 12);
+      const top = combined.slice(0, limit);
 
       const movieIds = top.filter(x=>x.type==='movie').map(x=>x.id);
       const showIds = top.filter(x=>x.type==='show').map(x=>x.id);

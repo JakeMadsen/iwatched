@@ -14,18 +14,17 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>User ID</th>
         <th>Username</th>
-        <th>Inactive</th>
+        <th>Active</th>
+        <th>Last activity</th>
+        <th>Plan</th>
         <th>Admin</th>
-        <th>Sign up date</th>
         <th style="width:160px;">Actions</th>
       </tr>
     </thead>
     <tbody>
       <% page_data.users.forEach(function(user){ %>
         <tr>
-          <td><%= user._id %></td>
           <td>
             <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
               <a style="color: lightblue" href="/<%= user.profile.custom_url %>"><%= user.local.username %></a>
@@ -33,9 +32,13 @@
               <a style="color: lightblue" href="/<%= user._id %>"><%= user.local.username %></a>
             <% } %>
           </td>
-          <td><%= user.profile.inactive %></td>
-          <td><%= user.permissions.level.admin %></td>
-          <td><%= user.profile.registration_date %></td>
+          <td><%= user && user.profile && user.profile.inactive ? 'Inactive' : 'Active' %></td>
+          <td>
+            <% const lastSeen = page_data && page_data.last_seen_map ? page_data.last_seen_map[String(user._id)] : null; %>
+            <%= lastSeen ? lastSeen : '—' %>
+          </td>
+          <td><%= (user && user.account && user.account.plan) ? user.account.plan : 'free' %></td>
+          <td><%= user && user.permissions && user.permissions.level && user.permissions.level.admin ? 'true' : 'false' %></td>
           <td>
             <a href="/admin/users/<%= user._id %>" class="btn btn-sm btn-primary">Edit</a>
             <!-- Future: delete/deactivate -->

@@ -1,6 +1,6 @@
 function checkIfWatchedShow(user_id, show_id){
-    const addSel = `#add_watched_show_${show_id}`;
-    const remSel = `#remove_watched_show_${show_id}`;
+    const addSel = `[id='add_watched_show_${show_id}']`;
+    const remSel = `[id='remove_watched_show_${show_id}']`;
     $(addSel).hide(); $(remSel).hide();
     // 1) Optimistic read from StatusStore if present
     try {
@@ -40,8 +40,8 @@ function showAddWatched(user_id, show_id, show_runtime, user_key) {
     fetch(new Request(link, init)).then(function(){
         try { if (typeof setAllSeasonsWatchedUI === 'function') setAllSeasonsWatchedUI(show_id, true); } catch(_){}
     }).catch(()=>{});
-    $(`#add_watched_show_${show_id}`).hide();
-    $(`#remove_watched_show_${show_id}`).show();
+    $(`[id='add_watched_show_${show_id}']`).hide();
+    $(`[id='remove_watched_show_${show_id}']`).show();
     try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:true, f:null, s:null }); } catch(_){}
 }
 
@@ -56,7 +56,7 @@ function showRemoveWatched(user_id, show_id, show_runtime, user_key){
     fetch(new Request(link, init)).then(function(){
         try { if (typeof setAllSeasonsWatchedUI === 'function') setAllSeasonsWatchedUI(show_id, false); } catch(_){}
     }).catch(()=>{});
-    $(`#add_watched_show_${show_id}`).show();
-    $(`#remove_watched_show_${show_id}`).hide();
+    $(`[id='add_watched_show_${show_id}']`).show();
+    $(`[id='remove_watched_show_${show_id}']`).hide();
     try { if (window.StatusStore) StatusStore.put('show', String(show_id), { w:false, f:null, s:null }); } catch(_){}
 }

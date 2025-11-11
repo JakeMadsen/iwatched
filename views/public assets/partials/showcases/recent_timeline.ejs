@@ -1,0 +1,27 @@
+<%
+  const __instId = typeof instanceId !== 'undefined' ? instanceId : (Math.random().toString(36).slice(2));
+  const __containerId = 'recent_timeline_' + __instId;
+  const __mode = (config && config.mode) ? String(config.mode) : 'mixed';
+  const __count = (config && Number(config.count) === 6) ? 6 : 12;
+%>
+<div class="profile-showcase profile-showcase--recent-timeline" data-slug="recent_timeline" style="margin-top: 24px; position: relative;">
+  <h3 style="display:flex; align-items:center; justify-content:space-between;">
+    <span><%= (title || 'Recent Timeline') %></span>
+    <% /* Show small edit button on first showcase for profile owner only */ %>
+    <% try { if (typeof instanceId !== 'undefined' && Number(instanceId) === 0 && user && page_data && page_data.user && String(user._id) === String(page_data.user._id)) { %>
+      <% var __bp = (page_data.user.profile && page_data.user.profile.custom_url) ? ('/' + page_data.user.profile.custom_url) : ('/' + page_data.user._id); %>
+      <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary" title="Edit profile layout" aria-label="Edit profile layout" style="margin-left:12px;">
+        <i class="fas fa-edit"></i>
+      </a>
+    <% } } catch(_){} %>
+  </h3>
+  <div id="<%= __containerId %>" class="row"></div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    if (window.renderRecentTimeline) {
+      window.renderRecentTimeline({ userId: '<%= userId %>', mode: '<%= __mode %>', containerId: '<%= __containerId %>', count: <%= __count %> });
+    }
+  });
+</script>

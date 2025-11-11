@@ -1,0 +1,466 @@
+<%
+  const currentUserId = page_data && page_data.user ? page_data.user._id : (user && user._id);
+  const catalog = Array.isArray(page_data && page_data.showcases_catalog) ? page_data.showcases_catalog : [];
+  const selection = Array.isArray(page_data && page_data.showcases_selection) ? page_data.showcases_selection : [];
+  const plan = (user && user.account && user.account.plan) ? String(user.account.plan).toLowerCase() : 'free';
+  const planLimit = (plan === 'premium') ? 6 : 3;
+%>
+
+<div class="container plz" style="margin-top: 28px;">
+  <div class="plz-header">
+    <div class="plz-title">
+      <h1>Personalize Your Profile</h1>
+      <div class="plz-sub">You can add up to <strong><%= planLimit %></strong> showcases on your plan.</div>
+    </div>
+    <div class="plz-actions">
+      <button id="btn_save" class="btn btn-success">Save</button>
+      <span id="save_status" class="plz-status"></span>
+    </div>
+  </div>
+
+  <div class="plz-grid">
+    <section class="plz-card">
+      <h3 class="plz-card__title">Showcase Catalog</h3>
+      <div id="catalog_list" class="plz-list plz-list--catalog">
+        <% (catalog||[]).forEach(function(c){ %>
+          <div class="plz-item" data-slug="<%= c.slug %>">
+            <div class="plz-item__main">
+              <div class="plz-item__title"><%= c.title || c.slug %></div>
+              <div class="plz-badge" data-badge="<%= c.slug %>">0/<%= c.max_instances || 1 %></div>
+            </div>
+            <% if (c.description) { %>
+              <div class="plz-desc"><%= c.description %></div>
+            <% } %>
+            <button class="plz-btn-add" data-action="add" data-slug="<%= c.slug %>"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+
+    <section class="plz-card">
+      <h3 class="plz-card__title">Selected (<span id="sel_count">0</span>/<%= planLimit %>)</h3>
+      <div id="selected_list" class="plz-list plz-list--selected"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+  (function(){
+    var planLimit = <%= planLimit %>;
+    var currentUserId = '<%= currentUserId %>';
+    // Embed JSON directly to avoid quote-escaping issues (e.g., single quotes in notes)
+    // Also escape closing tags to keep script blocks intact.
+    var catalog = <%- JSON.stringify(catalog).replace(/<\//g, '<\\/') %>;
+    var selection = <%- JSON.stringify(selection).replace(/<\//g, '<\\/') %>;
+    var userBadges = <%- JSON.stringify(page_data && page_data.user_badges_catalog || []).replace(/<\//g, '<\\/') %>;
+    var viewerId = (window.SITE_PREFS && SITE_PREFS.userId) || null;
+    var viewerKey = (window.SITE_PREFS && SITE_PREFS.userKey) || null;
+    // Normalize selection to simple shape used by API
+    // If server provided enriched data (for favorites), copy into _preview for immediate display
+    var state = (selection||[]).map(function(x, i){
+      var cfg = x && x.config ? Object.assign({}, x.config) : {};
+      try {
+        if (x && x.data){
+          if (Array.isArray(x.data.items)){
+            cfg._previews = x.data.items.map(function(it){ return { title:(it.title||''), poster:(it.poster||''), kind:(it.kind||'') }; });
+            if (x.slug === 'my_badges') cfg._badges = x.data.items;
+          } else if (!cfg._preview) {
+            var title = x.data.title || x.data.name || '';
+            var poster = x.data.poster || x.data.profile || '';
+            var kind = x.data.kind || '';
+            cfg._preview = { title: title, poster: poster, kind: kind };
+          }
+        }
+      } catch(_){}
+      return { slug:String(x.slug), order:Number(x.order||i), enabled:(x.enabled!==false), config:cfg };
+    });
+    var dirty = false; // track unsaved changes
+
+    function planCount(){ return state.filter(function(s){ return s.enabled; }).length; }
+    function maxForSlug(slug){ var c = (catalog||[]).find(function(ci){return String(ci.slug)===String(slug)}); return (c && c.max_instances) || 1; }
+    function countSlug(slug){ return state.filter(function(s){return s.slug===slug;}).length; }
+    function titleFor(slug){ var c = (catalog||[]).find(function(ci){return String(ci.slug)===String(slug)}); return (c && (c.title||c.slug)) || slug; }
+
+    // Build small visual preview for selected showcases
+    function previewHtml(sel){
+      try {
+        if (sel.slug === 'recent_timeline'){
+          var mode = String((sel.config||{}).mode||'mixed');
+          var label = 'Movie or Show';
+          if (mode === 'movies_only') label = 'Movie';
+          if (mode === 'shows_only') label = 'Show';
+          // No dedicated favorite mode in this showcase
+          var cnt = (parseInt((sel.config||{}).count,10)===6 ? 6 : 12);
+          var grid = new Array(cnt).fill(0).map(function(){ return '<div class="plz-poster" data-label="'+label+'"></div>'; }).join('');
+          return '<div class="plz-preview">'+grid+'</div>';
+        }
+        if (sel.slug === 'favorite_movies' || sel.slug === 'favorite_actors'){
+          var isMovies = (sel.slug === 'favorite_movies');
+          var arr = Array.isArray((sel.config||{}).items) ? sel.config.items.slice(0,6) : [];
+          var previews = (sel.config && Array.isArray(sel.config._previews)) ? sel.config._previews : [];
+          var cap = 6;
+          var used = previews.filter(Boolean).length;
+          var showSlots = Math.min(cap, used + 1);
+          var html = '<div class="plz-preview">';
+          for (var i=0;i<showSlots;i++){
+            var p = previews[i] || null;
+            var bg = p && p.poster ? (' style="background-image:url(https://image.tmdb.org/t/p/w154'+p.poster+'); background-size:cover; background-position:center;"') : '';
+            html += '<div class="plz-slot'+(p?'':' plz-slot--empty')+'" data-slot="'+i+'">'
+                 +   '<div class="plz-poster"'+bg+'></div>'
+                 +   '<button type="button" class="plz-slot-edit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button>'
+                 + '</div>';
+          }
+          html += '</div>';
+          return html; // floating per-slot search opens on click
+        }
+        if (sel.slug === 'favorite_shows'){
+          var previewsS = (sel.config && Array.isArray(sel.config._previews)) ? sel.config._previews : [];
+          var capS = 6; var usedS = previewsS.filter(Boolean).length; var showS = Math.min(capS, usedS + 1);
+          var htmls = '<div class="plz-preview">';
+          for (var si=0; si<showS; si++){
+            var ps = previewsS[si] || null; var bgS = ps && ps.poster ? (' style="background-image:url(https://image.tmdb.org/t/p/w154'+ps.poster+'); background-size:cover; background-position:center;"') : '';
+            htmls += '<div class="plz-slot'+(ps?'':' plz-slot--empty')+'" data-slot="'+si+'">'
+                   +   '<div class="plz-poster"'+bgS+'></div>'
+                   +   '<button type="button" class="plz-slot-edit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button>'
+                   + '</div>';
+          }
+          htmls += '</div>';
+          return htmls;
+        }
+        if (sel.slug === 'my_badges'){
+          var cnt = (parseInt((sel.config||{}).count,10)===6 ? 6 : 12);
+          var previewsB = Array.isArray(sel.config && sel.config._badges) ? sel.config._badges.slice(0,cnt) : (sel.data && Array.isArray(sel.data.items) ? sel.data.items.slice(0,cnt) : []);
+          var usedB = previewsB.filter(Boolean).length;
+          var showB = Math.min(cnt, usedB + 1);
+          var html2 = '<div class="plz-badges-grid">';
+          for (var j=0;j<showB;j++){
+            var b = previewsB[j] || null;
+            if (b && b.icon){ html2 += '<div class="plz-badgeTile plz-slot" data-slot="'+j+'"><img src="'+b.icon+'" alt="'+(b.title||'')+'"></div>'; }
+            else { html2 += '<div class="plz-badgeTile plz-slot plz-slot--empty" data-slot="'+j+'"></div>'; }
+          }
+          html2 += '</div>';
+          return html2;
+        }
+        if (sel.slug === 'favorite_person'){
+          var cfg = sel.config||{}; var p = cfg._preview || null;
+          var poster = p && p.poster ? ('https://image.tmdb.org/t/p/w154'+p.poster) : '';
+          var htmlp = '<div class="plz-preview--single">'
+            + '<div class="plz-slot'+(p?'':' plz-slot--empty')+'" data-slot="0">'
+            +   '<div class="plz-poster"'+(poster?(' style="background-image:url('+poster+'); background-size:cover; background-position:center;"'):'')+'></div>'
+            +   '<button type="button" class="plz-slot-edit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button>'
+            + '</div>'
+            + '</div>';
+          return htmlp;
+        }
+        if (sel.slug === 'favorite_title'){
+          var cfg2 = sel.config||{}; var p2 = cfg2._preview || null;
+          var poster2 = p2 && p2.poster ? ('https://image.tmdb.org/t/p/w154'+p2.poster) : '';
+          var htmlt = '<div class="plz-preview--single">'
+            + '<div class="plz-slot'+(p2?'':' plz-slot--empty')+'" data-slot="0">'
+            +   '<div class="plz-poster"'+(poster2?(' style="background-image:url('+poster2+'); background-size:cover; background-position:center;"'):'')+'></div>'
+            +   '<button type="button" class="plz-slot-edit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button>'
+            + '</div>'
+            + '</div>';
+          return htmlt;
+        }
+      } catch(_){}
+      return '';
+    }
+
+    function render(){
+        var $sel = $('#selected_list'); $sel.empty();
+  $('#sel_count').text(planCount());
+  state.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+  state.forEach(function(s, idx){
+    var name = titleFor(s.slug);
+    var dispTitle = name; if (s.slug==='recent_timeline'){ var m=String((s.config||{}).mode||'mixed'); if(m==='movies_only') dispTitle='Recently Added Movies'; else if(m==='shows_only') dispTitle='Recently Added Shows';  }
+    
+    // ✅ FIXED: Moved plz-sideControls AFTER plz-blockWrap
+    var html = ''
+      + '<div class="plz-rowWrap">'
+      + '<div class="plz-blockWrap">'
+      + '<div class="plz-block" data-idx="'+idx+'">'
+      + '  <div class="plz-block__header">'
+      + '    <div class="plz-block__left">'
+      + '      <span class="plz-order">'+(idx+1)+'</span>'
+      + '      <span class="plz-block__title">'+dispTitle+'</span>'
+      + '    </div>'
+      + '    <div class="plz-block__right">'
+      + '      <div class="plz-controls">'
+      +        (s.slug==='recent_timeline' ? '<label class="plz-field"><span>Mode:</span><select data-role="mode" class="plz-select">\n'
+              + ['mixed','movies_only','shows_only'].map(function(m){ var sel = (String((s.config||{}).mode||'mixed')===m)?' selected':''; return '<option value="'+m+'"'+sel+'>'+m.replace('_',' ')+'</option>'; }).join('')
+            + '</select></label>' : '')
+      +        (s.slug==='recent_timeline' ? '<label class="plz-field"><span>Items:</span><select data-role="count" class="plz-select">\n'
+              + [6,12].map(function(n){ var sel = (Number((s.config||{}).count||12)===n)?' selected':''; return '<option value="'+n+'"'+sel+'>'+n+'</option>'; }).join('')
+            + '</select></label>' : '')
+      +        (s.slug==='favorite_person' ? '<label class="plz-field"><span>Mode:</span><select data-role="mode" class="plz-select">\n'
+              + ['actor','director'].map(function(m){ var sel = (String((s.config||{}).mode||'actor')===m)?' selected':''; return '<option value="'+m+'"'+sel+'>'+m+'</option>'; }).join('')
+            + '</select></label>' : '')
+      +        (s.slug==='favorite_title' ? '<label class="plz-field"><span>Mode:</span><select data-role="mode" class="plz-select">\n'
+              + ['movie','show'].map(function(m){ var sel = (String((s.config||{}).mode||'movie')===m)?' selected':''; return '<option value="'+m+'"'+sel+'>'+m+'</option>'; }).join('')
+            + '</select></label>' : '')
+      + '      </div>'
+      + '      '
+      + '    </div>'
+      + '  </div>'
+      + '  <div class="plz-block__body">'
+      + '    <div class="plz-label">Selected</div>'
+      + ( (s.slug==='favorite_person'||s.slug==='favorite_title')
+            ? ('<div class="plz-previewCard"><div class="plz-inline">'
+                + '<div class="plz-inline-left">'+previewHtml(s)+'</div>'
+                + '<div class="plz-inline-right"><label class="plz-field" style="gap:8px;"><span>Note</span><textarea data-role="note" class="form-control" rows="3">'+(String((s.config||{}).note||''))+'</textarea></label></div>'
+              + '</div></div>')
+            : ('<div class="plz-previewCard">'+previewHtml(s)+'</div>')
+        )
+      + '  </div>'
+      + '</div>'
+      + '</div>' // ✅ Close plz-blockWrap BEFORE sideControls
+      + '<div class="plz-sideControls">' // ✅ NOW add controls on the RIGHT
+      +   '<button class="btn btn-light btn-sm" data-action="up" title="Move up"><i class="fas fa-arrow-up"></i></button>'
+      +   '<div class="plz-handle" title="Drag" draggable="true"><i class="fas fa-bars"></i></div>'
+      +   '<button class="btn btn-light btn-sm" data-action="down" title="Move down"><i class="fas fa-arrow-down"></i></button>'
+      +   '<button class="btn btn-danger btn-sm" data-action="remove" title="Remove"><i class="fas fa-times"></i></button>'
+      + '</div>'
+      + '</div>'; // Close plz-rowWrap
+      
+    var $row = $(html);
+    $sel.append($row);
+  });
+
+      // Disable catalog add buttons if limits reached
+      $('[data-action="add"]').each(function(){
+        var slug = $(this).attr('data-slug');
+        var reachedPlan = planCount() >= planLimit;
+        var reachedSlug = countSlug(slug) >= maxForSlug(slug);
+        $(this).prop('disabled', reachedPlan || reachedSlug);
+      });
+
+      // Update used/max badges next to each catalog item
+      $('#catalog_list .plz-item').each(function(){
+        var slug = $(this).attr('data-slug');
+        var used = countSlug(slug);
+        var max = maxForSlug(slug);
+        $(this).find('.plz-badge').text(used + '/' + max);
+      });
+    }
+
+    function renumber(){ state.forEach(function(s, i){ s.order = i; }); }
+
+    // Drag & drop reordering via the handle
+    $('#selected_list').on('dragstart', '.plz-handle', function(e){
+      var $blk = $(this).closest('.plz-rowWrap').find('.plz-block');
+      e.originalEvent.dataTransfer.setData('text/plain', $blk.attr('data-idx'));
+      e.originalEvent.dropEffect = 'move';
+    });
+    $('#selected_list').on('dragover', '.plz-block', function(e){ e.preventDefault(); e.originalEvent.dataTransfer.dropEffect = 'move'; });
+    $('#selected_list').on('drop', '.plz-block', function(e){
+      e.preventDefault();
+      var fromIdx = parseInt(e.originalEvent.dataTransfer.getData('text/plain')||'-1', 10);
+      var toIdx = parseInt($(this).attr('data-idx')||'-1', 10);
+      if (!isFinite(fromIdx) || !isFinite(toIdx) || fromIdx===toIdx) return;
+      var item = state.splice(fromIdx, 1)[0];
+      state.splice(toIdx, 0, item);
+      renumber();
+      render();
+    });
+
+    $('#catalog_list').on('click', '[data-action="add"]', function(){
+      var slug = $(this).attr('data-slug');
+      if (planCount() >= planLimit) return;
+      if (countSlug(slug) >= maxForSlug(slug)) return;
+      var config = {};
+      if (slug === 'recent_timeline'){ config.mode = 'mixed'; config.count = 12; }
+      if (slug === 'favorite_person'){ config.mode = 'actor'; config.person_id=''; config.note=''; }
+      if (slug === 'favorite_title'){ config.mode = 'movie'; config.tmd_id=''; config.note=''; }
+      state.push({ slug: slug, order: state.length, enabled: true, config: config });
+      dirty = true; render();
+    });
+
+    $('#selected_list').on('change', 'select[data-role="mode"]', function(){
+      var idx = Number($(this).closest('.plz-block').attr('data-idx'));
+      var val = String($(this).val());
+      state[idx].config = state[idx].config || {}; state[idx].config.mode = val; dirty = true;
+      render();
+    });
+
+    $('#selected_list').on('change', 'select[data-role="count"]', function(){
+      var idx = Number($(this).closest('.plz-block').attr('data-idx'));
+      var val = parseInt($(this).val(), 10); if (val!==6 && val!==12) val = 12;
+      state[idx].config = state[idx].config || {}; state[idx].config.count = val; dirty = true;
+      render();
+    });
+
+    // Notes
+    $('#selected_list').on('input', 'textarea[data-role="note"]', function(){
+      var idx = Number($(this).closest('.plz-block').attr('data-idx'));
+      var val = String($(this).val());
+      state[idx].config = state[idx].config || {}; state[idx].config.note = val;
+    });
+
+    // Favorite movies/actors slot selection + floating search
+    function openSlotSearch($blk){
+      $('.plz-slot-search').remove(); // ensure only one popover at a time
+      var $active = $blk.find('.plz-slot.plz-slot--active');
+      if ($active.length === 0) return;
+      var exists = $active.children('.plz-slot-search').length > 0;
+      if (exists){ $active.find('.plz-slot-input').focus(); return; }
+      var slug = state[Number($blk.attr('data-idx'))].slug;
+      var ph = (slug === 'favorite_movies') ? 'Search movies...' : 'Search people...';
+      var overlay = $('<div class="plz-slot-search"><input type="text" class="plz-slot-input" placeholder="'+ph+'"><div class="plz-suggest"></div></div>');
+      $active.append(overlay);
+      overlay.find('input').focus();
+    }
+
+    $('#selected_list').on('click', '.plz-slot', function(e){
+      var $blk = $(this).closest('.plz-block');
+      var slot = Number($(this).attr('data-slot')) || 0;
+      $blk.attr('data-active-slot', String(slot));
+      $blk.find('.plz-slot').removeClass('plz-slot--active');
+      $(this).addClass('plz-slot--active');
+      // Open popover for supported slugs
+      var idx = Number($blk.attr('data-idx'));
+      var slug = state[idx].slug;
+      if (slug === 'favorite_movies' || slug === 'favorite_actors' || slug === 'favorite_person' || slug === 'favorite_title'){
+        openSlotSearch($blk);
+      } else if (slug === 'my_badges') {
+        // Build a badges chooser overlay
+        $('.plz-slot-search').remove();
+        var $active = $blk.find('.plz-slot.plz-slot--active'); if ($active.length===0) return;
+        var grid = '<div class="plz-slot-search"><div class="plz-badges-grid">'+(userBadges||[]).map(function(b){
+          var img = b.icon ? ('<img src="'+b.icon+'" alt="'+(b.title||'')+'">') : '<div style="color:#cfd7df; font-size:12px; text-align:center;">'+(b.title||'')+'</div>';
+          return '<div class="plz-badgeTile plz-badge-option" data-id="'+b.id+'">'+img+'</div>';
+        }).join('')+'</div></div>';
+        $active.append(grid);
+      }
+      e.stopPropagation();
+    });
+
+    $('#selected_list').on('keyup', '.plz-slot-input', function(){
+      var $overlay = $(this).closest('.plz-slot-search');
+      var $blk = $(this).closest('.plz-block');
+      var idx = Number($blk.attr('data-idx'));
+      var q = String($(this).val()||'').trim(); if (!q) { $overlay.find('.plz-suggest').empty(); return; }
+      var slug = state[idx].slug;
+      var wantMovies = (slug === 'favorite_movies' || (slug === 'favorite_title' && String((state[idx].config||{}).mode||'movie')==='movie'));
+      var wantPersons = (slug === 'favorite_actors' || slug === 'favorite_person');
+      var wantShows = (slug === 'favorite_shows' || (slug === 'favorite_title' && String((state[idx].config||{}).mode||'movie')==='show'));
+      fetch('/api/v1/search?q='+encodeURIComponent(q)+'&limit=6')
+        .then(function(r){ return r.ok ? r.json() : { movies:[], shows:[], persons:[] }; })
+        .then(function(d){
+          var items = [];
+          if (wantMovies) items = (d.movies||[]).map(function(m){ return { id:m.id, title:m.title, poster:m.poster_path, type:'movie' }; });
+          else if (wantPersons) items = (d.persons||[]).map(function(p){ return { id:p.id, title:p.name, poster:p.profile_path, type:'person' }; });
+          else if (wantShows) items = (d.shows||[]).map(function(s){ return { id:s.id, title:s.name, poster:s.poster_path, type:'show' }; });
+          var html = '<div class="plz-dropdown">'+(items||[]).map(function(it){
+            var img = it.poster || null; if (img) img = 'https://image.tmdb.org/t/p/w92'+img;
+            return '<div class="plz-option" data-id="'+it.id+'" data-title="'+(String(it.title||'').replace(/"/g,'&quot;'))+'" data-poster="'+(it.poster||'')+'" data-type="'+(it.type||'')+'">'+(img?'<img src="'+img+'" style="width:28px;height:42px;object-fit:cover;border-radius:3px;margin-right:6px;">':'')+(it.title||'')+'</div>';
+          }).join('')+'</div>';
+          $overlay.find('.plz-suggest').html(html);
+        }).catch(function(){ $overlay.find('.plz-suggest').empty(); });
+    });
+
+    $('#selected_list').on('click', '.plz-option', function(){
+      var $opt = $(this); var $blk = $opt.closest('.plz-block'); var idx = Number($blk.attr('data-idx'));
+      var id = String($opt.attr('data-id')||''); var poster = String($opt.attr('data-poster')||''); var title = String($opt.attr('data-title')||'');
+      var slot = parseInt($blk.attr('data-active-slot') || '0', 10) || 0;
+      var slug = state[idx].slug;
+      if (slug === 'favorite_movies' || slug === 'favorite_actors' || slug === 'favorite_shows'){
+        state[idx].config = state[idx].config || {}; var arr = Array.isArray(state[idx].config.items) ? state[idx].config.items : []; var prev = Array.isArray(state[idx].config._previews) ? state[idx].config._previews : [];
+        while (arr.length < 6) arr.push(''); while (prev.length < 6) prev.push(null);
+        var kind = (slug==='favorite_movies'?'movie':(slug==='favorite_shows'?'show':'person'));
+        arr[slot] = id; prev[slot] = { title:title, poster:poster, kind: kind };
+        state[idx].config.items = arr; state[idx].config._previews = prev; dirty = true; $blk.find('.plz-slot-search').remove(); render();
+        return;
+      } else if (slug === 'favorite_person'){
+        state[idx].config = state[idx].config || {}; state[idx].config.person_id = id; state[idx].config._preview = { title:title, poster:poster, kind:'person' }; dirty = true; $blk.find('.plz-slot-search').remove(); render(); return;
+      } else if (slug === 'favorite_title'){
+        state[idx].config = state[idx].config || {}; state[idx].config.tmd_id = id; if (!state[idx].config.mode){ state[idx].config.mode = (String($opt.attr('data-type')||'')==='show' ? 'show' : 'movie'); } state[idx].config._preview = { title:title, poster:poster, kind: String($opt.attr('data-type')||state[idx].config.mode||'movie') }; dirty = true; $blk.find('.plz-slot-search').remove(); render(); return;
+      }
+    });
+
+    // Badge pick from popover
+    $('#selected_list').on('click', '.plz-badge-option', function(){
+      var $blk = $(this).closest('.plz-block');
+      var idx = Number($blk.attr('data-idx'));
+      var slot = parseInt($blk.attr('data-active-slot')||'0',10) || 0;
+      var id = String($(this).attr('data-id')||''); if (!id) return;
+      if (state[idx].slug !== 'my_badges') return;
+      state[idx].config = state[idx].config || {}; var arr = Array.isArray(state[idx].config.items) ? state[idx].config.items : []; while (arr.length < ((parseInt((state[idx].config||{}).count,10)===6)?6:12)) arr.push('');
+      arr[slot] = id; state[idx].config.items = arr;
+      // also track preview objects for immediate display
+      var prev = Array.isArray(state[idx].config._badges) ? state[idx].config._badges : []; while (prev.length < arr.length) prev.push(null);
+      var meta = (userBadges||[]).find(function(b){ return String(b.id)===id; });
+      prev[slot] = meta ? { id: meta.id, title: meta.title, icon: meta.icon } : { id:id, title:'', icon:null };
+      state[idx].config._badges = prev; dirty = true; $('.plz-slot-search').remove(); render();
+    });
+
+    // Close floating slot search when clicking outside or pressing ESC
+    $(document).on('mousedown', function(e){ if ($(e.target).closest('.plz-slot-search, .plz-slot').length === 0) $('.plz-slot-search').remove(); });
+    $('#selected_list').on('click', '.plz-slot-search', function(e){ e.stopPropagation(); });
+    $(document).on('keydown', function(e){ if (e.key === 'Escape') $('.plz-slot-search').remove(); });
+
+    // Typeahead search reusing /api/v1/search
+    $('#selected_list').on('input', 'input[data-role="search"]', function(){
+      var $blk = $(this).closest('.plz-block');
+      var idx = Number($blk.attr('data-idx'));
+      var q = String($(this).val()||'').trim(); if (!q) { $blk.find('.plz-suggest').empty(); return; }
+      var mode = String((state[idx].config||{}).mode||'mixed');
+      fetch('/api/v1/search?q='+encodeURIComponent(q)+'&limit=6')
+        .then(function(r){ return r.ok ? r.json() : { movies:[], shows:[], persons:[] }; })
+        .then(function(d){
+          var items = [];
+          if (state[idx].slug === 'favorite_person') items = d.persons||[];
+          else if (state[idx].slug === 'favorite_title'){
+            if (mode === 'movie') items = (d.movies||[]).map(function(m){ return { id:m.id, title:m.title, poster:m.poster_path, type:'movie' }; });
+            else items = (d.shows||[]).map(function(s){ return { id:s.id, title:s.name, poster:s.poster_path, type:'show' }; });
+          }
+          var html = '<div class="plz-dropdown">'+(items||[]).map(function(it){
+            var img = it.poster || it.profile_path || null; if (img) img = 'https://image.tmdb.org/t/p/w92'+img;
+            var label = it.title || it.name || '';
+            return '<div class="plz-option" data-id="'+it.id+'" data-title="'+(label.replace(/"/g,'&quot;'))+'" data-poster="'+(it.poster||it.profile_path||'')+'" data-type="'+(it.type||'')+'">'+(img?'<img src="'+img+'" style="width:28px;height:42px;object-fit:cover;border-radius:3px;margin-right:6px;">':'')+label+'</div>';
+          }).join('')+'</div>';
+          $blk.find('.plz-suggest').html(html);
+        }).catch(function(){ $blk.find('.plz-suggest').empty(); });
+    });
+
+    $('#selected_list').on('click', '.plz-option', function(){
+      var $opt = $(this); var $blk = $opt.closest('.plz-block'); var idx = Number($blk.attr('data-idx'));
+      var id = String($opt.attr('data-id')||''); var t = String($opt.attr('data-type')||''); var poster = String($opt.attr('data-poster')||''); var title = String($opt.attr('data-title')||'');
+      if (state[idx].slug === 'favorite_person'){ state[idx].config.person_id = id; state[idx].config._preview = { title: title, poster: poster, kind: 'person' }; dirty = true; }
+      else if (state[idx].slug === 'favorite_title'){ state[idx].config.tmd_id = id; if (!state[idx].config.mode) state[idx].config.mode = (t==='show'?'show':'movie'); state[idx].config._preview = { title: title, poster: poster, kind: t || state[idx].config.mode }; dirty = true; }
+      $blk.find('.plz-suggest').empty();
+      render();
+    });
+
+    $('#selected_list').on('click', '[data-action]', function(){
+      var action = $(this).attr('data-action');
+      var idx = Number($(this).closest('.plz-rowWrap').find('.plz-block').attr('data-idx'));
+      if (action === 'remove') { state.splice(idx,1); renumber(); dirty = true; render(); return; }
+      if (action === 'up' && idx > 0){ var t = state[idx-1]; state[idx-1] = state[idx]; state[idx] = t; renumber(); render(); return; }
+      if (action === 'down' && idx < state.length-1){ var t2 = state[idx+1]; state[idx+1] = state[idx]; state[idx] = t2; renumber(); render(); return; }
+    });
+
+    $('#btn_save').on('click', function(){
+      if (!viewerId || !viewerKey) { $('#save_status').text('You must be logged in to save.'); return; }
+      $('#save_status').text('Saving...');
+      fetch('/api/v1/user-showcases/'+encodeURIComponent(currentUserId), {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ showcases: state, user_id: viewerId || currentUserId, user_key: viewerKey })
+      }).then(function(r){ return r.json().catch(function(){ return { ok:false }; }); })
+        .then(function(resp){
+          if (resp && resp.ok) { $('#save_status').text('Saved'); }
+          else { $('#save_status').text((resp && resp.message) ? resp.message : 'Save failed'); }
+        }).catch(function(){ $('#save_status').text('Save failed'); });
+    });
+
+    // Fallback hydrate if state empty: load from API
+    try {
+      if (!Array.isArray(state) || state.length === 0){
+        fetch('/api/v1/user-showcases/'+encodeURIComponent(currentUserId))
+          .then(function(r){ return r.ok ? r.json() : { showcases: [] }; })
+          .then(function(d){ var arr = Array.isArray(d.showcases) ? d.showcases : []; state = arr.map(function(x, i){ return { slug:String(x.slug), order:Number(x.order||i), enabled:(x.enabled!==false), config:(x.config||{}) }; }); render(); })
+          .catch(function(){});
+      } else { render(); }
+    } catch(_) { render(); }
+  })();
+</script>

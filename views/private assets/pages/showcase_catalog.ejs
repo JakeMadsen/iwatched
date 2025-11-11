@@ -1,0 +1,74 @@
+<div class="container-fluid" style="padding: 20px;">
+  <h2>Showcase Catalog</h2>
+  <p class="text-muted">Edit existing showcase definitions. Creation and deletion are disabled; you can disable a showcase by toggling its Active state.</p>
+
+  <% if (page_data && page_data.msg) { %>
+    <div class="alert alert-success" role="alert">Action completed: <%= page_data.msg %></div>
+  <% } %>
+  <% if (page_data && page_data.err) { %>
+    <div class="alert alert-danger" role="alert">Error: <%= page_data.err %></div>
+  <% } %>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th style="min-width:120px;">Slug</th>
+              <th style="min-width:160px;">Title</th>
+              <th style="min-width:240px;">Description</th>
+              <th>Tier</th>
+              <th>Max</th>
+              <th>Icon</th>
+              <th>Active</th>
+              <th style="min-width:260px;">Config Schema (JSON)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% (page_data.items || []).forEach(function(item){ %>
+              <tr>
+                <form method="POST" action="/admin/showcase-catalog/<%= item._id %>">
+                  <td>
+                    <input type="text" class="form-control form-control-sm" value="<%= item.slug %>" readonly>
+                  </td>
+                  <td>
+                    <input type="text" name="title" class="form-control form-control-sm" value="<%= item.title %>">
+                  </td>
+                  <td>
+                    <textarea name="description" class="form-control form-control-sm" rows="2"><%= item.description || '' %></textarea>
+                  </td>
+                  <td>
+                    <select name="tier" class="form-control form-control-sm">
+                      <option value="free" <%= (item.tier==='free')?'selected':'' %>>free</option>
+                      <option value="premium" <%= (item.tier==='premium')?'selected':'' %>>premium</option>
+                    </select>
+                  </td>
+                  <td style="max-width:80px;">
+                    <input type="number" name="max_instances" min="1" class="form-control form-control-sm" value="<%= item.max_instances || 1 %>">
+                  </td>
+                  <td>
+                    <input type="text" name="icon" class="form-control form-control-sm" value="<%= item.icon || '' %>" placeholder="filename or URL">
+                  </td>
+                  <td class="text-center">
+                    <input type="checkbox" name="active" <%= item.active ? 'checked' : '' %>>
+                  </td>
+                  <td style="min-width:260px;">
+                    <textarea name="config_schema_json" class="form-control form-control-sm" rows="6"><%= JSON.stringify(item.config_schema || {}, null, 2) %></textarea>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column gap-1" style="gap:6px;">
+                      <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                      <button type="submit" formaction="/admin/showcase-catalog/<%= item._id %>/toggle" formmethod="POST" class="btn btn-sm <%= item.active ? 'btn-warning' : 'btn-success' %>"><%= item.active ? 'Disable' : 'Enable' %></button>
+                    </div>
+                  </td>
+                </form>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

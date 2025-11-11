@@ -2,44 +2,37 @@
     <script type="text/html" id="movie-template">
         <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/movies/{{tmd_id}}-{{slug}}">
-                    <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
-            </a>
-            <div class="movie-hover image-box-description">
-                <p>{{movie_title}}</p>
-
-                <div class="row" >
-                    <div class="col-md-4">
-                        <i  class="far fa-check-circle fa-2x icon-white" 
-                            id="add_watched_movie_{{tmd_id}}"
-                            onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;" >
-                        </i>
-                        <i  class="fas fa-check-circle fa-2x icon-green" 
-                            id="remove_watched_movie_{{tmd_id}}"  
-                            onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;">
-                        </i>
-                    </div>
-                    <div class="col-md-4">
-                        <i  class="far fa-heart fa-2x icon-white" 
-                            id="add_favourited_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                        </i>
-                        <i  class="fas fa-heart fa-2x icon-red" 
-                            id="remove_favourited_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                        </i>
-                    </div>
-                    <div class="col-md-4">
-                        <i  class="far fa-bookmark fa-2x icon-white"
-                            id="add_saved_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                        </i>
-                        <i class="fas fa-bookmark fa-2x icon-blue"
-                            id="remove_saved_movie_{{tmd_id}}" 
-                            onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
-                        </i>
-                    </div>
+                <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
+                <div class="movie-hover image-box-description">
+                <p class="movie-title">{{movie_title}}</p>
+                <div class="movie-actions">
+                    <i  class="far fa-check-circle fa-2x icon-white" 
+                        id="add_watched_movie_{{tmd_id}}"
+                        onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;" >
+                    </i>
+                    <i  class="fas fa-check-circle fa-2x icon-green" 
+                        id="remove_watched_movie_{{tmd_id}}"  
+                        onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '{{tmd_id}}', '{{movie_runtime}}', '<%= user.permissions.user_private_key %>'); return false;">
+                    </i>
+                    <i  class="far fa-heart fa-2x icon-white" 
+                        id="add_favourited_movie_{{tmd_id}}" 
+                        onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
+                    </i>
+                    <i  class="fas fa-heart fa-2x icon-red" 
+                        id="remove_favourited_movie_{{tmd_id}}" 
+                        onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
+                    </i>
+                    <i  class="far fa-bookmark fa-2x icon-white"
+                        id="add_saved_movie_{{tmd_id}}" 
+                        onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
+                    </i>
+                    <i class="fas fa-bookmark fa-2x icon-blue"
+                        id="remove_saved_movie_{{tmd_id}}" 
+                        onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '{{tmd_id}}', '', '<%= user.permissions.user_private_key %>'); return false;">
+                    </i>
                 </div>
-            </div>
+                </div>
+            </a>
         </div>
     </script>
 <% } else { %>
@@ -47,11 +40,10 @@
         <div class="col-md-2 image-box" data-tmd-id="{{tmd_id}}">
             <a href="/movies/{{tmd_id}}-{{slug}}">
                 <img name="movie_id_{{tmd_id}}" class="img-fluid image-box-hover" src="/static/style/img/standard/loading_image.gif" alt="">
-            </a>
-            <div class="movie-hover image-box-description">
+                <div class="movie-hover image-box-description">
                 <p>{{movie_title}}</p>
-                    
-            </div>
+                </div>
+            </a>
         </div>
     </script>
 <% } %>

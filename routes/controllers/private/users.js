@@ -236,15 +236,36 @@ module.exports = (server) => {
 
 
     server.get('/admin/users', isLoggedIn, async (req, res) => {
+        try {
+            const users = await userService.getAll();
+            // Build a map of user_id -> last_seen_at using sessions collection
+            let lastSeenMap = {};
+            try {
+                const agg = await UserSession.aggregate([
+                    { $sort: { last_seen_at: -1 } },
+                    { $group: { _id: '$user_id', last_seen_at: { $first: '$last_seen_at' } } }
+                ]).exec();
+                (agg || []).forEach(row => { if (row && row._id) lastSeenMap[String(row._id)] = row.last_seen_at || null; });
+            } catch (_) { lastSeenMap = {}; }
 
-        res.render(templatePath, {
-            page_title: "iWatched - Admin",
-            page_file: "users",
-            page_data: {
-                users: await userService.getAll()
-            },
-            user: req.user
-        })
+            res.render(templatePath, {
+                page_title: "iWatched - Admin",
+                page_file: "users",
+                page_data: {
+                    users: users,
+                    last_seen_map: lastSeenMap
+                },
+                user: req.user
+            });
+        } catch (e) {
+            console.error('Render /admin/users failed:', e && e.message);
+            res.render(templatePath, {
+                page_title: "iWatched - Admin",
+                page_file: "users",
+                page_data: { users: [], last_seen_map: {} },
+                user: req.user
+            });
+        }
     });
 
     // Users Tools landing (page shell; dynamic status via polling)

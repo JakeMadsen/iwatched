@@ -77,6 +77,9 @@
 <% if (typeof page_file !== 'undefined' && (page_file === 'movies' || page_file === 'shows' || page_file === 'person')) { %>
 <link rel="stylesheet" type="text/css" href="/static/style/css/detail.css">
 <% } %>
+<% if (page_file === 'user_personalize') { %>
+<link rel="stylesheet" type="text/css" href="/static/style/css/profile_personalize.css">
+<% } %>
 <% if (typeof is_admin_template !== 'undefined' && is_admin_template) { %>
 <link rel="stylesheet" type="text/css" href="/static/style/css/admin_dashboard.css">
 <% } %>
