@@ -450,3 +450,248 @@
   });
 })();
 </script>
+
+<!-- Reviews -->
+<div class="container" style="margin-top:18px;">
+  <div class="row">
+    <div class="col-md-12">
+      <h2>Reviews</h2>
+      <div id="show_reviews_summary" style="opacity:.85; margin-bottom:8px;"></div>
+      <% if (typeof user != 'undefined') { %>
+      <div class="card" style="background:#151515;border:1px solid #2a2a2a;margin-bottom:12px;border-radius:10px;">
+        <div class="card-body" style="color:#ffff;">
+          <h5>Your review</h5>
+          <div class="form-row" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <input id="rv_s_title" class="form-control" placeholder="Title" style="max-width:320px;" />
+            <div id="rv_s_star_widget" class="rv-stars" style="cursor:pointer; display:inline-flex; gap:4px; font-size:22px; color:#f5c518;">
+              <i class="far fa-star"></i>
+              <i class="far fa-star"></i>
+              <i class="far fa-star"></i>
+              <i class="far fa-star"></i>
+              <i class="far fa-star"></i>
+            </div>
+            <span id="rv_s_star_label" style="opacity:.9; font-size:12px;">0.0 / 5</span>
+          </div>
+          <textarea id="rv_s_text" class="form-control" rows="3" placeholder="Write your review..." style="margin-top:8px;"></textarea>
+          <div id="rv_s_text_count" style="opacity:.7; font-size:12px; margin-top:4px;">0/500</div>
+          <button id="rv_s_submit" class="btn btn-primary" style="margin-top:8px;">Save review</button>
+        </div>
+      </div>
+      <% } else { %>
+        <div style="margin:8px 0; opacity:.85;">Please <a style="color: lightblue;" href="/login">log in</a> to write a review.</div>
+      <% } %>
+      <div id="show_reviews_list"></div>
+    </div>
+  </div>
+  
+  <script>
+  (function(){
+    var ITEM_TYPE = 'show';
+    var ITEM_ID = <%- JSON.stringify(String(page_data.show && page_data.show.id || '')) %>;
+    var ME = <%- JSON.stringify(typeof user != 'undefined' ? { _id: String(user._id), key: String(user.permissions && user.permissions.user_private_key || '') } : null) %>;
+    var listEl = document.getElementById('show_reviews_list');
+    var sumEl = document.getElementById('show_reviews_summary');
+    var starWrap = document.getElementById('rv_s_star_widget');
+    var starLabel = document.getElementById('rv_s_star_label');
+    var starValue = 0, hoverValue = 0;
+    function fmtStars(v){ var s = Number(v||0); return s.toFixed(1) + ' / 5'; }
+    function drawStars(v){
+      try {
+        if (!starWrap) return;
+        v = Math.max(0, Math.min(5, Math.round(v*2)/2));
+        var html='';
+        for (var i=1;i<=5;i++){
+          if (v >= i) html += '<i class="fas fa-star"></i>';
+          else if (v >= (i-0.5)) html += '<i class="fas fa-star-half-alt"></i>';
+          else html += '<i class="far fa-star"></i>';
+        }
+        starWrap.innerHTML = html;
+        if (starLabel) starLabel.textContent = fmtStars(v);
+      } catch(_){}
+    }
+    function setupStars(){
+      if (!starWrap) return;
+      drawStars(starValue);
+      function compute(e){
+        var rect = starWrap.getBoundingClientRect();
+        var rel = (e.clientX - rect.left) / Math.max(1, rect.width);
+        var v = Math.max(0, Math.min(1, rel)) * 5; v = Math.round(v*2)/2; return v;
+      }
+      starWrap.addEventListener('mousemove', function(e){ hoverValue = compute(e); drawStars(hoverValue); });
+      starWrap.addEventListener('mouseleave', function(){ drawStars(starValue); });
+      starWrap.addEventListener('click', function(e){ starValue = compute(e); drawStars(starValue); });
+    }
+    function load(){
+      fetch('/api/v1/reviews?type='+ITEM_TYPE+'&id='+encodeURIComponent(ITEM_ID)).then(r=>r.json()).then(function(d){
+        var avg = d.average||0, count = d.count||0;
+        sumEl.innerHTML = count ? ('Average rating: <b>'+fmtStars(avg)+'</b> ('+count+' reviews)') : 'No reviews yet';
+        renderList(d.items||[]);
+      }).catch(function(){ renderList([]); });
+    }
+    function esc(s){ return (s||'').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[c]||c; }); }
+    function renderList(items){
+      listEl.innerHTML='';
+      items.forEach(function(r){
+        var canEdit = ME && String(r.author_id||'') === String(ME._id);
+        var upCls = r.user_vote==='up' ? 'btn-success' : 'btn-outline-secondary';
+        var downCls = r.user_vote==='down' ? 'btn-danger' : 'btn-outline-secondary';
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = 'background:#151515;border:1px solid #2a2a2a;margin-bottom:12px;border-radius:10px;';
+        card.innerHTML = '<div class="card-body" style="color:#ffff;">'
+          + '<div style="display:flex; align-items:center; gap:10px;">'
+          +   '<img src="'+esc(r.user_avatar||'/static/style/img/standard/standard_avatar.png')+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">'
+          +   '<div style="flex:1;">'
+          +     '<div><a href="'+esc(r.user_link||'#')+'" style="color:lightblue;">'+esc(r.username||'user')+'</a></div>'
+          +     '<div style="opacity:.8; font-size:12px;">'+new Date(r.created_at).toLocaleString()+'</div>'
+          +   '</div>'
+          +   '<div><span class="badge badge-info">'+fmtStars(r.stars)+'</span></div>'
+          + '</div>'
+          + '<h5 style="margin-top:8px;">'+esc(r.title||'')+'</h5>'
+          + '<div>'+(esc(r.text||'').replace(/\n/g,'<br>'))+'</div>'
+          + '<div style="margin-top:8px; display:flex; gap:8px; align-items:center;">'
+          +   (canEdit ? '<button class="btn btn-sm btn-secondary js-edit" data-id="'+r._id+'">Edit</button>' : '')
+          +   (canEdit ? '<button class="btn btn-sm btn-outline-danger js-del" data-id="'+r._id+'">Delete</button>' : '')
+          +   '<div class="btn-group btn-group-sm" role="group">'
+          +     '<button class="btn '+upCls+' js-vote" data-id="'+r._id+'" data-action="up"><i class="fas fa-arrow-up"></i> <span class="js-up">'+(r.upvote_count||0)+'</span></button>'
+          +     '<button class="btn '+downCls+' js-vote" data-id="'+r._id+'" data-action="down"><i class="fas fa-arrow-down"></i> <span class="js-down">'+(r.downvote_count||0)+'</span></button>'
+          +   '</div>'
+          + '</div>'
+          + '<div class="mt-2">'
+          +   '<button class="btn btn-sm btn-outline-secondary js-show-cmt" data-id="'+r._id+'">Comments</button>'
+          +   '<button class="btn btn-sm btn-outline-danger js-report-review" data-id="'+r._id+'" data-uid="'+(r.author_id||'')+'">Report</button>'
+          +   '<div class="js-cmt-wrap" id="cmt_'+r._id+'" style="display:none; margin-top:8px;"></div>'
+          + '</div>'
+          + '</div>';
+        listEl.appendChild(card);
+        // Auto-load comments by default
+        try {
+          var wrap = card.querySelector('#cmt_'+r._id+'');
+          if (wrap) { loadComments(r._id, wrap); }
+        } catch(_){}
+      });
+      bindListHandlers();
+    }
+    function bindListHandlers(){
+      listEl.querySelectorAll('.js-vote').forEach(function(btn){
+        btn.onclick = function(){
+          if(!ME) return alert('Please log in to vote.');
+          var id = this.getAttribute('data-id');
+          var act = this.getAttribute('data-action');
+          fetch('/api/v1/reviews/'+id+'/vote', {
+            method: 'POST', headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({ user_id: ME._id, user_key: ME.key, vote: act })
+          }).then(r=>r.json()).then(function(){ load(); });
+        };
+      });
+      listEl.querySelectorAll('.js-edit').forEach(function(btn){
+        btn.onclick = function(){
+          var id = this.getAttribute('data-id');
+          var t = prompt('New title:'); if(t==null) return;
+          var s = prompt('New stars (0-5, halves ok):'); if(s==null) return;
+          var x = prompt('New text:'); if(x==null) return;
+          fetch('/api/v1/reviews/'+id+'/edit', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, title: t, stars: Number(s||0), text: x }) }).then(()=>load());
+        };
+      });
+      listEl.querySelectorAll('.js-del').forEach(function(btn){
+        btn.onclick = function(){
+          if(!confirm('Delete this review?')) return;
+          var id = this.getAttribute('data-id');
+          fetch('/api/v1/reviews/'+id+'/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key }) }).then(()=>load());
+        };
+      });
+      listEl.querySelectorAll('.js-show-cmt').forEach(function(btn){
+        btn.onclick = function(){
+          var id = this.getAttribute('data-id');
+          var wrap = document.getElementById('cmt_'+id);
+          if (wrap.getAttribute('data-loaded')==='1') { wrap.style.display = (wrap.style.display==='none'?'block':'none'); return; }
+          loadComments(id, wrap);
+        };
+      });
+    }
+    function loadComments(rid, wrap){
+      wrap.innerHTML = '<div>Loading...</div>';
+      fetch('/api/v1/reviews/'+rid).then(r=>r.json()).then(function(d){
+        var r = d.review; if(!r){ wrap.innerHTML='<div>No comments</div>'; return; }
+        var comments = Array.isArray(r.comments)?r.comments:[];
+        var out = '';
+        comments.forEach(function(c){
+          out += '<div style="border:1px solid #2a2a2a; background:#101010; padding:8px; border-radius:8px; margin-bottom:6px;">'
+              + '<div style="opacity:.85; font-size:12px;">'+(c.username||'')+' • '+new Date(c.created_at).toLocaleString()+'</div>'
+              + '<div>'+(String(c.message||'').replace(/\n/g,'<br>'))+'</div>'
+              + '</div>';
+        });
+        if (ME) {
+          out += '<div class="card" style="background:#151515;border:1px solid #2a2a2a;border-radius:10px;">'
+            + '<div class="card-body" style="color:#ffff;">'
+            + '<textarea class="form-control" id="cmt_new_'+rid+'" rows="2" placeholder="Add a comment..."></textarea>'
+            + '<button class="btn btn-primary" style="margin-top:6px;" data-id="'+rid+'" id="cmt_send_'+rid+'">Post</button>'
+            + '</div></div>';
+        }
+        wrap.innerHTML = out || '<div>No comments yet.</div>';
+        wrap.style.display = 'block';
+        wrap.setAttribute('data-loaded','1');
+        if (ME) {
+          var btn = document.getElementById('cmt_send_'+rid);
+          btn && (btn.onclick = function(){
+            var ta = document.getElementById('cmt_new_'+rid);
+            var msg = (ta && ta.value||'').trim(); if(!msg) return;
+            fetch('/api/v1/reviews/'+rid+'/comment', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, message: msg }) }).then(function(){ loadComments(rid, wrap); });
+          });
+          // Normalize deleted comment display
+          try {
+            var nodes = wrap.children || [];
+            for (var j=0; j<comments.length; j++){
+              var cc = comments[j]; var el = nodes[j]; if (!cc || !el) continue;
+              if (cc.deleted && el && el.children && el.children[1]) { el.children[1].innerHTML = '<em style="opacity:.8;">-deleted-</em>'; }
+            }
+          } catch(_){}
+          // Append action controls for each comment (edit/delete/report)
+          try {
+            var blocks = Array.prototype.slice.call(wrap.children || []).filter(function(el){ return el && el.tagName === 'DIV' && el.querySelector && !el.querySelector('#cmt_new_'+rid); });
+            blocks.forEach(function(el, idx){
+              var c = (comments||[])[idx]; if(!c) return;
+              var isAdmin = <%- JSON.stringify(typeof user != 'undefined' && user.permissions && user.permissions.level && user.permissions.level.admin) %>;
+              var isOwner = <%- JSON.stringify(typeof user != 'undefined' ? String(user._id) : '') %> === String(c.user_id||'');
+              if (c.deleted) return;
+              var actions = document.createElement('div');
+              actions.style.cssText = 'margin-top:6px; display:flex; gap:6px; flex-wrap:wrap;';
+              if (isOwner){ var e=document.createElement('button'); e.className='btn btn-sm btn-outline-secondary'; e.textContent='Edit'; e.onclick=function(){ var txt=prompt('Edit comment:'); if(txt==null) return; fetch('/api/v1/reviews/'+rid+'/comment/'+c._id+'/edit', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, message: txt })}).then(function(){ loadComments(rid, wrap); }); }; actions.appendChild(e); }
+              if (isOwner || isAdmin){ var d=document.createElement('button'); d.className='btn btn-sm btn-outline-danger'; d.textContent='Delete'; d.onclick=function(){ fetch('/api/v1/reviews/'+rid+'/comment/'+c._id+'/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, mode: 'soft' })}).then(function(){ loadComments(rid, wrap); }); }; actions.appendChild(d); }
+              if (isAdmin){ var hd=document.createElement('button'); hd.className='btn btn-sm btn-danger'; hd.textContent='Hard delete'; hd.onclick=function(){ if(!confirm('Hard delete?')) return; fetch('/api/v1/reviews/'+rid+'/comment/'+c._id+'/delete', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, mode: 'hard' })}).then(function(){ loadComments(rid, wrap); }); }; actions.appendChild(hd); }
+              var rep=document.createElement('button'); rep.className='btn btn-sm btn-outline-warning'; rep.textContent='Report'; rep.onclick=function(){ var reason=prompt('Reason for report?'); if(reason==null) return; fetch('/api/v1/reports', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reported_user_id: c.user_id, reason: reason, context: 'comment', meta: { review_id: rid, comment_id: c._id } })}).then(function(){ alert('Reported'); }); }; actions.appendChild(rep);
+              el.appendChild(actions);
+            });
+          } catch(_){}
+        }
+      });
+    }
+    if (ME) {
+      var btn = document.getElementById('rv_s_submit');
+      btn && (btn.onclick = function(){
+        var t = document.getElementById('rv_s_title').value||'';
+        var x = document.getElementById('rv_s_text').value||'';
+        var maxLen = 500; if (x.length > maxLen){ alert('Review is too long ('+x.length+'/'+maxLen+').'); return; }
+        fetch('/api/v1/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ user_id: ME._id, user_key: ME.key, type: ITEM_TYPE, id: ITEM_ID, title: t, stars: starValue, text: x }) }).then(function(){ load(); });
+      });
+    }
+    setupStars();
+    // live char counter (UI hint; server enforces)
+    try {
+      var maxLen = 500; var ta = document.getElementById('rv_s_text'); var ct = document.getElementById('rv_s_text_count');
+      if (ta && ct){ ta.addEventListener('input', function(){ var n=(ta.value||'').length; ct.textContent = n+'/'+maxLen; ct.style.color = (n>maxLen)?'#ff6b6b':'#aaa'; }); }
+    } catch(_){}
+    // global report handler for review items
+    document.addEventListener('click', function(e){
+      var el = e.target.closest('.js-report-review');
+      if(!el) return;
+      var rid = el.getAttribute('data-id');
+      var uid = el.getAttribute('data-uid');
+      var reason = prompt('Reason for report?');
+      if(reason==null) return;
+      fetch('/api/v1/reports', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reported_user_id: uid, reason: reason, context: 'review', meta: { review_id: rid } })}).then(function(){ alert('Reported'); });
+    });
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+  </script>
+</div>

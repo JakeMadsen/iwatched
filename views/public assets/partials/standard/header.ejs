@@ -71,8 +71,9 @@
               <% } else { %>
                 <a class="dropdown-item" href="/<%= user._id %>">My Profile</a>
               <% } %>
-              <a class="dropdown-item" href="/user/recommendations">Recommendations</a>
-              <a class="dropdown-item" href="/user/badges">Badges</a>
+              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/recommendations">Recommendations</a>
+              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/reviews">My Reviews</a>
+              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/badges">Badges</a>
               <a class="dropdown-item" href="/support">Support</a>
               <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
                 <a class="dropdown-item" href="/<%= user.profile.custom_url %>/settings">Settings</a>
@@ -136,8 +137,9 @@
             <% } else { %>
               <a class="th-button th-button--ghost" href="/<%= user._id %>">My Profile</a>
             <% } %>
-            <a class="th-button th-button--ghost" href="/user/recommendations">Recommendations</a>
-            <a class="th-button th-button--ghost" href="/user/badges">Badges</a>
+            <a class="th-button th-button--ghost" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/recommendations">Recommendations</a>
+            <a class="th-button th-button--ghost" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/reviews">My Reviews</a>
+            <a class="th-button th-button--ghost" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/badges">Badges</a>
             <a class="th-button th-button--ghost" href="/support">Support</a>
             <% if( user.profile.custom_url != "" && user.profile.custom_url != null) { %>
               <a class="th-button th-button--ghost" href="/<%= user.profile.custom_url %>/settings">Settings</a>

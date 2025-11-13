@@ -71,6 +71,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#recommendations_routes">Recommendations</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#reviews_routes">Reviews</a>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -194,6 +197,35 @@
                     <td>Return up to 12 most recent actions (watched/favourited/saved) across movies and shows</td>
                     <td>No</td>
                 </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Reviews Routes -->
+    <div class="route_list">
+        <a name="reviews_routes">
+            <h2>Reviews</h2>
+        </a>
+        <table class="table table-dark" style="border-radius:8px;">
+            <thead>
+                <tr>
+                    <th scope="col">API Version</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Link</th>
+                    <th scope="col">Info</th>
+                    <th scope="col">Key required?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/reviews?type=movie&id=603">reviews?type=movie|show&id=</a></td><td>List reviews for an item (returns items, average, count)</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>GET</td><td><a href="/api/v1/reviews/656b1234abcd5678ef901234">reviews/:id</a></td><td>Get one review (includes comments)</td><td>No</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews</td><td>Body: { user_id, user_key, type: 'movie'|'show', id: TMDB_ID, title, stars (0-5 halves), text }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/vote</td><td>Body: { user_id, user_key, vote: 'up'|'down'|'none' }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/comment</td><td>Body: { user_id, user_key, message }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/comment/:comment_id/reply</td><td>Body: { user_id, user_key, message }</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/comment/:comment_id/edit</td><td>Body: { user_id, user_key, message } (author only or admin)</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/comment/:comment_id/delete</td><td>Body: { user_id, user_key, mode: 'soft'|'hard' } (author can soft; admin can hard)</td><td>Yes</td></tr>
+                <tr><th scope="row">/v1/</th><td>POST</td><td>reviews/:id/comment/:comment_id/vote</td><td>Body: { user_id, user_key, vote: 'up'|'down'|'none' }</td><td>Yes</td></tr>
             </tbody>
         </table>
     </div>

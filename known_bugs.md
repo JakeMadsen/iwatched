@@ -57,3 +57,11 @@ Notes (suspected cause + where to look)
   - When adding, if runtime is missing, try multiple fallbacks (external lookup or cached runtime) and persist the resolved runtime on the UserMovie doc so subsequent remove uses the same value.
   - Make `decWatch` prefer the stored `user_movies.movie_runtime` for that movie instead of re‑deriving.
   - Add a periodic reconciliation script to recompute `user_movie_totals.total_runtime` from `user_movies` to catch historical drift.
+
+
+
+Report 4 - Dove
+Showcase "Favorite title" search bar says (Search people) instead of "Search movies/show"
+
+Also if user puts a movie into "Favorite show" and then changes it to movie, the title should be cleared as it now looks for the show id in movies or vica versa, so clear title if changing mode
+

@@ -135,8 +135,8 @@
           var html2 = '<div class="plz-badges-grid">';
           for (var j=0;j<showB;j++){
             var b = previewsB[j] || null;
-            if (b && b.icon){ html2 += '<div class="plz-badgeTile plz-slot" data-slot="'+j+'"><img src="'+b.icon+'" alt="'+(b.title||'')+'"></div>'; }
-            else { html2 += '<div class="plz-badgeTile plz-slot plz-slot--empty" data-slot="'+j+'"></div>'; }
+            if (b && b.icon){ html2 += '<div class="plz-badgeTile plz-slot" data-slot="'+j+'" style="position:relative;"><img src="'+b.icon+'" alt="'+(b.title||'')+'"><button type="button" class="plz-badgeEdit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button></div>'; }
+            else { html2 += '<div class="plz-badgeTile plz-slot plz-slot--empty" data-slot="'+j+'" style="position:relative;"><button type="button" class="plz-badgeEdit" title="Edit" data-role="slot-edit"><i class="fas fa-pen"></i></button></div>'; }
           }
           html2 += '</div>';
           return html2;
@@ -323,16 +323,32 @@
       if (slug === 'favorite_movies' || slug === 'favorite_actors' || slug === 'favorite_person' || slug === 'favorite_title'){
         openSlotSearch($blk);
       } else if (slug === 'my_badges') {
-        // Build a badges chooser overlay
+        // Build a badges chooser overlay (fetch from API to ensure fresh list)
         $('.plz-slot-search').remove();
         var $active = $blk.find('.plz-slot.plz-slot--active'); if ($active.length===0) return;
-        var grid = '<div class="plz-slot-search"><div class="plz-badges-grid">'+(userBadges||[]).map(function(b){
-          var img = b.icon ? ('<img src="'+b.icon+'" alt="'+(b.title||'')+'">') : '<div style="color:#cfd7df; font-size:12px; text-align:center;">'+(b.title||'')+'</div>';
-          return '<div class="plz-badgeTile plz-badge-option" data-id="'+b.id+'">'+img+'</div>';
-        }).join('')+'</div></div>';
-        $active.append(grid);
+        function openBadgeGrid(items){
+          var grid = '<div class="plz-slot-search"><div class="plz-badges-grid">'+(items||[]).map(function(b){
+            var img = b.icon ? ('<img src="'+b.icon+'" alt="'+(b.title||'')+'">') : '<div style="color:#cfd7df; font-size:12px; text-align:center;">'+(b.title||'')+'</div>';
+            return '<div class="plz-badgeTile plz-badge-option" data-id="'+b.id+'">'+img+'</div>';
+          }).join('')+'</div></div>';
+          $active.append(grid);
+        }
+        if (Array.isArray(window.__badgesCache)) { openBadgeGrid(window.__badgesCache); }
+        else {
+          fetch('/api/v1/user-badges/'+encodeURIComponent(currentUserId))
+            .then(function(r){ return r.ok ? r.json() : { ok:false, items:[] }; })
+            .then(function(resp){ window.__badgesCache = Array.isArray(resp.items)?resp.items:[]; openBadgeGrid(window.__badgesCache); })
+            .catch(function(){ openBadgeGrid([]); });
+        }
       }
       e.stopPropagation();
+    });
+
+    // Ensure clicking the small edit button explicitly opens the picker (badge or search)
+    $('#selected_list').on('click', '[data-role="slot-edit"]', function(e){
+      e.preventDefault(); e.stopPropagation();
+      var $slot = $(this).closest('.plz-slot');
+      if ($slot.length){ $slot.trigger('click'); }
     });
 
     $('#selected_list').on('keyup', '.plz-slot-input', function(){
@@ -389,7 +405,8 @@
       arr[slot] = id; state[idx].config.items = arr;
       // also track preview objects for immediate display
       var prev = Array.isArray(state[idx].config._badges) ? state[idx].config._badges : []; while (prev.length < arr.length) prev.push(null);
-      var meta = (userBadges||[]).find(function(b){ return String(b.id)===id; });
+      var metaList = Array.isArray(window.__badgesCache) ? window.__badgesCache : [];
+      var meta = metaList.find(function(b){ return String(b.id)===id; });
       prev[slot] = meta ? { id: meta.id, title: meta.title, icon: meta.icon } : { id:id, title:'', icon:null };
       state[idx].config._badges = prev; dirty = true; $('.plz-slot-search').remove(); render();
     });

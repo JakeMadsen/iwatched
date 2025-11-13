@@ -12,10 +12,12 @@ module.exports = (server) => {
     require("./api/v1/friends")(server);
     require("./api/v1/support")(server);
     require("./api/v1/announcements")(server);
+    require("./api/v1/reviews")(server);
     require("./api/v1/userMovies")(server);
     require("./api/v1/userShows")(server);
     require("./api/v1/recommendations")(server);
     require("./api/v1/reports")(server);
+    try { require("./api/v1/userBadges")(server); } catch(_){}
     // Mixed user activity (movies + shows)
     try { require("./api/v1/userActivity")(server); } catch(_){}
     try { require("./api/v1/userShowcases")(server); } catch(_){}
@@ -42,6 +44,7 @@ module.exports = (server) => {
     require("./public/movies")(server);
     const showsModule = require("./public/shows");
     showsModule(server);
+    require("./public/reviews")(server);
     // Attach auxiliary APIs exposed by shows controller
     if (typeof showsModule.attachRuntimeApi === 'function') {
         showsModule.attachRuntimeApi(server);

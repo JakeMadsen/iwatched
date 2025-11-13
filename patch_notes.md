@@ -1,5 +1,35 @@
 # Patch Notes
 
+## 2025-11-11T19:30Z - Reviews system (v1), profile route links, and API docs
+
+- Reviews model + API
+  - New `Review` model with votes and embedded comments; configurable length via `SiteSetting.review_max_length`.
+  - API endpoints: list/get/create/update/delete review, vote; comment add/edit/delete/reply/vote.
+  - Files: `db/models/review.js`, `db/models/siteSetting.js`, `routes/controllers/api/v1/reviews.js`.
+
+- Movies/Shows integration
+  - Added Reviews section below Similar on movie/show pages with star widget (half-stars), voting and comments.
+  - Fixed similar-toggle script placement and ensured deleted comments render as placeholder.
+  - Files: `views/public assets/partials/movies/one.ejs`, `views/public assets/partials/shows/one.ejs`.
+
+- Profile reviews page
+  - Pretty route `/:id/reviews` (custom_url or ObjectId), renders inside standard profile shell (banner, stats, quicklinks).
+  - Server‑rendered list (no comments) with links to the reviewed item.
+  - Files: `routes/controllers/public/reviews.js`, `views/public assets/partials/profile/reviews.ejs`, `views/public assets/partials/reviews/main.ejs`.
+
+- Navigation + pretty links
+  - User dropdown links now use custom_url/id: Recommendations, My Reviews, Badges.
+  - Kept legacy `/user/...` paths as shortcuts that redirect to pretty paths.
+  - Files: `views/public assets/partials/standard/header.ejs`, `views/public assets/partials/standard/navigation.ejs`, `routes/controllers/public/recommendations.js`, `routes/controllers/public/profile.js`.
+
+- API dashboard
+  - Added Reviews section with route list and payload notes.
+  - Files: `views/api assets/pages/index.ejs`.
+
+- Misc
+  - Auto‑upvote review author on create/update; ensured comment enrichment (avatar/link) in GET one review.
+  - Files: `routes/controllers/api/v1/reviews.js`.
+
 ## 2025-11-11T13:00Z - Personalize fixes, final layout for controls, new showcases polish
 
 - Personalize bug fix

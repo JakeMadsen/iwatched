@@ -1,0 +1,81 @@
+<div class="container" style="margin-top: 20px;max-width: 1100px;">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <h1>My Reviews</h1>
+  </div>
+
+  <div id="rv_list" style="margin-top:12px;"></div>
+  <div id="rv_empty" style="display:none; margin-top:12px; opacity:.85;">You have not written any reviews yet.</div>
+  <% var __list = (page_data && page_data.items) ? page_data.items : []; %>
+  <% if (__list && __list.length) { %>
+    <% __list.forEach(function(r){ %>
+      <% var link = (r._item && r._item.link) || (r.item_type === 'movie' ? ('/movies/' + r.item_id) : ('/shows/' + r.item_id)); %>
+      <% var poster = (r._item && r._item.poster) ? ('https://image.tmdb.org/t/p/w185/' + r._item.poster) : null; %>
+      <% var itemTitle = (r._item && r._item.title) || (r.item_type==='movie' ? 'Movie' : 'Show'); %>
+      <div class="card" style="background:#151515;border:1px solid #2a2a2a;margin-bottom:12px;border-radius:10px;">
+        <div class="card-body" style="color:#ffff; display:flex; gap:12px;">
+          <% if (poster) { %>
+            <a href="<%= link %>"><img src="<%= poster %>" style="width:72px;height:108px;border-radius:6px;object-fit:cover;"></a>
+          <% } %>
+          <div style="flex:1;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <a href="<%= link %>" style="color: lightblue; font-weight:600;"><%= itemTitle %></a>
+              <span class="badge badge-secondary"><%= r.item_type %></span>
+              <span class="badge badge-info"><%= (Math.round((r.stars||0)*2)/2).toFixed(((r.stars||0)%1===0)?0:1) %> / 5</span>
+              <span style="opacity:.75; font-size:12px;"> <%= new Date(r.created_at).toLocaleString() %> </span>
+            </div>
+            <div style="margin-top:6px; font-weight:600;"><%= r.title %></div>
+            <div style="opacity:.9; margin-top:4px;"><%= (r.text||'').replace(/\n/g,'<br>') %></div>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  <% } %>
+</div>
+
+<script>
+(function(){
+  var data = <%- JSON.stringify(page_data && page_data.items || []) %>;
+  function fmtStars(v){ var s = Number(v||0); return (Math.round(s*2)/2).toFixed(s%1===0?0:1) + ' / 5'; }
+  function esc(s){
+    return (s||'').toString().replace(/[&<>"']/g, function(c){
+      switch(c){
+        case '&': return '&amp;';
+        case '<': return '&lt;';
+        case '>': return '&gt;';
+        case '"': return '&quot;';
+        case "'": return '&#39;';
+        default: return c;
+      }
+    });
+  }
+  function render(){
+    var wrap = document.getElementById('rv_list'); var empty = document.getElementById('rv_empty');
+    wrap.innerHTML = '';
+    if (!data || !data.length){ empty.style.display = 'block'; return; } else { empty.style.display = 'none'; }
+    data.forEach(function(r){
+      var poster = r._item && r._item.poster ? ('https://image.tmdb.org/t/p/w185/' + r._item.poster) : null;
+      var itemTitle = (r._item && r._item.title) || (r.item_type==='movie' ? 'Movie' : 'Show');
+      var link = (r._item && r._item.link) || '#';
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.style.cssText = 'background:#151515;border:1px solid #2a2a2a;margin-bottom:12px;border-radius:10px;';
+      card.innerHTML = '<div class="card-body" style="color:#ffff; display:flex; gap:12px;">'
+        + (poster ? '<a href="'+esc(link)+'"><img src="'+esc(poster)+'" style="width:72px;height:108px;border-radius:6px;object-fit:cover;"></a>' : '')
+        + '<div style="flex:1;">
+             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+               <a href="'+esc(link)+'" style="color: lightblue; font-weight:600;">'+esc(itemTitle)+'</a>
+               <span class="badge badge-secondary">'+esc(r.item_type||'')+'</span>
+               <span class="badge badge-info">'+fmtStars(r.stars)+'</span>
+               <span style="opacity:.75; font-size:12px;">'+new Date(r.created_at).toLocaleString()+'</span>
+             </div>
+             <div style="margin-top:6px; font-weight:600;">'+esc(r.title||'')+'</div>
+             <div style="opacity:.9; margin-top:4px;">'+esc((r.text||'')).replace(/\n/g,'<br>')+'</div>
+           </div>'
+        + '</div>';
+      wrap.appendChild(card);
+    });
+  }
+  if (document.readyState !== 'loading') { try { render(); } catch(_){} }
+  else { document.addEventListener('DOMContentLoaded', function(){ try { render(); } catch(_){} }); }
+})();
+</script>

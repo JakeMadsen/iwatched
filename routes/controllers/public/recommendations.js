@@ -15,9 +15,12 @@ module.exports = function(server){
 
   server.get('/user/recommendations', async function(req, res){
     try {
-      if (!req.user) {
-        return res.redirect('/login');
-      }
+      if (!req.user) return res.redirect('/login');
+      // Redirect to pretty profile path
+      try {
+        const slug = (req.user && req.user.profile && req.user.profile.custom_url) ? req.user.profile.custom_url : String(req.user._id);
+        return res.redirect('/' + slug + '/recommendations');
+      } catch (_) {}
       const userId = req.user._id;
       // Basic lists
       const [sent, received] = await Promise.all([
