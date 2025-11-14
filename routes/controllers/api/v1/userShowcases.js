@@ -4,11 +4,6 @@ const UserShowcase = require('../../../../db/models/userShowcase');
 const apiIsCorrectUser = require('../../../middleware/apiIsCorrectUser');
 
 async function ensureCatalogSeed(){
-  // Seed the Recent Timeline showcase if catalog is empty/missing
-  try {
-    const count = await ShowcaseCatalog.countDocuments({}).catch(()=>0);
-    if (count && count > 0) return;
-  } catch(_) {}
   try {
     const exists = await ShowcaseCatalog.findOne({ slug: 'recent_timeline' }).lean();
     if (!exists){
@@ -122,6 +117,23 @@ async function ensureCatalogSeed(){
       });
       await doc7.save();
     }
+    // Custom Text (free-form text box)
+    const customText = await ShowcaseCatalog.findOne({ slug: 'custom_text' }).lean();
+    if (!customText){
+      const doc8 = new ShowcaseCatalog({
+        slug: 'custom_text',
+        title: 'Custom Text',
+        description: 'Add a short text block to your profile. Supports line breaks and links.',
+        tier: 'free',
+        icon: null,
+        max_instances: 1,
+        config_schema: {
+          text: { type:'string', default:'' }
+        },
+        active: true
+      });
+      await doc8.save();
+    }
   } catch(_) {}
 }
 
@@ -142,14 +154,24 @@ function sanitizeConfig(slug, cfg){
   if (slug === 'favorite_person'){
     const mode = (safe.mode==='director') ? 'director' : 'actor';
     const id = String(safe.person_id||'');
-    const note = String(safe.note||'');
+    let note = String(safe.note||'');
+    const maxLen = 300;
+    if (note.length > maxLen) note = note.substring(0, maxLen);
     return { mode, person_id: id, note };
   }
   if (slug === 'favorite_title'){
     const mode = (safe.mode==='show') ? 'show' : 'movie';
     const id = String(safe.tmd_id||'');
-    const note = String(safe.note||'');
+    let note = String(safe.note||'');
+    const maxLen = 300;
+    if (note.length > maxLen) note = note.substring(0, maxLen);
     return { mode, tmd_id: id, note };
+  }
+  if (slug === 'custom_text'){
+    let text = String(safe.text||'');
+    const maxLen = 1000;
+    if (text.length > maxLen) text = text.substring(0, maxLen);
+    return { text };
   }
   if (slug === 'favorite_movies'){
     // Up to 6 movie TMDB ids
@@ -170,8 +192,8 @@ function sanitizeConfig(slug, cfg){
     return { items };
   }
   if (slug === 'my_badges'){
-    let count = parseInt(safe.count, 10);
-    if (count !== 6 && count !== 12) count = 12;
+    // Clamp badges showcase to max 6 items
+    let count = 6;
     const arr = Array.isArray(safe.items) ? safe.items : [];
     const items = arr.slice(0, count).map(v => String((v && (v.id||v)) || '').trim()).filter(Boolean);
     return { count, items };
@@ -201,15 +223,22 @@ module.exports = (server) => {
         list = [ def.toObject() ];
       }
 
-      // Filter out entries not present/active in catalog
-      const resolved = list.filter(it => catMap.has(String(it.slug))).map(it => ({
-        slug: it.slug,
-        order: it.order || 0,
-        enabled: !!it.enabled,
-        config: sanitizeConfig(it.slug, it.config),
-        title: (catMap.get(String(it.slug)) || {}).title || it.slug,
-        meta: { max_instances: (catMap.get(String(it.slug)) || {}).max_instances || 1, tier: (catMap.get(String(it.slug)) || {}).tier || 'free' }
-      })).sort((a,b)=> (a.order||0) - (b.order||0));
+      // Filter out entries not present/active in catalog and normalize config
+      const resolved = [];
+      for (const it of (list || [])){
+        if (!catMap.has(String(it.slug))) continue;
+        const cfg = sanitizeConfig(it.slug, it.config);
+        const cat = catMap.get(String(it.slug)) || {};
+        resolved.push({
+          slug: it.slug,
+          order: it.order || 0,
+          enabled: !!it.enabled,
+          config: cfg || {},
+          title: cat.title || it.slug,
+          meta: { max_instances: cat.max_instances || 1, tier: cat.tier || 'free' }
+        });
+      }
+      resolved.sort((a,b)=> (a.order||0) - (b.order||0));
 
       return res.send({ ok:true, user_id: user._id, showcases: resolved });
     } catch (e) {

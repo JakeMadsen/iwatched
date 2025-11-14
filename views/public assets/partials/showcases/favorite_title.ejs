@@ -11,7 +11,10 @@
     <span>Favorite <%= label %></span>
     <% if (typeof instanceId !== 'undefined' && Number(instanceId) === 0 && user && page_data && page_data.user && String(user._id) === String(page_data.user._id)) { %>
       <% var __bp = (page_data.user.profile && page_data.user.profile.custom_url) ? ('/' + page_data.user.profile.custom_url) : ('/' + page_data.user._id); %>
-      <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary" title="Edit profile layout" aria-label="Edit profile layout"><i class="fas fa-edit"></i></a>
+      <span class="profile-editWrapper" style="margin-left:12px; display:inline-flex; align-items:center; position:relative;">
+        <span class="profile-editHint">Personalize your page!</span>
+        <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary profile-editBtn" title="Edit profile layout" aria-label="Edit profile layout"><i class="fas fa-edit"></i></a>
+      </span>
     <% } %>
   </h3>
   <div class="favcard" style="display:flex; gap:14px; background:#141414; border:1px solid #262626; border-radius:10px; padding:10px;">
@@ -22,7 +25,6 @@
     </div>
     <div style="flex:1 1 auto; color:#e6e6e6;">
       <div style="font-weight:800; font-size:18px;"> <%= (t && t.title) || 'Pick a '+label.toLowerCase() %> </div>
-      <div style="opacity:.7; font-size:12px; margin-top:2px;">Mode: <%= label %></div>
       <% if (t && t.description) { %>
         <p style="margin-top:8px; max-width: 920px; opacity:.9;"><%= t.description.substring(0,240) %><% if (t.description.length>240){ %>...<% } %></p>
       <% } %>
@@ -32,4 +34,3 @@
     </div>
   </div>
 </div>
-

@@ -1,0 +1,65 @@
+<%
+  const cfg = config || {};
+  const raw = cfg.text ? String(cfg.text) : '';
+  function escapeHtml(str){
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+  function applyFormatting(str){
+    // Basic rich text via lightweight markup, applied after escaping HTML.
+    // Note: by the time this runs, '[' and ']' have been escaped to their entities.
+    // [b]bold[/b] -> <strong>bold</strong>
+    // [i]italic[/i] -> <em>italic</em>
+    str = str.replace(/&#91;b&#93;([\s\S]+?)&#91;\/b&#93;/g, '<strong>$1</strong>');
+    str = str.replace(/&#91;i&#93;([\s\S]+?)&#91;\/i&#93;/g, '<em>$1</em>');
+    return str;
+  }
+  function linkifyAndFormat(line){
+    // First, normalize [url=...]text[/url] markup into plain text so the URL
+    // portion can be auto-linkified and the raw tags aren't shown.
+    // If no link text is provided, fall back to the URL itself.
+    line = line.replace(/\[url=([^\]]+)\](.*?)\[\/url\]/g, function(_, href, txt){
+      return (txt && txt.trim().length) ? txt : href;
+    });
+
+    let s = escapeHtml(line);
+    // Turn plain URLs into clickable links (open in new tab)
+    s = s.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+    // Apply simple markup after linkifying (operates on escaped text with entities)
+    return applyFormatting(s);
+  }
+  const lines = raw.split(/\r?\n/);
+%>
+<div class="profile-showcase profile-showcase--custom-text" data-slug="custom_text" style="margin-top:24px;">
+  <h3 style="display:flex; align-items:center; justify-content:space-between;">
+    <span>Custom text</span>
+    <% try {
+      if (typeof instanceId !== 'undefined' && Number(instanceId) === 0 && user && page_data && page_data.user && String(user._id) === String(page_data.user._id)) {
+        var __bp = (page_data.user.profile && page_data.user.profile.custom_url) ? ('/' + page_data.user.profile.custom_url) : ('/' + page_data.user._id);
+    %>
+      <span class="profile-editWrapper" style="margin-left:12px; display:inline-flex; align-items:center; position:relative;">
+        <span class="profile-editHint">Personalize your page!</span>
+        <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary profile-editBtn" title="Edit profile layout" aria-label="Edit profile layout">
+          <i class="fas fa-edit"></i>
+        </a>
+      </span>
+    <% } } catch(_){} %>
+  </h3>
+  <div style="background:#141414; border:1px solid #262626; border-radius:10px; padding:12px 14px; color:#e6e6e6; font-size:14px; line-height:1.5;">
+    <% if (raw && raw.trim().length) { %>
+      <% lines.forEach(function(line){ %>
+        <p style="margin-bottom:6px;"><%- linkifyAndFormat(line) %></p>
+      <% }); %>
+    <% } else { %>
+      <p style="opacity:.6; font-style:italic;">Add a custom text block from the Personalize page.</p>
+    <% } %>
+  </div>
+</div>
+
+<style>
+  /* Custom text showcase keeps default profile typography; edit button hint handled globally */
+</style>

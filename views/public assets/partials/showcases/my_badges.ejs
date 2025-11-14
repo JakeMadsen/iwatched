@@ -1,10 +1,38 @@
-<% if (data && Array.isArray(data.items) && data.items.length) { %>
+<%
+  var maxCount = 6;
+  var catalog = Array.isArray(typeof badgesCatalog !== 'undefined' ? badgesCatalog : []) ? badgesCatalog : [];
+  var pinIds = Array.isArray(config && config.items) ? config.items : [];
+  var chosen = [];
+
+  if (pinIds.length && catalog.length){
+    var map = {};
+    catalog.forEach(function(b){
+      if (!b || !b.id) return;
+      map[String(b.id)] = b;
+    });
+    pinIds.slice(0, maxCount).forEach(function(id){
+      var key = String((id && (id.id||id)) || id || '');
+      if (!key) return;
+      var meta = map[key];
+      if (meta) chosen.push(meta);
+    });
+  }
+
+  if (!chosen.length){
+    if (data && Array.isArray(data.items) && data.items.length){
+      chosen = data.items.slice(0, maxCount);
+    } else if (catalog.length){
+      chosen = catalog.slice(0, maxCount);
+    }
+  }
+%>
+<% if (Array.isArray(chosen) && chosen.length) { %>
   <div class="profile-section" style="margin-top:18px;">
     <div class="profile-section__header">
       <h3 class="profile-section__title">My Badges</h3>
     </div>
     <div class="profile-grid" style="display:grid; grid-template-columns: repeat(6, minmax(80px,1fr)); gap:10px;">
-      <% data.items.slice(0, (config && config.count===6)?6:12).forEach(function(b){ %>
+      <% chosen.forEach(function(b){ %>
         <div class="badge-tile" style="background:#0f1217; border:1px solid #232a33; border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:center; aspect-ratio:1/1;">
           <% if (b.icon) { %>
             <img src="<%= b.icon %>" alt="<%= b.title %>" title="<%= b.title %>" style="max-width:70%; max-height:70%; object-fit:contain;">
@@ -16,4 +44,3 @@
     </div>
   </div>
 <% } %>
-

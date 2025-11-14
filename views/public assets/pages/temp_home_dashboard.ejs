@@ -1,0 +1,377 @@
+<%
+  const isLoggedIn = !!user;
+  const displayName = (user && user.local && user.local.username) || 'Guest';
+  const tonight = (page_data && page_data.tonight) || [];
+  const friendsActivity = (page_data && page_data.friends_activity) || [];
+  const friendsReviews = (page_data && page_data.friends_reviews) || [];
+  const announcements = (page_data && page_data.announcements) || [];
+
+  const qaMovieIds = Array.from(new Set([].concat(tonight, friendsActivity).filter(function(it){ return it && it.type === 'movie'; }).map(function(it){ return String(it.id); })));
+  const qaShowIds  = Array.from(new Set([].concat(tonight, friendsActivity).filter(function(it){ return it && it.type === 'show'; }).map(function(it){ return String(it.id); })));
+%>
+
+<div class="temp-home" data-page="temp-home-dashboard">
+  <div class="th-main th-dashboard">
+    <section class="th-section">
+      <div class="th-shell th-dashboard__shell">
+        <div class="th-dashboard__grid">
+          <!-- MAIN COLUMN -->
+          <div class="th-dashboard__main">
+            <!-- What to watch tonight -->
+            <div class="th-panel th-panel--primary">
+              <div class="th-panel__header">
+                <div>
+                  <h2 class="th-panel__title">What to watch tonight?</h2>
+                  <p class="th-panel__subtitle">From your bookmarked list</p>
+                </div>
+                <a href="/movies" class="th-panel__cta">View all bookmarks</a>
+              </div>
+              <div class="th-row th-row--carousel">
+                <div class="th-row__scroller">
+                  <% if (tonight && tonight.length) { %>
+                    <% tonight.forEach(function(it){ %>
+                      <article class="th-card th-card--poster">
+                        <a href="/<%= it.type === 'show' ? 'shows' : 'movies' %>/<%= it.id %>" class="th-card__link">
+                          <div class="th-card__poster" style="<%= it.poster ? ('background-image:url(https://image.tmdb.org/t/p/w300'+it.poster+'); background-size:cover; background-position:center;') : '' %>"></div>
+                          <div class="th-card__meta">
+                            <div class="th-card__title"><%= it.title %></div>
+                            <% if (it.runtime_text) { %>
+                              <div class="th-card__runtime"><%= it.runtime_text %></div>
+                            <% } %>
+                            <% if (isLoggedIn) { %>
+                              <div class="th-card__actions">
+                                <% if (it.type === 'movie') { %>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-check-circle" 
+                                       id="add_watched_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-check-circle icon-green" 
+                                       id="remove_watched_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-heart" 
+                                       id="add_favourited_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-heart icon-red" 
+                                       id="remove_favourited_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-bookmark" 
+                                       id="add_saved_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-bookmark icon-blue" 
+                                       id="remove_saved_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                <% } else { %>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-check-circle" 
+                                       id="add_watched_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-check-circle icon-green" 
+                                       id="remove_watched_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-heart" 
+                                       id="add_favourited_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-heart icon-red" 
+                                       id="remove_favourited_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-bookmark" 
+                                       id="add_saved_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-bookmark icon-blue" 
+                                       id="remove_saved_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                <% } %>
+                              </div>
+                            <% } %>
+                            <div class="th-card__meta-row">
+                              <% if (it.favourited_at) { %>
+                                <span class="th-pill th-pill--rating">Favorited</span>
+                              <% } %>
+                              <% if (it.watched_at && !it.favourited_at) { %>
+                                <span class="th-pill th-pill--event">Watched</span>
+                              <% } %>
+                            </div>
+                          </div>
+                        </a>
+                      </article>
+                    <% }); %>
+                  <% } else { %>
+                    <div class="th-empty">
+                      <p>You haven&apos;t bookmarked anything yet. Start adding movies and shows to your watchlist from the Movies or Series pages.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Friends recently added -->
+            <div class="th-panel th-panel--secondary">
+              <div class="th-panel__header">
+                <div>
+                  <h2 class="th-panel__title">Friends recently added</h2>
+                  <p class="th-panel__subtitle">Favourited, watched, or bookmarked</p>
+                </div>
+                <div class="th-panel__filters" data-role="friend-filters">
+                  <label><input type="checkbox" data-filter="watched" checked> Watched</label>
+                  <label><input type="checkbox" data-filter="bookmarked" checked> Bookmarked</label>
+                  <label><input type="checkbox" data-filter="favorited" checked> Favorited</label>
+                </div>
+              </div>
+              <div class="th-row th-row--carousel">
+                <div class="th-row__scroller" id="friends-activity-row">
+                  <% if (friendsActivity && friendsActivity.length) { %>
+                    <% friendsActivity.forEach(function(it){ %>
+                      <article class="th-card th-card--poster" data-event-type="<%= it.eventType %>" data-qa-type="<%= it.type %>" data-qa-id="<%= it.id %>">
+                        <a href="/<%= it.type === 'show' ? 'shows' : 'movies' %>/<%= it.id %>" class="th-card__link">
+                          <div class="th-card__poster th-card__poster--friend" style="<%= it.poster ? ('background-image:url(https://image.tmdb.org/t/p/w300'+it.poster+'); background-size:cover; background-position:center;') : '' %>">
+                            <div class="th-card__badge"><%= it.friend && it.friend.username ? it.friend.username : 'Friend' %></div>
+                          </div>
+                          <div class="th-card__meta">
+                            <div class="th-card__title"><%= it.title %></div>
+                            <% if (it.runtime_text) { %>
+                              <div class="th-card__runtime"><%= it.runtime_text %></div>
+                            <% } %>
+                            <% if (isLoggedIn) { %>
+                              <div class="th-card__actions">
+                                <% if (it.type === 'movie') { %>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-check-circle" 
+                                       id="add_watched_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-check-circle icon-green" 
+                                       id="remove_watched_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-heart" 
+                                       id="add_favourited_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddFavourited('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-heart icon-red" 
+                                       id="remove_favourited_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveFavourited('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-bookmark" 
+                                       id="add_saved_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieAddSaved('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-bookmark icon-blue" 
+                                       id="remove_saved_movie_<%= it.id %>"
+                                       onclick="event.stopPropagation(); movieRemoveSaved('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                <% } else { %>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-check-circle" 
+                                       id="add_watched_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-check-circle icon-green" 
+                                       id="remove_watched_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveWatched('<%= user._id %>', '<%= it.id %>', '', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-heart" 
+                                       id="add_favourited_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddFavourited('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-heart icon-red" 
+                                       id="remove_favourited_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveFavourited('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                  <span class="th-qa-icon">
+                                    <i class="far fa-bookmark" 
+                                       id="add_saved_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showAddSaved('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                    <i class="fas fa-bookmark icon-blue" 
+                                       id="remove_saved_show_<%= it.id %>"
+                                       onclick="event.stopPropagation(); showRemoveSaved('<%= user._id %>', '<%= it.id %>', '<%= user.permissions.user_private_key %>'); return false;"></i>
+                                  </span>
+                                <% } %>
+                              </div>
+                            <% } %>
+                            <div class="th-card__meta-row">
+                              <span class="th-pill th-pill--muted"><%= it.friend && it.friend.username ? it.friend.username : 'Friend' %></span>
+                              <span class="th-pill th-pill--event"><%= it.eventType.charAt(0).toUpperCase() + it.eventType.slice(1) %></span>
+                            </div>
+                          </div>
+                        </a>
+                      </article>
+                    <% }); %>
+                  <% } else { %>
+                    <div class="th-empty">
+                      <p>No recent activity from friends yet. Add some friends to see what they are watching.</p>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+
+            <!-- Feed: latest reviews from friends -->
+            <div class="th-panel th-panel--feed">
+              <div class="th-panel__header th-panel__header--stacked">
+                <div>
+                  <h2 class="th-panel__title">Feed</h2>
+                  <p class="th-panel__subtitle">Latest reviews made by your friends</p>
+                </div>
+              </div>
+              <div class="th-feed">
+                <% if (friendsReviews && friendsReviews.length) { %>
+                  <% friendsReviews.slice(0,5).forEach(function(r){ %>
+                    <article class="th-feed-item">
+                      <div class="th-feed-item__avatar"></div>
+                      <div class="th-feed-item__body">
+                        <div class="th-feed-item__meta">
+                          <span class="th-feed-item__user"><%= r.author_username || 'Friend' %></span>
+                          <span class="th-feed-item__dot">•</span>
+                          <span class="th-feed-item__time"><%= (r.created_at || '').toISOString ? r.created_at.toISOString().slice(0,10) : '' %></span>
+                        </div>
+                        <div class="th-feed-item__title-row">
+                          <h3 class="th-feed-item__title"><%= r.title || 'Review' %></h3>
+                          <% if (typeof r.stars === 'number' && r.stars > 0) { %>
+                            <span class="th-pill th-pill--rating">⭐ <%= r.stars %>/5</span>
+                          <% } %>
+                        </div>
+                        <% if (r.text) { %>
+                          <p class="th-feed-item__text">
+                            <%= r.text.length > 180 ? (r.text.substring(0, 177) + '…') : r.text %>
+                          </p>
+                        <% } %>
+                      </div>
+                    </article>
+                  <% }); %>
+                <% } else { %>
+                  <div class="th-empty">
+                    <p>No reviews from friends yet. Once your friends start leaving reviews, they will appear here.</p>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+          </div>
+
+          <!-- SIDE COLUMN -->
+          <div class="th-dashboard__side">
+            <!-- Announcements -->
+            <aside class="th-panel th-panel--side">
+              <div class="th-panel__header th-panel__header--stacked">
+                <h2 class="th-panel__title">Announcements</h2>
+              </div>
+              <ul class="th-list th-list--announcements">
+                <% if (announcements && announcements.length) { %>
+                  <% announcements.forEach(function(a){ %>
+                    <li class="th-list__item">
+                      <div class="th-list__eyebrow"><%= (a.created_at || '').toISOString ? a.created_at.toISOString().slice(0,10) : 'Announcement' %></div>
+                      <a href="/announcements/<%= a.slug || a._id %>" class="th-list__title"><%= a.title %></a>
+                      <p class="th-list__text"><%= (a.text || '').length > 140 ? (a.text.substring(0,137) + '…') : (a.text || '') %></p>
+                    </li>
+                  <% }); %>
+                <% } else { %>
+                  <li class="th-list__item">
+                    <p class="th-list__text">No announcements yet.</p>
+                  </li>
+                <% } %>
+              </ul>
+            </aside>
+
+            <!-- Ad / promo placeholder -->
+            <aside class="th-panel th-panel--side th-panel--ad">
+              <div class="th-panel__header th-panel__header--stacked">
+                <h2 class="th-panel__title">Ad placeholder</h2>
+              </div>
+              <div class="th-ad-placeholder">
+                <div class="th-ad-placeholder__label">Your promo or partner spot</div>
+                <p class="th-ad-placeholder__text">
+                  Reserve this area for future advertising.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  (function(){
+    // Simple client-side filter for friends activity cards
+    var container = document.getElementById('friends-activity-row');
+    var boxWrap = document.querySelector('[data-role="friend-filters"]');
+    if (!container || !boxWrap) return;
+    function applyFilters(){
+      var showWatched = boxWrap.querySelector('input[data-filter="watched"]').checked;
+      var showBookmarked = boxWrap.querySelector('input[data-filter="bookmarked"]').checked;
+      var showFavorited = boxWrap.querySelector('input[data-filter="favorited"]').checked;
+      Array.prototype.forEach.call(container.querySelectorAll('.th-card[data-event-type]'), function(card){
+        var t = String(card.getAttribute('data-event-type')||'');
+        var visible = (t === 'watched' && showWatched) || (t === 'bookmarked' && showBookmarked) || (t === 'favourited' && showFavorited) || (t === 'favorited' && showFavorited);
+        card.style.display = visible ? '' : 'none';
+      });
+    }
+    boxWrap.addEventListener('change', applyFilters);
+    applyFilters();
+  })();
+
+  // Initialize quick-action icon states for tonight + friends activity using StatusStore
+  (function(){
+    try {
+      if (!(window.StatusStore)) return;
+      var movieIds = <%- JSON.stringify(qaMovieIds) %>;
+      var showIds  = <%- JSON.stringify(qaShowIds) %>;
+      if ((!movieIds || !movieIds.length) && (!showIds || !showIds.length)) return;
+      var $root = $('[data-page="temp-home-dashboard"]');
+      if (!$root.length) return;
+
+      movieIds.forEach(function(id){
+        $root.find("#add_watched_movie_"+id+", #remove_watched_movie_"+id+", #add_favourited_movie_"+id+", #remove_favourited_movie_"+id+", #add_saved_movie_"+id+", #remove_saved_movie_"+id).hide();
+      });
+      showIds.forEach(function(id){
+        $root.find("#add_watched_show_"+id+", #remove_watched_show_"+id+", #add_favourited_show_"+id+", #remove_favourited_show_"+id+", #add_saved_show_"+id+", #remove_saved_show_"+id).hide();
+      });
+
+      var viewerId = (window.SITE_PREFS && SITE_PREFS.userId) || null;
+      if (viewerId && window.StatusStore){
+        if (movieIds.length){
+          StatusStore.request('movie', movieIds).then(function(list){
+            (list||[]).forEach(function(st, idx){
+              var id = movieIds[idx]; if (!id) return;
+              var $addW = $root.find("#add_watched_movie_"+id), $remW = $root.find("#remove_watched_movie_"+id);
+              (st && st.w === true ? $remW : $addW).show();
+              var $addF = $root.find("#add_favourited_movie_"+id), $remF = $root.find("#remove_favourited_movie_"+id);
+              (st && st.f === true ? $remF : $addF).show();
+              var $addS = $root.find("#add_saved_movie_"+id), $remS = $root.find("#remove_saved_movie_"+id);
+              (st && st.s === true ? $remS : $addS).show();
+            });
+          });
+        }
+        if (showIds.length){
+          StatusStore.request('show', showIds).then(function(list){
+            (list||[]).forEach(function(st, idx){
+              var id = showIds[idx]; if (!id) return;
+              var $addW = $root.find("#add_watched_show_"+id), $remW = $root.find("#remove_watched_show_"+id);
+              (st && st.w === true ? $remW : $addW).show();
+              var $addF = $root.find("#add_favourited_show_"+id), $remF = $root.find("#remove_favourited_show_"+id);
+              (st && st.f === true ? $remF : $addF).show();
+              var $addS = $root.find("#add_saved_show_"+id), $remS = $root.find("#remove_saved_show_"+id);
+              (st && st.s === true ? $remS : $addS).show();
+            });
+          });
+        }
+      } else {
+        // Not logged in – default to "off" state
+        movieIds.forEach(function(id){
+          $root.find("#add_watched_movie_"+id+", #add_favourited_movie_"+id+", #add_saved_movie_"+id).show();
+        });
+        showIds.forEach(function(id){
+          $root.find("#add_watched_show_"+id+", #add_favourited_show_"+id+", #add_saved_show_"+id).show();
+        });
+      }
+    } catch(_) {}
+  })();
+</script>

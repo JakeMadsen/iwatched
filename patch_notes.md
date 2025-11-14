@@ -1,5 +1,27 @@
 # Patch Notes
 
+## 2025-11-14T20:00Z - Home dashboard prototype, badge pins, and custom text polish
+
+- Logged-in home dashboard prototype (`/temp-home`)
+  - New two-column layout with:
+    - "What to watch tonight?" carousel fed by the user's bookmarked movies/shows, including runtime text and inline quick actions (watched/favourite/saved).
+    - "Friends recently added" carousel showing friends' latest watched/favourited/bookmarked items with type filters (Watched / Bookmarked / Favorited).
+    - Friends reviews feed listing latest review snippets from friends.
+    - Live announcements list (latest 5 from `Announcement`), plus ad/promo placeholder panel.
+  - Quick actions on both carousels are hydrated from `StatusStore` (bulk status APIs) so only the correct on/off icon shows for each title.
+  - Files: `routes/controllers/public/index.js`, `views/public assets/pages/temp_home_dashboard.ejs`, `public/style/css/temp_home.css`.
+
+- My Badges showcase refinements
+  - Personalize page now re-hydrates My Badges using server-enriched selection or the user's badge catalog so slots show current pins on reload.
+  - Profile My Badges showcase prefers user-pinned badges (`config.items`) and falls back to owned badges only when nothing is pinned; display is clamped to 6 tiles.
+  - Badge picker popover uses larger tiles with labels, always fetches the latest owned badges, and no longer gets clipped by overflow.
+  - Files: `views/public assets/pages/user_personalize.ejs`, `views/public assets/partials/showcases/my_badges.ejs`, `routes/controllers/public/profile.js`, `routes/controllers/api/v1/userShowcases.js`, `routes/controllers/api/v1/userBadges.js`, `public/style/css/profile_personalize.css`.
+
+- Custom Text showcase formatting
+  - Cleaned up `[url=...]text[/url]` markup so URLs render as plain clickable links or custom link text; raw `[url=]` tags are no longer shown.
+  - Kept `[b]...[/b]` and `[i]...[/i]` formatting working on escaped text and left auto-linking for bare `http(s)://` URLs intact.
+  - Files: `views/public assets/partials/showcases/custom_text.ejs`.
+
 ## 2025-11-11T19:30Z - Reviews system (v1), profile route links, and API docs
 
 - Reviews model + API

@@ -10,9 +10,12 @@
     <% /* Show small edit button on first showcase for profile owner only */ %>
     <% try { if (typeof instanceId !== 'undefined' && Number(instanceId) === 0 && user && page_data && page_data.user && String(user._id) === String(page_data.user._id)) { %>
       <% var __bp = (page_data.user.profile && page_data.user.profile.custom_url) ? ('/' + page_data.user.profile.custom_url) : ('/' + page_data.user._id); %>
-      <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary" title="Edit profile layout" aria-label="Edit profile layout" style="margin-left:12px;">
-        <i class="fas fa-edit"></i>
-      </a>
+      <span class="profile-editWrapper" style="margin-left:12px; display:inline-flex; align-items:center; position:relative;">
+        <span class="profile-editHint">Personalize your page!</span>
+        <a href="<%= __bp %>/personalize" class="btn btn-sm btn-outline-secondary profile-editBtn" title="Edit profile layout" aria-label="Edit profile layout">
+          <i class="fas fa-edit"></i>
+        </a>
+      </span>
     <% } } catch(_){} %>
   </h3>
   <div id="<%= __containerId %>" class="row"></div>

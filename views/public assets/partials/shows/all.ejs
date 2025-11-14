@@ -1,90 +1,237 @@
 <style>
-  @media (min-width: 992px){
-    #shows_holder{ overflow-y: auto; }
-  }
+  /* Layout + grid styling aligned with /movies */
   .genre-active-tag{ font-size:10px; margin-left:6px; opacity:.8; }
-  /* Space between genre pills and grid, remove any row-wide background */
   #shows_holder{ margin-top: 18px; background: transparent !important; }
   #shows_holder .row{ background: transparent !important; }
   #shows_holder > [class^='col-'],
   #shows_holder > [class*=' col-'],
   #shows_holder [class^='col-'],
   #shows_holder [class*=' col-']{ background: transparent !important; box-shadow: none !important; }
-  /* Constrain overlay to poster and make only poster clickable */
   #shows_holder .image-box{ text-align:center; }
   #shows_holder .image-box > a{ position: relative; display:inline-block; overflow:hidden; }
   #shows_holder .image-box img{ display:block; }
 </style>
 
 <div class="container" style="margin-top: 10px;">
-  <div class="d-flex flex-column flex-md-row align-items-md-center">
-    <div class="mr-md-4" style="flex:0 0 auto;">
-      <h1 class="mb-2" style="font-size: 28px;">Browse series</h1>
-      <div style="opacity:.7; font-size: 14px;">Find TV shows by title or genre</div>
-    </div>
-    <form class="ml-md-auto mt-3 mt-md-0" style="flex:1 1 auto; max-width: 520px;" onsubmit="event.preventDefault(); searchShows();">
-      <div class="input-group">
-        <input id="search_input" name="search_input" type="text" class="form-control" placeholder="Search for a series...">
+  <div class="row">
+    <section class="col-12">
+      <div class="d-flex flex-column flex-md-row align-items-md-center" id="shows_header_block">
+        <div class="mr-md-4" style="flex:0 0 auto;">
+          <h1 class="mb-2" style="font-size: 28px;">Browse series</h1>
+          <div style="opacity:.7; font-size: 14px;">Find TV shows by title or genre</div>
+        </div>
+        <form id="shows_search_form" class="ml-md-auto mt-3 mt-md-0" style="flex:1 1 auto; max-width: 520px;" onsubmit="event.preventDefault(); searchShows();">
+          <div class="input-group">
+            <input id="search_input" name="search_input" type="text" class="form-control" placeholder="Search for a series...">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <% if ((page_data.genres||[]).length) { %>
+        <div class="mt-3" id="shows_genres_inline">
+          <% var __curr = (page_data && page_data.current_genre) ? String(page_data.current_genre).toLowerCase() : ''; %>
+          <% page_data.genres.forEach(function (genre){
+               var gname = String(genre.name||'');
+               var slug = gname.toLowerCase();
+               var isA = (slug === __curr);
+          %>
+            <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %> mr-2 mb-2" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <div id="shows_holder" class="row"></div>
+
+      <div id="view_more" style="display: none;">
+        <div class="page-load-status">
+          <div class="loader-ellips infinite-scroll-request">
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+            <span class="loader-ellips__dot"></span>
+          </div>
+          <p class="infinite-scroll-last">End of content</p>
+          <p class="infinite-scroll-error">No more pages to load</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Floating sidebar (desktop) for shows -->
+<style>
+  @media (min-width: 992px){
+    .shows-floating-sidebar{ position: fixed; left: 16px; top: 112px; width: 220px; max-height: calc(100vh - 120px); overflow-y: auto; z-index: 9999; }
+  }
+  .shows-floating-sidebar{ display: none; }
+  .shows-floating-sidebar.show{ display: block; }
+  .shows-floating-sidebar .genre-filter{ margin-bottom:8px; position:sticky; top:0; padding:4px 0; background:transparent; }
+  .shows-floating-sidebar .genre-filter input{
+    width:100%; padding:6px 10px; border-radius:6px;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(255,255,255,.04); color:#fff; font-size:12px;
+  }
+  .shows-floating-sidebar .genre-list{ display:flex; flex-direction:row; flex-wrap:wrap; gap:6px; align-items:flex-start; }
+  .shows-floating-sidebar .genre-list a{
+    display:inline-flex !important; width:auto !important; white-space:nowrap;
+    font-size:12px; line-height:1.2; padding:4px 10px; border-radius:999px;
+    background: rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.18);
+  }
+  .shows-floating-sidebar .genre-list a[aria-current="true"],
+  .shows-floating-sidebar a.badge-accent{
+    background: rgba(160,109,242,.36) !important;
+    border-color: rgba(160,109,242,.75) !important;
+    color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(160,109,242,.15);
+  }
+  /* Match button styling from /movies */
+  #shows_search_form .btn,
+  .shows-floating-sidebar .genre-filter .btn{
+    background: rgba(160,109,242,.22); color:#e7dbff; border:1px solid rgba(160,109,242,.45);
+  }
+  #shows_search_form .btn:hover,
+  .shows-floating-sidebar .genre-filter .btn:hover{
+    background: rgba(160,109,242,.35); color:#fff; border-color: rgba(160,109,242,.6);
+  }
+</style>
+
+<div id="shows_floating_sidebar" class="shows-floating-sidebar" aria-hidden="true">
+  <h5 class="mb-2">Genres</h5>
+  <div class="genre-filter mb-2">
+    <form id="shows_sidebar_search_form" onsubmit="event.preventDefault();">
+      <div class="input-group input-group-sm">
+        <input id="shows_sidebar_search_input" type="text" placeholder="Search for a series..." aria-label="Search series" class="form-control">
         <div class="input-group-append">
-          <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+          <button class="btn" type="submit"><i class="fas fa-search"></i></button>
         </div>
       </div>
     </form>
   </div>
-
-  <% if ((page_data.genres||[]).length) { %>
-    <div class="mt-3">
-      <% var __curr = (page_data && page_data.current_genre) ? String(page_data.current_genre).toLowerCase() : ''; %>
-      <% page_data.genres.forEach(function (genre){ 
+  <div class="genre-list">
+    <% if ((page_data.genres||[]).length) { %>
+      <% var __curr2 = (page_data && page_data.current_genre) ? String(page_data.current_genre).toLowerCase() : ''; %>
+      <% page_data.genres.forEach(function (genre){
            var gname = String(genre.name||'');
            var slug = gname.toLowerCase();
-           var isA = (slug === __curr);
+           var isA = (slug === __curr2);
       %>
-        <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %> mr-2 mb-2" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
+        <a class="badge badge-pill <%= isA ? 'badge-accent' : 'badge-secondary' %>" href="?genre=<%= encodeURIComponent(slug) %>" <%= isA ? 'aria-current="true"' : '' %>><%= gname %></a>
       <% }); %>
-    </div>
-  <% } %>
-</div>
-
-<div class="container">
-  <div id="shows_holder" class="row mt-3"></div>
-
-  <div id="view_more" style="display: none;">
-    <div class="page-load-status">
-      <div class="loader-ellips infinite-scroll-request">
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-        <span class="loader-ellips__dot"></span>
-      </div>
-      <p class="infinite-scroll-last">End of content</p>
-      <p class="infinite-scroll-error">No more pages to load</p>
-    </div>
-    <!-- Removed View More button for continuous scroll on shows -->
+    <% } else { %>
+      <small class="text-muted">No genres</small>
+    <% } %>
   </div>
 </div>
 
 <script>
   (function(){
-    function adjustShowsGridHeight(){
-      try {
-        var holder = document.getElementById('shows_holder');
-        if (!holder) return;
-        var isDesktop = window.matchMedia('(min-width: 992px)').matches;
-        if (!isDesktop){ holder.style.maxHeight=''; return; }
-        // Measure a sample item to fit exactly 3 rows
-        var sample = holder.querySelector('.image-box');
-        if (!sample){ return; }
-        var box = sample.getBoundingClientRect();
-        var gap = 16; // approximate vertical spacing between rows
-        var height = Math.round((box.height * 3) + (gap * 2));
-        holder.style.maxHeight = height + 'px';
-      } catch(_){}
-    }
-    window.addEventListener('resize', function(){ adjustShowsGridHeight(); });
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(adjustShowsGridHeight, 300); });
-    // Expose for search_shows.js to call after appends
-    window.__adjustShowsGridHeight = adjustShowsGridHeight;
+    // Floating sidebar visibility/position (single-genre; no multi-select logic)
+    try {
+      var sidebar = document.getElementById('shows_floating_sidebar');
+      var holder = document.getElementById('shows_holder');
+      var inlineList = document.getElementById('shows_genres_inline');
+      var threshold = 700;
+
+      function positionSidebar(){
+        try {
+          if (!sidebar) return;
+          var cont = document.getElementById('shows_holder');
+          if (!cont) return;
+          var rect = cont.getBoundingClientRect();
+          var leftPad = 16;
+          var gap = 16;
+          var available = Math.max(140, Math.floor(rect.left - leftPad - gap));
+          sidebar.style.left = leftPad + 'px';
+          sidebar.style.width = available + 'px';
+          var hdr = document.querySelector('[data-th-header]');
+          var h = hdr ? hdr.getBoundingClientRect().height : 96;
+          sidebar.style.top = Math.max(80, Math.round(h + 16)) + 'px';
+          sidebar.style.maxHeight = 'calc(100vh - ' + Math.max(100, Math.round(h + 28)) + 'px)';
+        } catch(_){}
+      }
+
+      function computeThreshold(){
+        try {
+          if (!holder) return;
+          var hTop = holder.getBoundingClientRect().top + window.scrollY;
+          var nudge = 60;
+          var card = holder.querySelector('.image-box');
+          if (card){
+            var ch = card.getBoundingClientRect().height;
+            if (!isNaN(ch) && ch > 0) nudge = Math.min(Math.round(ch * 0.5), 120);
+          }
+          threshold = Math.max(0, hTop - 80 + nudge);
+        } catch(_){}
+      }
+
+      function update(){
+        try {
+          if (!sidebar) return;
+          var isDesktop = window.matchMedia && window.matchMedia('(min-width: 992px)').matches;
+          if (!isDesktop){
+            sidebar.classList.remove('show');
+            if (inlineList) inlineList.style.display = '';
+            return;
+          }
+          if (!holder) holder = document.getElementById('shows_holder');
+          computeThreshold();
+          positionSidebar();
+          var y = window.scrollY || document.documentElement.scrollTop;
+          var effective = Math.max(80, threshold || 0);
+          var showFloat = y > effective;
+          if (showFloat) {
+            sidebar.classList.add('show');
+            if (inlineList) inlineList.style.display = 'none';
+          } else {
+            sidebar.classList.remove('show');
+            if (inlineList) inlineList.style.display = '';
+          }
+        } catch(_){}
+      }
+
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', function(){
+        setTimeout(computeThreshold, 100);
+        setTimeout(positionSidebar, 120);
+        setTimeout(update, 140);
+      });
+
+      computeThreshold();
+      positionSidebar();
+      update();
+
+      // Expose for search_shows.js to hint after appends if needed
+      window.__updateShowsSidebar = function(){
+        try { computeThreshold(); positionSidebar(); update(); } catch(_){}
+      };
+
+      // Sidebar search proxies the main search bar (shows)
+      (function(){
+        try {
+          var mainForm = document.getElementById('shows_search_form');
+          var mainInput = document.getElementById('search_input');
+          var sbForm = document.getElementById('shows_sidebar_search_form');
+          var sbInput = document.getElementById('shows_sidebar_search_input');
+          if (mainInput && sbInput){ sbInput.value = mainInput.value || ''; }
+          if (mainInput && sbInput){
+            sbInput.addEventListener('input', function(){ try { mainInput.value = sbInput.value; } catch(_){} });
+            mainInput.addEventListener('input', function(){ try { sbInput.value = mainInput.value; } catch(_){} });
+          }
+          if (sbForm){
+            sbForm.addEventListener('submit', function(e){
+              e.preventDefault();
+              try { if (mainInput) mainInput.value = sbInput.value; } catch(_){}
+              try { searchShows(); } catch(_) {
+                try { mainForm && mainForm.dispatchEvent(new Event('submit', { bubbles:true })); } catch(_){}
+              }
+            });
+          }
+        } catch(_){}
+      })();
+    } catch(_){}
   })();
 </script>
 

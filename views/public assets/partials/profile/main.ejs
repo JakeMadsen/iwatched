@@ -26,7 +26,9 @@
     <% } else if (String(sc.slug) === 'favorite_shows') { %>
       <%- include('../showcases/favorite_shows.ejs', { config: sc.config || {}, data: sc.data || {}, instanceId: idx }) %>
     <% } else if (String(sc.slug) === 'my_badges') { %>
-      <%- include('../showcases/my_badges.ejs', { user: page_data.user, config: sc.config || {}, data: sc.data || {}, instanceId: idx }) %>
+      <%- include('../showcases/my_badges.ejs', { user: page_data.user, config: sc.config || {}, data: sc.data || {}, badgesCatalog: page_data.user_badges_catalog || [], instanceId: idx }) %>
+    <% } else if (String(sc.slug) === 'custom_text') { %>
+      <%- include('../showcases/custom_text.ejs', { user: page_data.user, config: sc.config || {}, instanceId: idx }) %>
     <% } %>
   <% }); } catch(_){} %>
 </div>

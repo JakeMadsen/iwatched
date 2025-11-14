@@ -14,7 +14,7 @@
     <!-- Includes Header -->
     <% include partials/standard/header.ejs %>
 
-    <main id="content-wrapper" class="<%= page_file === 'profile' ? 'profile-page' : (page_file === 'temp_home' ? 'temp-home-wrapper' : (page_file === 'temp_user' ? 'temp-user-wrapper' : '')) %>">
+    <main id="content-wrapper" class="<%= page_file === 'profile' ? 'profile-page' : ((page_file === 'temp_home' || page_file === 'temp_home_dashboard') ? 'temp-home-wrapper' : (page_file === 'temp_user' ? 'temp-user-wrapper' : '')) %>">
         <%- include(`pages/${page_file}.ejs`) %>
     </main>
     <% include partials/standard/footer.ejs %>

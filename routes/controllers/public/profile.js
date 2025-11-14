@@ -188,6 +188,25 @@ module.exports = (server) => {
 
         const showcases = await __getShowcasesForUser(res.locals.user);
 
+        // Build badges catalog for profile page as well (used as fallback for My Badges showcase)
+        let user_badges_catalog = [];
+        try {
+            const Badge = require('../../../db/models/badge');
+            const owned = Array.isArray(res.locals.user && res.locals.user.profile && res.locals.user.profile.user_badges)
+                ? (res.locals.user.profile.user_badges || [])
+                : [];
+            for (const b of owned){
+                try {
+                    const bd = await Badge.findById(b.badge_id).lean();
+                    if (bd) user_badges_catalog.push({
+                        id: String(bd._id),
+                        title: bd.title,
+                        icon: bd.icon ? ('/static/style/img/badges/' + bd.icon) : null
+                    });
+                } catch(_){}
+            }
+        } catch(_){}
+
         res.render('public assets/template.ejs', {
             page_title: "iWatched - Home",
             page_file: "profile",
@@ -195,7 +214,8 @@ module.exports = (server) => {
             page_data: Object.assign({
                 user: res.locals.user,
                 showcases: showcases,
-                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0
+                friends_count: friendsDoc ? (friendsDoc.friends || []).length : 0,
+                user_badges_catalog
             }, headerStats),
             user: req.user
         });
@@ -238,6 +258,8 @@ module.exports = (server) => {
                     await ensureOne('my_badges', { slug:'my_badges', title:'My Badges', description:'Show up to twelve of your earned badges.', tier:'free', max_instances:1, active:true, config_schema:{ count:{ type:'enum', values:[6,12], default:12 } } });
                     await ensureOne('favorite_shows', { slug:'favorite_shows', title:'My Favorite Shows', description:'Pick up to six favorite shows to showcase.', tier:'free', max_instances:1, active:true, config_schema:{ items:{ type:'array', of:'show_id', max:6 } } });
                 }
+                // Ensure newer showcase types as well
+                await ensureOne('custom_text', { slug:'custom_text', title:'Custom Text', description:'Add a short text block to your profile. Supports line breaks and links.', tier:'free', max_instances:1, active:true, config_schema:{ text:{ type:'string', default:'' } } });
             } catch(_){}
             const [catalog] = await Promise.all([
                 ShowcaseCatalog.find({ active: true }).lean()

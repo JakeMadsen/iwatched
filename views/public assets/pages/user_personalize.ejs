@@ -47,6 +47,8 @@
 <script>
   (function(){
     var planLimit = <%= planLimit %>;
+    var showcaseNoteMax = 300; // default; kept in sync with server via SiteSetting.showcase_note_max_length if needed
+    var showcaseTextMax = 1000; // default; kept in sync with server via SiteSetting.showcase_text_max_length if needed
     var currentUserId = '<%= currentUserId %>';
     // Embed JSON directly to avoid quote-escaping issues (e.g., single quotes in notes)
     // Also escape closing tags to keep script blocks intact.
@@ -55,8 +57,21 @@
     var userBadges = <%- JSON.stringify(page_data && page_data.user_badges_catalog || []).replace(/<\//g, '<\\/') %>;
     var viewerId = (window.SITE_PREFS && SITE_PREFS.userId) || null;
     var viewerKey = (window.SITE_PREFS && SITE_PREFS.userKey) || null;
+    // Seed badges cache for selector from server-rendered list
+    try {
+      if (Array.isArray(userBadges)) {
+        console.log('[personalize] server userBadges length:', userBadges.length);
+        window.__badgesCache = userBadges.slice();
+        console.log('[personalize] initial __badgesCache length:', window.__badgesCache.length);
+      } else {
+        console.log('[personalize] no userBadges array on page_data');
+      }
+    } catch(e) {
+      console.error('[personalize] error seeding badges cache:', e);
+    }
+
     // Normalize selection to simple shape used by API
-    // If server provided enriched data (for favorites), copy into _preview for immediate display
+    // If server provided enriched data (for favorites / badges), copy into _preview / _badges for immediate display
     var state = (selection||[]).map(function(x, i){
       var cfg = x && x.config ? Object.assign({}, x.config) : {};
       try {
@@ -74,6 +89,32 @@
       } catch(_){}
       return { slug:String(x.slug), order:Number(x.order||i), enabled:(x.enabled!==false), config:cfg };
     });
+    // Fallback hydration for My Badges when server did not enrich data.items
+    try {
+      var badgeMeta = Array.isArray(userBadges) ? userBadges : [];
+      if (badgeMeta.length && Array.isArray(state)) {
+        var badgeMap = {};
+        badgeMeta.forEach(function(b){
+          if (!b || !b.id) return;
+          badgeMap[String(b.id)] = b;
+        });
+        state.forEach(function(s){
+          if (!s || s.slug !== 'my_badges') return;
+          var cfg = s.config || {};
+          if (Array.isArray(cfg._badges) && cfg._badges.length) return;
+          if (!Array.isArray(cfg.items) || !cfg.items.length) return;
+          var maxB = 6;
+          var list = cfg.items.slice(0, maxB).map(function(id){
+            var key = String((id && (id.id||id)) || id || '');
+            if (!key) return null;
+            var meta = badgeMap[key];
+            return meta ? { id: meta.id, title: meta.title, icon: meta.icon } : null;
+          }).filter(Boolean);
+          cfg._badges = list;
+          s.config = cfg;
+        });
+      }
+    } catch(_) {}
     var dirty = false; // track unsaved changes
 
     function planCount(){ return state.filter(function(s){ return s.enabled; }).length; }
@@ -128,7 +169,8 @@
           return htmls;
         }
         if (sel.slug === 'my_badges'){
-          var cnt = (parseInt((sel.config||{}).count,10)===6 ? 6 : 12);
+          // Clamp badges showcase to max 6 slots
+          var cnt = 6;
           var previewsB = Array.isArray(sel.config && sel.config._badges) ? sel.config._badges.slice(0,cnt) : (sel.data && Array.isArray(sel.data.items) ? sel.data.items.slice(0,cnt) : []);
           var usedB = previewsB.filter(Boolean).length;
           var showB = Math.min(cnt, usedB + 1);
@@ -162,6 +204,12 @@
             + '</div>'
             + '</div>';
           return htmlt;
+        }
+        if (sel.slug === 'custom_text'){
+          var txt = String((sel.config||{}).text||'');
+          var snippet = txt.length > 160 ? (txt.substring(0,160) + '…') : txt;
+          var esc = snippet.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<div class="plz-previewText">'+esc+'</div>';
         }
       } catch(_){}
       return '';
@@ -208,9 +256,25 @@
       + ( (s.slug==='favorite_person'||s.slug==='favorite_title')
             ? ('<div class="plz-previewCard"><div class="plz-inline">'
                 + '<div class="plz-inline-left">'+previewHtml(s)+'</div>'
-                + '<div class="plz-inline-right"><label class="plz-field" style="gap:8px;"><span>Note</span><textarea data-role="note" class="form-control" rows="3">'+(String((s.config||{}).note||''))+'</textarea></label></div>'
+                + '<div class="plz-inline-right"><label class="plz-field" style="gap:8px;"><span>Note</span>'
+                +   '<textarea data-role="note" class="form-control" rows="3" maxlength="'+showcaseNoteMax+'">'+(String((s.config||{}).note||''))+'</textarea>'
+                +   '<small class="plz-noteCounter" data-role="note-counter"></small>'
+                + '</label></div>'
               + '</div></div>')
-            : ('<div class="plz-previewCard">'+previewHtml(s)+'</div>')
+                : (s.slug==='custom_text'
+                ? ('<div class="plz-previewCard"><label class="plz-field" style="gap:8px; width:100%;"><span>Text</span>'
+                    + '<textarea data-role="custom-text" class="form-control" rows="4" maxlength="'+showcaseTextMax+'">'+(String((s.config||{}).text||''))+'</textarea>'
+                    + '<small class="plz-noteCounter" data-role="custom-text-counter"></small>'
+                  + '</label>'
+                  + '<div class="plz-editorToolbar" data-role="custom-text-toolbar" style="margin-top:6px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">'
+                  +   '<span style="font-size:11px; opacity:.7; margin-right:4px;">Formatting:</span>'
+                  +   '<button type="button" class="btn btn-sm btn-light" data-cmd="bold" title="Bold"><strong>B</strong></button>'
+                  +   '<button type="button" class="btn btn-sm btn-light" data-cmd="italic" title="Italic"><em>I</em></button>'
+                  +   '<button type="button" class="btn btn-sm btn-light" data-cmd="link" title="Add link">🔗</button>'
+                  + '</div>'
+                  + '</div>')
+                : ('<div class="plz-previewCard">'+previewHtml(s)+'</div>')
+              )
         )
       + '  </div>'
       + '</div>'
@@ -272,6 +336,7 @@
       if (slug === 'recent_timeline'){ config.mode = 'mixed'; config.count = 12; }
       if (slug === 'favorite_person'){ config.mode = 'actor'; config.person_id=''; config.note=''; }
       if (slug === 'favorite_title'){ config.mode = 'movie'; config.tmd_id=''; config.note=''; }
+      if (slug === 'custom_text'){ config.text=''; }
       state.push({ slug: slug, order: state.length, enabled: true, config: config });
       dirty = true; render();
     });
@@ -294,7 +359,80 @@
     $('#selected_list').on('input', 'textarea[data-role="note"]', function(){
       var idx = Number($(this).closest('.plz-block').attr('data-idx'));
       var val = String($(this).val());
+      if (val.length > showcaseNoteMax){
+        val = val.substring(0, showcaseNoteMax);
+        $(this).val(val);
+      }
       state[idx].config = state[idx].config || {}; state[idx].config.note = val;
+      try {
+        var $counter = $(this).closest('.plz-field').find('[data-role="note-counter"]');
+        if ($counter.length){ $counter.text(val.length + '/' + showcaseNoteMax); }
+      } catch(_){}
+    });
+
+    // Custom text showcase
+    $('#selected_list').on('input', 'textarea[data-role="custom-text"]', function(){
+      var idx = Number($(this).closest('.plz-block').attr('data-idx'));
+      var val = String($(this).val());
+      if (val.length > showcaseTextMax){
+        val = val.substring(0, showcaseTextMax);
+        $(this).val(val);
+      }
+      state[idx].config = state[idx].config || {}; state[idx].config.text = val;
+      try {
+        var $counter = $(this).closest('.plz-field').find('[data-role="custom-text-counter"]');
+        if ($counter.length){ $counter.text(val.length + '/' + showcaseTextMax); }
+      } catch(_){}
+    });
+
+    // Custom text toolbar actions
+    function applyTagToSelection($ta, before, after){
+      var el = $ta.get(0);
+      if (!el) return;
+      var start = el.selectionStart || 0;
+      var end = el.selectionEnd || 0;
+      var val = String($ta.val() || '');
+      var sel = val.substring(start, end);
+      var insert = before + sel + after;
+      var out = val.substring(0, start) + insert + val.substring(end);
+      if (out.length > showcaseTextMax){
+        out = out.substring(0, showcaseTextMax);
+      }
+      $ta.val(out).trigger('input');
+      // Restore selection inside the new tags for convenience
+      var pos = start + before.length;
+      el.focus();
+      try { el.setSelectionRange(pos, pos + sel.length); } catch(_){}
+    }
+
+    $('#selected_list').on('click', '[data-role="custom-text-toolbar"] button', function(e){
+      var $btn = $(this);
+      var $field = $btn.closest('.plz-previewCard').find('textarea[data-role="custom-text"]');
+      if (!$field.length) return;
+      var cmd = $btn.attr('data-cmd') || '';
+      if (!cmd) return;
+      if (cmd === 'bold') return applyTagToSelection($field, '[b]', '[/b]');
+      if (cmd === 'italic') return applyTagToSelection($field, '[i]', '[/i]');
+      if (cmd === 'link') {
+        var url = window.prompt('Enter link URL (including https://):', 'https://');
+        if (!url) return;
+        url = String(url).trim();
+        if (!/^https?:\/\//i.test(url)){ url = 'https://' + url; }
+        var el = $field.get(0);
+        var val = String($field.val() || '');
+        var start = el.selectionStart || 0;
+        var end = el.selectionEnd || 0;
+        var sel = val.substring(start, end) || url;
+        // Use [url=...]text[/url] markup
+        var insert = '[url=' + url + ']' + sel + '[/url]';
+        var out = val.substring(0, start) + insert + val.substring(end);
+        if (out.length > showcaseTextMax){ out = out.substring(0, showcaseTextMax); }
+        $field.val(out).trigger('input');
+        var pos = start + insert.length;
+        el.focus();
+        try { el.setSelectionRange(pos, pos); } catch(_){}
+        return;
+      }
     });
 
     // Favorite movies/actors slot selection + floating search
@@ -323,22 +461,42 @@
       if (slug === 'favorite_movies' || slug === 'favorite_actors' || slug === 'favorite_person' || slug === 'favorite_title'){
         openSlotSearch($blk);
       } else if (slug === 'my_badges') {
+        console.log('[personalize] my_badges slot clicked, idx=', idx, 'slot=', slot);
         // Build a badges chooser overlay (fetch from API to ensure fresh list)
         $('.plz-slot-search').remove();
-        var $active = $blk.find('.plz-slot.plz-slot--active'); if ($active.length===0) return;
+        var $active = $blk.find('.plz-slot.plz-slot--active'); if ($active.length===0) { console.log('[personalize] no active badge slot found'); return; }
         function openBadgeGrid(items){
-          var grid = '<div class="plz-slot-search"><div class="plz-badges-grid">'+(items||[]).map(function(b){
-            var img = b.icon ? ('<img src="'+b.icon+'" alt="'+(b.title||'')+'">') : '<div style="color:#cfd7df; font-size:12px; text-align:center;">'+(b.title||'')+'</div>';
-            return '<div class="plz-badgeTile plz-badge-option" data-id="'+b.id+'">'+img+'</div>';
+          console.log('[personalize] openBadgeGrid with items length:', Array.isArray(items)?items.length:'(not array)');
+          var grid = '<div class="plz-slot-search"><div class="plz-badges-grid plz-badges-grid--picker">'+(items||[]).map(function(b){
+            var img = b.icon ? ('<img src="'+b.icon+'" alt="'+(b.title||'')+'">') : '<div class="plz-badgeThumbFallback">'+(b.title||'')+'</div>';
+            return '<div class="plz-badgeTile plz-badge-option" data-id="'+b.id+'">'
+                 +   '<div class="plz-badgeThumb">'+img+'</div>'
+                 +   '<div class="plz-badgeLabel">'+(b.title||'')+'</div>'
+                 + '</div>';
           }).join('')+'</div></div>';
           $active.append(grid);
         }
-        if (Array.isArray(window.__badgesCache)) { openBadgeGrid(window.__badgesCache); }
-        else {
+        // If cache is missing OR empty, fall back to API so users always see their current badges
+        if (Array.isArray(window.__badgesCache) && window.__badgesCache.length > 0) {
+          console.log('[personalize] using cached badges, length:', window.__badgesCache.length);
+          openBadgeGrid(window.__badgesCache);
+        } else {
+          console.log('[personalize] fetching /api/v1/user-badges for user:', currentUserId);
           fetch('/api/v1/user-badges/'+encodeURIComponent(currentUserId))
-            .then(function(r){ return r.ok ? r.json() : { ok:false, items:[] }; })
-            .then(function(resp){ window.__badgesCache = Array.isArray(resp.items)?resp.items:[]; openBadgeGrid(window.__badgesCache); })
-            .catch(function(){ openBadgeGrid([]); });
+            .then(function(r){
+              console.log('[personalize] user-badges fetch status:', r.status);
+              return r.ok ? r.json() : { ok:false, items:[] };
+            })
+            .then(function(resp){
+              console.log('[personalize] user-badges response:', resp);
+              window.__badgesCache = Array.isArray(resp.items)?resp.items:[];
+              console.log('[personalize] __badgesCache length after fetch:', window.__badgesCache.length);
+              openBadgeGrid(window.__badgesCache);
+            })
+            .catch(function(err){
+              console.error('[personalize] user-badges fetch failed:', err);
+              openBadgeGrid([]);
+            });
         }
       }
       e.stopPropagation();
@@ -400,8 +558,9 @@
       var idx = Number($blk.attr('data-idx'));
       var slot = parseInt($blk.attr('data-active-slot')||'0',10) || 0;
       var id = String($(this).attr('data-id')||''); if (!id) return;
+      console.log('[personalize] badge option clicked, idx=', idx, 'slot=', slot, 'badgeId=', id);
       if (state[idx].slug !== 'my_badges') return;
-      state[idx].config = state[idx].config || {}; var arr = Array.isArray(state[idx].config.items) ? state[idx].config.items : []; while (arr.length < ((parseInt((state[idx].config||{}).count,10)===6)?6:12)) arr.push('');
+      state[idx].config = state[idx].config || {}; var arr = Array.isArray(state[idx].config.items) ? state[idx].config.items : []; while (arr.length < 6) arr.push('');
       arr[slot] = id; state[idx].config.items = arr;
       // also track preview objects for immediate display
       var prev = Array.isArray(state[idx].config._badges) ? state[idx].config._badges : []; while (prev.length < arr.length) prev.push(null);
@@ -459,15 +618,43 @@
 
     $('#btn_save').on('click', function(){
       if (!viewerId || !viewerKey) { $('#save_status').text('You must be logged in to save.'); return; }
+      // Ensure latest textarea values are flushed back into state before saving
+      try {
+        $('#selected_list .plz-block').each(function(){
+          var $blk = $(this);
+          var idx = Number($blk.attr('data-idx'));
+          if (!isFinite(idx) || !state[idx]) return;
+          // Notes (favorite_person / favorite_title)
+          var $note = $blk.find('textarea[data-role="note"]');
+          if ($note.length){
+            var nv = String($note.val() || '');
+            if (nv.length > showcaseNoteMax) nv = nv.substring(0, showcaseNoteMax);
+            state[idx].config = state[idx].config || {};
+            state[idx].config.note = nv;
+          }
+          // Custom text showcase
+          var $ct = $blk.find('textarea[data-role="custom-text"]');
+          if ($ct.length){
+            var tv = String($ct.val() || '');
+            if (tv.length > showcaseTextMax) tv = tv.substring(0, showcaseTextMax);
+            state[idx].config = state[idx].config || {};
+            state[idx].config.text = tv;
+          }
+        });
+      } catch(_){}
+
       $('#save_status').text('Saving...');
       fetch('/api/v1/user-showcases/'+encodeURIComponent(currentUserId), {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ showcases: state, user_id: viewerId || currentUserId, user_key: viewerKey })
-      }).then(function(r){ return r.json().catch(function(){ return { ok:false }; }); })
-        .then(function(resp){
-          if (resp && resp.ok) { $('#save_status').text('Saved'); }
-          else { $('#save_status').text((resp && resp.message) ? resp.message : 'Save failed'); }
-        }).catch(function(){ $('#save_status').text('Save failed'); });
+      })
+      .then(function(r){ return r.json().catch(function(){ return { ok:false }; }); })
+      .then(function(resp){
+        if (resp && resp.ok) { $('#save_status').text('Saved'); }
+        else { $('#save_status').text((resp && resp.message) ? resp.message : 'Save failed'); }
+      })
+      .catch(function(){ $('#save_status').text('Save failed'); });
     });
 
     // Fallback hydrate if state empty: load from API
