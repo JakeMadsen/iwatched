@@ -1,0 +1,277 @@
+<%
+  const favActor = (page_data && page_data.favorite_actor) || {};
+  const favDirector = (page_data && page_data.favorite_director) || {};
+  const favMovie = (page_data && page_data.favorite_movie) || {};
+  const favShow = (page_data && page_data.favorite_show) || {};
+  const saved = !!(page_data && page_data.saved);
+
+  function primaryItem(sc){
+    try {
+      if (!sc) return null;
+      if (sc.data && Array.isArray(sc.data.items) && sc.data.items.length) return sc.data.items[0];
+      if (sc.config && Array.isArray(sc.config.items) && sc.config.items.length) return { id: sc.config.items[0] };
+      return null;
+    } catch (_) { return null; }
+  }
+
+  const actorItem = (favActor && favActor.data) ? favActor.data : null;
+  const movieItem = primaryItem(favMovie);
+  const showItem = primaryItem(favShow);
+  const directorItem = (favDirector && favDirector.data) || null;
+%>
+
+<div class="container" style="margin-top:28px; margin-bottom:32px;">
+  <h1>Set Your Favourites</h1>
+  <p class="text-muted">
+    Quick edit for your favourite actor, director, movie, and show. Uses the same data as your profile showcases.
+  </p>
+  <% if (saved) { %>
+    <div class="alert alert-success" role="alert" style="margin-top:8px;">
+      Favourites saved.
+    </div>
+  <% } %>
+
+  <form method="POST" action="/user/set-favourites" id="fav_form">
+    <div class="row" style="margin-top:12px;">
+      <!-- Favourite Actor -->
+      <div class="col-md-3 col-sm-6">
+        <div class="card" style="background:#111;border:1px solid #222;border-radius:10px; position:relative; overflow:hidden;">
+          <div class="card-header" style="background:#151515;border-bottom:1px solid #222;">
+            <strong>Favourite Actor</strong>
+          </div>
+          <div class="card-body" style="padding:10px;">
+            <div class="fav-box-poster" data-role="preview" data-kind="actor" style="width:100%;padding-top:150%;background:#181818;position:relative;border-radius:6px;overflow:hidden;">
+              <% var actorImg = actorItem && (actorItem.poster || actorItem.profile); %>
+              <% if (actorImg) { %>
+                <img src="https://image.tmdb.org/t/p/w185<%= actorImg %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <% } else { %>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;">No actor selected</div>
+              <% } %>
+            </div>
+            <div style="margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <%= actorItem && (actorItem.title || actorItem.name) ? (actorItem.title || actorItem.name) : '' %>
+            </div>
+            <button type="button" class="plz-slot-edit" data-fav-edit="actor" title="Edit favourite actor" style="position:absolute;bottom:8px;right:8px;">
+              <i class="fas fa-pen"></i>
+            </button>
+            <div class="fav-search" data-fav-search="actor" style="display:none;position:absolute;left:8px;right:8px;bottom:8px;background:#151515;border:1px solid #333;border-radius:6px;padding:6px;z-index:20;">
+              <input type="text" class="form-control form-control-sm fav-search-input" placeholder="Search actors...">
+              <div class="list-group fav-search-results" style="max-height:200px;overflow-y:auto;margin-top:4px;"></div>
+            </div>
+            <input type="hidden" name="fav_actor_id" value="<%= (favActor && favActor.config && favActor.config.person_id) ? favActor.config.person_id : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Favourite Director -->
+      <div class="col-md-3 col-sm-6">
+        <div class="card" style="background:#111;border:1px solid #222;border-radius:10px; position:relative; overflow:hidden;">
+          <div class="card-header" style="background:#151515;border-bottom:1px solid #222;">
+            <strong>Favourite Director</strong>
+          </div>
+          <div class="card-body" style="padding:10px;">
+            <div class="fav-box-poster" data-role="preview" data-kind="director" style="width:100%;padding-top:150%;background:#181818;position:relative;border-radius:6px;overflow:hidden;">
+              <% if (directorItem && directorItem.profile) { %>
+                <img src="https://image.tmdb.org/t/p/w185<%= directorItem.profile %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <% } else { %>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;">No director selected</div>
+              <% } %>
+            </div>
+            <div style="margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <%= directorItem && directorItem.name ? directorItem.name : '' %>
+            </div>
+            <button type="button" class="plz-slot-edit" data-fav-edit="director" title="Edit favourite director" style="position:absolute;bottom:8px;right:8px;">
+              <i class="fas fa-pen"></i>
+            </button>
+            <div class="fav-search" data-fav-search="director" style="display:none;position:absolute;left:8px;right:8px;bottom:8px;background:#151515;border:1px solid #333;border-radius:6px;padding:6px;z-index:20;">
+              <input type="text" class="form-control form-control-sm fav-search-input" placeholder="Search directors...">
+              <div class="list-group fav-search-results" style="max-height:200px;overflow-y:auto;margin-top:4px;"></div>
+            </div>
+            <input type="hidden" name="fav_director_id" value="<%= (favDirector && favDirector.config && favDirector.config.person_id) ? favDirector.config.person_id : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Favourite Movie -->
+      <div class="col-md-3 col-sm-6">
+        <div class="card" style="background:#111;border:1px solid #222;border-radius:10px; position:relative; overflow:hidden;">
+          <div class="card-header" style="background:#151515;border-bottom:1px solid #222;">
+            <strong>Favourite Movie</strong>
+          </div>
+          <div class="card-body" style="padding:10px;">
+            <div class="fav-box-poster" data-role="preview" data-kind="movie" style="width:100%;padding-top:150%;background:#181818;position:relative;border-radius:6px;overflow:hidden;">
+              <% if (movieItem && movieItem.poster) { %>
+                <img src="https://image.tmdb.org/t/p/w185<%= movieItem.poster %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <% } else { %>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;">No movie selected</div>
+              <% } %>
+            </div>
+            <div style="margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <%= movieItem && movieItem.title ? movieItem.title : '' %>
+            </div>
+            <button type="button" class="plz-slot-edit" data-fav-edit="movie" title="Edit favourite movie" style="position:absolute;bottom:8px;right:8px;">
+              <i class="fas fa-pen"></i>
+            </button>
+            <div class="fav-search" data-fav-search="movie" style="display:none;position:absolute;left:8px;right:8px;bottom:8px;background:#151515;border:1px solid #333;border-radius:6px;padding:6px;z-index:20;">
+              <input type="text" class="form-control form-control-sm fav-search-input" placeholder="Search movies...">
+              <div class="list-group fav-search-results" style="max-height:200px;overflow-y:auto;margin-top:4px;"></div>
+            </div>
+            <input type="hidden" name="fav_movie_id" value="<%= movieItem && movieItem.id ? movieItem.id : '' %>">
+          </div>
+        </div>
+      </div>
+
+      <!-- Favourite Show -->
+      <div class="col-md-3 col-sm-6">
+        <div class="card" style="background:#111;border:1px solid #222;border-radius:10px; position:relative; overflow:hidden;">
+          <div class="card-header" style="background:#151515;border-bottom:1px solid #222;">
+            <strong>Favourite Show</strong>
+          </div>
+          <div class="card-body" style="padding:10px;">
+            <div class="fav-box-poster" data-role="preview" data-kind="show" style="width:100%;padding-top:150%;background:#181818;position:relative;border-radius:6px;overflow:hidden;">
+              <% if (showItem && showItem.poster) { %>
+                <img src="https://image.tmdb.org/t/p/w185<%= showItem.poster %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <% } else { %>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;">No show selected</div>
+              <% } %>
+            </div>
+            <div style="margin-top:6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <%= showItem && (showItem.title || showItem.name) ? (showItem.title || showItem.name) : '' %>
+            </div>
+            <button type="button" class="plz-slot-edit" data-fav-edit="show" title="Edit favourite show" style="position:absolute;bottom:8px;right:8px;">
+              <i class="fas fa-pen"></i>
+            </button>
+            <div class="fav-search" data-fav-search="show" style="display:none;position:absolute;left:8px;right:8px;bottom:8px;background:#151515;border:1px solid #333;border-radius:6px;padding:6px;z-index:20;">
+              <input type="text" class="form-control form-control-sm fav-search-input" placeholder="Search shows...">
+              <div class="list-group fav-search-results" style="max-height:200px;overflow-y:auto;margin-top:4px;"></div>
+            </div>
+            <input type="hidden" name="fav_show_id" value="<%= showItem && showItem.id ? showItem.id : '' %>">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button type="submit" class="btn btn-success">Save favourites</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function(){
+    function debounce(fn, ms){
+      var t = null;
+      return function(){
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function(){ fn.apply(ctx, args); }, ms);
+      };
+    }
+
+    function closeAllSearch(){
+      document.querySelectorAll('.fav-search').forEach(function(el){
+        el.style.display = 'none';
+      });
+    }
+
+    document.addEventListener('click', function(ev){
+      var btn = ev.target.closest && ev.target.closest('[data-fav-edit]');
+      if (btn){
+        ev.preventDefault();
+        ev.stopPropagation();
+        var kind = btn.getAttribute('data-fav-edit');
+        var panel = document.querySelector('.fav-search[data-fav-search=\"' + kind + '\"]');
+        if (!panel) return;
+        var isVisible = panel.style.display !== 'none';
+        closeAllSearch();
+        panel.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible){
+          var input = panel.querySelector('.fav-search-input');
+          if (input) input.focus();
+        }
+        return;
+      }
+      if (!ev.target.closest || !ev.target.closest('.fav-search')){
+        closeAllSearch();
+      }
+    });
+
+    function wireSearch(kind){
+      var panel = document.querySelector('.fav-search[data-fav-search=\"' + kind + '\"]');
+      if (!panel) return;
+      var input = panel.querySelector('.fav-search-input');
+      var results = panel.querySelector('.fav-search-results');
+      var hidden = document.querySelector('input[name=\"fav_' + kind + '_id\"]');
+      var preview = document.querySelector('.fav-box-poster[data-kind=\"' + kind + '\"]');
+      var label = preview && preview.parentNode.querySelector('div[style*=\"margin-top:6px\"]');
+      if (!input || !results || !hidden || !preview) return;
+
+      function clearResults(){ results.innerHTML = ''; }
+
+      function updatePreview(item){
+        if (!preview) return;
+        preview.innerHTML = '';
+        var hasPoster = item && item.poster;
+        if (hasPoster){
+          var img = document.createElement('img');
+          img.src = 'https://image.tmdb.org/t/p/w185' + item.poster;
+          img.style.position = 'absolute';
+          img.style.inset = '0';
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          preview.appendChild(img);
+        } else {
+          var span = document.createElement('div');
+          span.style.position = 'absolute';
+          span.style.inset = '0';
+          span.style.display = 'flex';
+          span.style.alignItems = 'center';
+          span.style.justifyContent = 'center';
+          span.style.color = '#555';
+          span.style.fontSize = '12px';
+          span.textContent = 'No ' + kind + ' selected';
+          preview.appendChild(span);
+        }
+        if (label){
+          var text = item && (item.title || item.name) ? (item.title || item.name) : '';
+          label.textContent = text;
+        }
+      }
+
+      input.addEventListener('input', debounce(function(){
+        var q = String(input.value || '').trim();
+        if (!q){ clearResults(); return; }
+        fetch('/api/v1/search?q=' + encodeURIComponent(q) + '&limit=6')
+          .then(function(r){ return r.ok ? r.json() : { movies:[], shows:[], persons:[] }; })
+          .then(function(d){
+            clearResults();
+            var items = [];
+            if (kind === 'actor' || kind === 'director'){
+              items = d.persons || [];
+            } else if (kind === 'movie'){
+              items = d.movies || [];
+            } else if (kind === 'show'){
+              items = d.shows || [];
+            }
+            items.forEach(function(it){
+              var btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'list-group-item list-group-item-action';
+              btn.textContent = it.title || it.name || '';
+              btn.addEventListener('click', function(){
+                hidden.value = String(it.id || '');
+                updatePreview({ id: it.id, title: it.title || it.name || '', name: it.name || it.title || '', poster: it.poster_path || it.profile_path || null });
+                clearResults();
+                closeAllSearch();
+              });
+              results.appendChild(btn);
+            });
+          })
+          .catch(function(){ clearResults(); });
+      }, 250));
+    }
+
+    ['actor','director','movie','show'].forEach(wireSearch);
+  })();
+</script>

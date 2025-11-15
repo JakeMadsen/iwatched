@@ -6,33 +6,34 @@ module.exports = (server) => {
     console.log('* restrictedUrls Routes Loaded Into Server');
 
 
-    server.get('/admin/restrictedUrls', isLoggedIn, async (req, res) => {
-        
+    server.get('/admin/restricted-urls', isLoggedIn, async (req, res) => {
+        try {
+            await restrictedUrlService.seedReserved();
+        } catch (_) {}
+
         restrictedUrlService
-        .getAll()
-        .then(urls => {
+            .getAll()
+            .then(urls => {
 
-            res.render(templatePath, {
-                page_title: "iWatched - Admin",
-                page_file: "restrictedUrls",
-                page_data: {
-                    restrictedUrls: urls
-                },
-                user: req.user
+                res.render(templatePath, {
+                    page_title: "iWatched - Admin",
+                    page_file: "restrictedUrls",
+                    page_data: {
+                        restrictedUrls: urls
+                    },
+                    user: req.user
+                })
             })
-        })
-        .catch(error => {
+            .catch(error => {
 
-        })
-
-        
+            })
     });
 
-    server.post('/admin/restrictedUrls', isLoggedIn, async (req, res) => {
+    server.post('/admin/restricted-urls', isLoggedIn, async (req, res) => {
         restrictedUrlService
         .create(req.user._id, req.body)
         .then(data => {
-            res.redirect('/admin/restrictedUrls')
+            res.redirect('/admin/restricted-urls')
         })
         
     });

@@ -1,7 +1,7 @@
 const RestrictedUrl = require('../../db/models/restrictedUrls')
 
 const reservedRoutes = [
-  'about','contact','movies','shows','login','logout','api','admin','support',
+  'about','contact','movies','shows','login','logout','api','admin','user','support',
   'policy','policy/privacy','policy/terms-of-service','profile','search','static',
   'socket.io','favicon.ico'
 ];
@@ -46,6 +46,27 @@ async function validateCustomUrl(slug){
   return { ok: true };
 }
 
+async function seedReserved() {
+  try {
+    const existing = await RestrictedUrl.find({ restricted_url: { $in: reservedRoutes } })
+      .select('restricted_url')
+      .lean();
+    const have = new Set((existing || []).map(x => x.restricted_url));
+    const toInsert = reservedRoutes
+      .filter(slug => !have.has(slug))
+      .map(slug => ({
+        restricted_url: slug,
+        info: 'Reserved site route',
+        reason: 'site_route'
+      }));
+    if (toInsert.length) {
+      await RestrictedUrl.insertMany(toInsert);
+    }
+  } catch (_) {
+    // best-effort only
+  }
+}
+
 module.exports = {
   getOne: (value) => {
     return new Promise(function (resolve, reject ) {
@@ -77,7 +98,7 @@ module.exports = {
           if (blacklisted) return resolve(true)
 
           let newRestriction = new RestrictedUrl()
-          newRestriction.initial(user_id, data.name, data.text)
+          newRestriction.initial(user_id, data.name, data.text, data.reason)
           newRestriction.save((error) => {
             if (error) return reject(error)
             resolve(true)
@@ -97,4 +118,5 @@ module.exports = {
     })
   },
   validateCustomUrl,
+  seedReserved,
 }

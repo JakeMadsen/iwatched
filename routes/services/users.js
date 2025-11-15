@@ -45,6 +45,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             var newProfilePicture   = null;
             var newProfileBanner    = null;
+            const allowOriginalImages = !!(content && content.__adminImageBypass);
 
             if (files) {
                 newProfilePicture   = files.profilePictureFile
@@ -70,13 +71,13 @@ module.exports = {
                         }
                         else {
                             if (newProfilePicture) {
-                                await saveProfileImages(user._id, newProfilePicture, (user.profile && user.profile.profile_image) || null, "picture");
+                                await saveProfileImages(user._id, newProfilePicture, (user.profile && user.profile.profile_image) || null, "picture", { allowOriginal: allowOriginalImages });
                                 let newName = `picture_${user._id}.${getFileExtention(newProfilePicture.name)}`;
                                 imagePB = newName;
                             }
 
                             if (newProfileBanner) {
-                                await saveProfileImages(user._id, newProfileBanner, (user.profile && user.profile.banner_image) || null, "banner");
+                                await saveProfileImages(user._id, newProfileBanner, (user.profile && user.profile.banner_image) || null, "banner", { allowOriginal: allowOriginalImages });
                                 let newName = `banner_${user._id}.${getFileExtention(newProfileBanner.name)}`;
                                 imageBA = newName
                             }
@@ -151,7 +152,7 @@ module.exports = {
 /*
 *   Local functions
 **************************/
-async function saveProfileImages(user_id, new_image, old_image, type) {
+async function saveProfileImages(user_id, new_image, old_image, type, options) {
     if (!new_image) return;
     try {
         if (!imgProc || typeof imgProc.processProfileImage !== 'function') {
@@ -162,8 +163,8 @@ async function saveProfileImages(user_id, new_image, old_image, type) {
                    : (new_image.tempFilePath ? fs.readFileSync(new_image.tempFilePath) : null);
         if (!raw) throw Object.assign(new Error('No file data available for upload'), { code: 'no_data' });
 
-        // Validate + compress
-        const processed = await imgProc.processProfileImage(raw, type);
+        // Validate + compress (or pass-through for admin/original)
+        const processed = await imgProc.processProfileImage(raw, type, options || {});
         const filename = `${type}_${user_id}.${processed.ext}`;
         const relKey = `style/img/profile_images/users/${user_id}/${filename}`;
 

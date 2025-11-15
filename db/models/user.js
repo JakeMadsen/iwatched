@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt-nodejs');
 const hat = require('hat');
 const restrictedUrlService = require('../../routes/services/restrictedUrls');
+const siteSettingsService = require('../../routes/services/siteSettings');
 
 
 // define the schema for our user model
@@ -114,8 +115,19 @@ userSchema.methods.updateSettings = async function (body, profilePicture, profil
     if(this.profile.birthday != body.birthday && body.birthday != "")
         this.profile.birthday = body.birthday;
 
-    if(this.profile.description != body.description && body.description != "")
-        this.profile.description = body.description;
+    if (typeof body.description === 'string') {
+        const rawDesc = body.description;
+        let trimmed = rawDesc;
+        try {
+            const maxLen = await siteSettingsService.getNumber('profile_description_max_length', 100);
+            if (maxLen && maxLen > 0 && trimmed.length > maxLen) {
+                trimmed = trimmed.substring(0, maxLen);
+            }
+        } catch (_){}
+        if (this.profile.description !== trimmed && trimmed !== "") {
+            this.profile.description = trimmed;
+        }
+    }
 
     if (body.visibility && ['public','friends','private'].includes(String(body.visibility))) {
         this.profile.visibility = String(body.visibility);

@@ -9,17 +9,28 @@
         </div>
         <div class="col-md-6">
             <h2>Restrict new page URL</h2>
-            <form action="/admin/restrictedUrls" method="POST">
+            <form action="/admin/restricted-urls" method="POST">
                 <!-- name -->
                 <div class="form-group">
                     <label for="page_name" >Url Name</label>
                     <input name="name" type="text" class="form-control" id="page_name" placeholder="urlname(ex. about)">
                 </div>
 
+                <!-- reason -->
+                <div class="form-group">
+                    <label for="page_reason">Why is this URL restricted?</label>
+                    <select name="reason" id="page_reason" class="form-control">
+                        <option value="site_route">Site route / reserved path</option>
+                        <option value="derogatory">Derogatory / sensitive term</option>
+                        <option value="profanity">Profanity</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
                 <!-- text -->
                 <div class="form-group">
-                    <label for="page_text">Description</label>
-                    <textarea name="text" rows="5" class="form-control" id="page_text" placeholder="Short text about why its been listed"></textarea>
+                    <label for="page_text">Details / notes</label>
+                    <textarea name="text" rows="5" class="form-control" id="page_text" placeholder="Optional extra context (visible only to admins)"></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-danger">Restrict</button>
@@ -35,6 +46,7 @@
       <tr>
         <th>ID</th>
         <th>URL</th>
+        <th>Why</th>
         <th>Created by</th>
         <th>Description</th>
         <th>Creation date</th>
@@ -46,6 +58,7 @@
         <tr>
           <td><%= url._id %></td>
           <td><%= url.restricted_url %></td>
+          <td><%= url.reason || 'custom' %></td>
           <td><%= url.created_by %></td>
           <td><%= url.info %></td>
           <td><%= url.creation_date %></td>

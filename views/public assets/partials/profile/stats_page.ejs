@@ -7,7 +7,9 @@
       <h2 class="stats-title">Your movie statistics</h2>
       <p class="stats-subtitle">Deep insights into your movie watching habits</p>
     </div>
-    
+    <div id="stats_loading" class="text-muted" style="margin-top:8px; font-size:13px; display:none;">
+      <i class="fas fa-sync fa-spin"></i> Building your stats now, this may take a moment...
+    </div>
 
     <!-- <div class="stats-funfacts">
       <div class="chip chip--info">
@@ -26,22 +28,22 @@
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade">
         <div class="metric-large__label"><i class="far fa-star"></i> My Favorite Movie</div>
-        <div class="metric-large__value" data-stat="fav-user-movie">Inception</div>
-        <div class="metric-large__hint" data-stat="fav-user-movie-year">2010</div>
+        <div class="metric-large__value" data-stat="fav-user-movie">-</div>
+        <div class="metric-large__hint" data-stat="fav-user-movie-year"></div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade" style="--enter-delay:.05s;">
         <div class="metric-large__label"><i class="far fa-user"></i> My Favorite Actor</div>
-        <div class="metric-large__value" data-stat="fav-user-actor">Leonardo DiCaprio</div>
-        <div class="metric-large__hint" data-stat="fav-user-actor-note">12 movies watched</div>
+        <div class="metric-large__value" data-stat="fav-user-actor">-</div>
+        <div class="metric-large__hint" data-stat="fav-user-actor-note"></div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade" style="--enter-delay:.1s;">
         <div class="metric-large__label"><i class="fas fa-video"></i> My Favorite Director</div>
-        <div class="metric-large__value" data-stat="fav-user-director">Christopher Nolan</div>
-        <div class="metric-large__hint" data-stat="fav-user-director-note">5 movies</div>
+        <div class="metric-large__value" data-stat="fav-user-director">-</div>
+        <div class="metric-large__hint" data-stat="fav-user-director-note"></div>
       </div>
     </div>
   </div>
@@ -54,11 +56,11 @@
         </div>
         <div class="hero__content">
           <div class="hero__eyebrow">Most Rewatched Movie</div>
-          <div class="hero__title"><span data-stat="hero-movie-title">Inception</span> <span class="hero__year" data-stat="hero-movie-year">(2010)</span></div>
+          <div class="hero__title"><span data-stat="hero-movie-title">-</span> <span class="hero__year" data-stat="hero-movie-year"></span></div>
           <div class="hero__meta-row">
-            <div class="meta"><i class="far fa-star"></i><span class="meta__label">Your Rating</span><span class="meta__value" data-stat="hero-movie-rating">9.2/10</span></div>
-            <div class="meta"><i class="far fa-clock"></i><span class="meta__label">Runtime</span><span class="meta__value" data-stat="hero-movie-runtime">2h 28m</span></div>
-            <div class="meta"><i class="fas fa-sync"></i><span class="meta__label">Watch Count</span><span class="meta__value" data-stat="hero-movie-count">5 times</span></div>
+            <div class="meta"><i class="far fa-star"></i><span class="meta__label">Your Rating</span><span class="meta__value" data-stat="hero-movie-rating">-</span></div>
+            <div class="meta"><i class="far fa-clock"></i><span class="meta__label">Runtime</span><span class="meta__value" data-stat="hero-movie-runtime">-</span></div>
+            <div class="meta"><i class="fas fa-sync"></i><span class="meta__label">Watch Count</span><span class="meta__value" data-stat="hero-movie-count">-</span></div>
           </div>
         </div>
       </div>
@@ -71,29 +73,29 @@
         <div class="panel__header"><h3>Most Viewed Genres</h3></div>
         <div class="genre-list">
           <div class="genre-row">
-            <div class="genre-row__label">Action</div>
-            <div class="progress"><div class="progress-bar accent-1" data-pct="86"></div></div>
-            <div class="genre-row__value">87 movies</div>
+            <div class="genre-row__label">-</div>
+            <div class="progress"><div class="progress-bar accent-1" data-pct="0"></div></div>
+            <div class="genre-row__value">0 movies</div>
           </div>
           <div class="genre-row">
-            <div class="genre-row__label">Drama</div>
-            <div class="progress"><div class="progress-bar accent-2" data-pct="64"></div></div>
-            <div class="genre-row__value">65 movies</div>
+            <div class="genre-row__label">-</div>
+            <div class="progress"><div class="progress-bar accent-2" data-pct="0"></div></div>
+            <div class="genre-row__value">0 movies</div>
           </div>
           <div class="genre-row">
-            <div class="genre-row__label">Sci-Fi</div>
-            <div class="progress"><div class="progress-bar accent-3" data-pct="52"></div></div>
-            <div class="genre-row__value">52 movies</div>
+            <div class="genre-row__label">-</div>
+            <div class="progress"><div class="progress-bar accent-3" data-pct="0"></div></div>
+            <div class="genre-row__value">0 movies</div>
           </div>
           <div class="genre-row">
-            <div class="genre-row__label">Comedy</div>
-            <div class="progress"><div class="progress-bar accent-4" data-pct="48"></div></div>
-            <div class="genre-row__value">48 movies</div>
+            <div class="genre-row__label">-</div>
+            <div class="progress"><div class="progress-bar accent-4" data-pct="0"></div></div>
+            <div class="genre-row__value">0 movies</div>
           </div>
           <div class="genre-row">
-            <div class="genre-row__label">Thriller</div>
-            <div class="progress"><div class="progress-bar accent-5" data-pct="42"></div></div>
-            <div class="genre-row__value">42 movies</div>
+            <div class="genre-row__label">-</div>
+            <div class="progress"><div class="progress-bar accent-5" data-pct="0"></div></div>
+            <div class="genre-row__value">0 movies</div>
           </div>
         </div>
       </div>
@@ -114,15 +116,15 @@
           <div class="col-12 col-md-6 col-lg-3">
             <div class="mini-card surface">
               <div class="mini-card__label"><i class="far fa-hourglass-start"></i> Oldest Watched</div>
-              <div class="mini-card__title" data-stat="oldest-title"><%= (page_data.stats.oldest_movie_watched && page_data.stats.oldest_movie_watched.title) || 'The Great Dictator' %></div>
-              <div class="mini-card__value" data-stat="oldest-year"><%= (page_data.stats.oldest_movie_watched && page_data.stats.oldest_movie_watched.year) || 1940 %></div>
+              <div class="mini-card__title" data-stat="oldest-title">-</div>
+              <div class="mini-card__value" data-stat="oldest-year"></div>
             </div>
           </div>
           <div class="col-12 col-md-6 col-lg-3">
             <div class="mini-card surface">
               <div class="mini-card__label"><i class="far fa-hourglass-end"></i> Newest Watched</div>
-              <div class="mini-card__title" data-stat="newest-title"><%= (page_data.stats.newest_release_watched && page_data.stats.newest_release_watched.title) || 'Oppenheimer' %></div>
-              <div class="mini-card__value" data-stat="newest-year"><%= (page_data.stats.newest_release_watched && page_data.stats.newest_release_watched.year) || 2023 %></div>
+              <div class="mini-card__title" data-stat="newest-title">-</div>
+              <div class="mini-card__value" data-stat="newest-year"></div>
             </div>
           </div>
         </div>
@@ -136,29 +138,29 @@
         <div class="panel__header"><h3>Movies by Decade</h3></div>
         <div class="decade-bars">
           <div class="decade">
-            <div class="decade__bar"><div class="decade__fill" data-height="35"></div></div>
-            <div class="decade__value">12</div>
-            <div class="decade__label">1980s</div>
+            <div class="decade__bar"><div class="decade__fill" data-height="10"></div></div>
+            <div class="decade__value">0</div>
+            <div class="decade__label">-</div>
           </div>
           <div class="decade">
-            <div class="decade__bar"><div class="decade__fill" data-height="50"></div></div>
-            <div class="decade__value">35</div>
-            <div class="decade__label">1990s</div>
+            <div class="decade__bar"><div class="decade__fill" data-height="10"></div></div>
+            <div class="decade__value">0</div>
+            <div class="decade__label">-</div>
           </div>
           <div class="decade">
-            <div class="decade__bar"><div class="decade__fill" data-height="70"></div></div>
-            <div class="decade__value">78</div>
-            <div class="decade__label">2000s</div>
+            <div class="decade__bar"><div class="decade__fill" data-height="10"></div></div>
+            <div class="decade__value">0</div>
+            <div class="decade__label">-</div>
           </div>
           <div class="decade">
-            <div class="decade__bar"><div class="decade__fill" data-height="100"></div></div>
-            <div class="decade__value">142</div>
-            <div class="decade__label">2010s</div>
+            <div class="decade__bar"><div class="decade__fill" data-height="10"></div></div>
+            <div class="decade__value">0</div>
+            <div class="decade__label">-</div>
           </div>
           <div class="decade">
-            <div class="decade__bar"><div class="decade__fill" data-height="60"></div></div>
-            <div class="decade__value">75</div>
-            <div class="decade__label">2020s</div>
+            <div class="decade__bar"><div class="decade__fill" data-height="10"></div></div>
+            <div class="decade__value">0</div>
+            <div class="decade__label">-</div>
           </div>
         </div>
       </div>
@@ -168,11 +170,7 @@
       <div class="surface panel enter-fade">
         <div class="panel__header"><h3>Top Directors</h3></div>
         <ol class="ranked-list">
-          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">CN</span><span class="ranked-item__name">Christopher Nolan</span><span class="ranked-item__meta">12 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">QT</span><span class="ranked-item__name">Quentin Tarantino</span><span class="ranked-item__meta">9 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">MS</span><span class="ranked-item__name">Martin Scorsese</span><span class="ranked-item__meta">8 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">SS</span><span class="ranked-item__name">Steven Spielberg</span><span class="ranked-item__meta">7 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">DF</span><span class="ranked-item__name">David Fincher</span><span class="ranked-item__meta">6 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">-</span><span class="ranked-item__name">-</span><span class="ranked-item__meta">0 movies</span></li>
         </ol>
       </div>
     </div>
@@ -181,11 +179,7 @@
       <div class="surface panel enter-fade">
         <div class="panel__header"><h3>Top Actors</h3></div>
         <ol class="ranked-list">
-          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">LD</span><span class="ranked-item__name">Leonardo DiCaprio</span><span class="ranked-item__meta">15 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">2</span><span class="avatar avatar--initials">TH</span><span class="ranked-item__name">Tom Hanks</span><span class="ranked-item__meta">12 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">3</span><span class="avatar avatar--initials">RDN</span><span class="ranked-item__name">Robert De Niro</span><span class="ranked-item__meta">11 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">4</span><span class="avatar avatar--initials">CB</span><span class="ranked-item__name">Christian Bale</span><span class="ranked-item__meta">9 movies</span></li>
-          <li class="ranked-item"><span class="ranked-item__rank">5</span><span class="avatar avatar--initials">MF</span><span class="ranked-item__name">Morgan Freeman</span><span class="ranked-item__meta">8 movies</span></li>
+          <li class="ranked-item"><span class="ranked-item__rank">1</span><span class="avatar avatar--initials">-</span><span class="ranked-item__name">-</span><span class="ranked-item__meta">0 movies</span></li>
         </ol>
       </div>
     </div>
@@ -195,22 +189,22 @@
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade">
         <div class="metric-large__label"><i class="far fa-ruler-vertical"></i> Longest Movie</div>
-        <div class="metric-large__value" data-stat="longest-runtime">238 min</div>
-        <div class="metric-large__hint" data-stat="longest-title">Gone with the Wind</div>
+        <div class="metric-large__value" data-stat="longest-runtime">-</div>
+        <div class="metric-large__hint" data-stat="longest-title">-</div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade" style="--enter-delay:.05s;">
         <div class="metric-large__label"><i class="far fa-stopwatch"></i> Shortest Movie</div>
-        <div class="metric-large__value" data-stat="shortest-runtime">64 min</div>
-        <div class="metric-large__hint" data-stat="shortest-title">Sherlock Jr.</div>
+        <div class="metric-large__value" data-stat="shortest-runtime">-</div>
+        <div class="metric-large__hint" data-stat="shortest-title">-</div>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="metric-large surface enter-fade" style="--enter-delay:.1s;">
         <div class="metric-large__label"><i class="fas fa-chart-line"></i> Favorite Decade</div>
-        <div class="metric-large__value" data-stat="fav-decade">2010s</div>
-        <div class="metric-large__hint" data-stat="fav-decade-count">142 movies watched</div>
+        <div class="metric-large__value" data-stat="fav-decade">-</div>
+        <div class="metric-large__hint" data-stat="fav-decade-count">-</div>
       </div>
     </div>
   </div>
@@ -228,6 +222,252 @@
       document.querySelectorAll('.decade__fill[data-height]').forEach(function(el){
         var h = parseFloat(el.getAttribute('data-height')) || 0;
         el.style.height = Math.max(10, Math.min(100, h)) + '%';
+      });
+    })();
+  </script>
+  <script>
+    (function(){
+      function setText(sel, value){
+        try {
+          var el = document.querySelector(sel);
+          if (el && value !== undefined && value !== null && value !== ''){
+            el.textContent = String(value);
+          }
+        } catch(_){}
+      }
+      function minsToTextShort(mins){
+        try {
+          var m = Math.max(0, Math.floor(Number(mins||0)));
+          var h = Math.floor(m / 60);
+          var r = m % 60;
+          if (h && r) return h + 'h ' + r + 'm';
+          if (h) return h + 'h';
+          return r + 'm';
+        } catch(_){ return ''; }
+      }
+      document.addEventListener('DOMContentLoaded', function(){
+        try {
+          var uid = '<%= page_data && page_data.user && page_data.user._id ? String(page_data.user._id) : "" %>';
+          if (!uid) return;
+          var loadingEl = document.getElementById('stats_loading');
+          if (loadingEl) loadingEl.style.display = '';
+          fetch('/api/v1/user-stats/' + encodeURIComponent(uid))
+            .then(function(r){ if(!r.ok) throw new Error('stats_failed'); return r.json(); })
+            .then(function(payload){
+              if (!payload || !payload.ok || !payload.stats) return;
+              var s = payload.stats || {};
+              var movies = s.movies || {};
+
+              // Favorite movie
+              if (s.favorite_movie){
+                var fm = s.favorite_movie;
+                setText('[data-stat="fav-user-movie"]', fm.title || '-');
+                if (fm.year){
+                  setText('[data-stat="fav-user-movie-year"]', fm.year);
+                }
+              }
+
+              // Most rewatched movie hero
+              if (s.most_rewatched_movie){
+                var mr = s.most_rewatched_movie;
+                setText('[data-stat="hero-movie-title"]', mr.title || '-');
+                if (mr.watch_count){
+                  setText('[data-stat="hero-movie-count"]', mr.watch_count + ' times');
+                  var badge = document.querySelector('.hero__badge');
+                  if (badge){ badge.innerHTML = '<i class="fas fa-redo"></i> Watched ' + mr.watch_count + 'x'; }
+                }
+                if (mr.personal_rating){
+                  setText('[data-stat="hero-movie-rating"]', (mr.personal_rating.toFixed ? mr.personal_rating.toFixed(1) : mr.personal_rating) + '/10');
+                }
+                if (mr.runtime_minutes){
+                  setText('[data-stat="hero-movie-runtime"]', minsToTextShort(mr.runtime_minutes));
+                }
+              }
+
+              // Most viewed genres (top 5)
+              try {
+                if (Array.isArray(movies.genres)){
+                  var rows = document.querySelectorAll('.genre-list .genre-row');
+                  for (var i=0;i<rows.length;i++){
+                    var row = rows[i];
+                    var g = movies.genres[i];
+                    if (!g){
+                      row.style.display = 'none';
+                      continue;
+                    }
+                    row.style.display = '';
+                    var labelEl = row.querySelector('.genre-row__label');
+                    var valEl = row.querySelector('.genre-row__value');
+                    var bar = row.querySelector('.progress-bar');
+                    if (labelEl) labelEl.textContent = g.name || '-';
+                    if (valEl) valEl.textContent = (g.count || 0) + ' movies';
+                    if (bar){
+                      var pct = g.pct_of_top || 0;
+                      bar.setAttribute('data-pct', pct);
+                      bar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+                    }
+                  }
+                }
+              } catch(_){}
+
+              // Timeline distribution + oldest / newest
+              try {
+                var tl = movies.timeline || {};
+                var pre = tl.pre2000 || {};
+                var post = tl.post2000 || {};
+                var segA = document.querySelector('.stacked-bar__segment--a');
+                var segB = document.querySelector('.stacked-bar__segment--b');
+                if (segA){
+                  var pctA = pre.pct || 0;
+                  segA.setAttribute('data-pct', pctA);
+                  segA.style.width = Math.max(0, Math.min(100, pctA)) + '%';
+                  var spanA = segA.querySelector('span'); if (spanA) spanA.textContent = pctA + '%';
+                }
+                if (segB){
+                  var pctB = post.pct || 0;
+                  segB.setAttribute('data-pct', pctB);
+                  segB.style.width = Math.max(0, Math.min(100, pctB)) + '%';
+                  var spanB = segB.querySelector('span'); if (spanB) spanB.textContent = pctB + '%';
+                }
+                if (tl.oldest_movie_watched){
+                  setText('[data-stat="oldest-title"]', tl.oldest_movie_watched.title || '-');
+                  setText('[data-stat="oldest-year"]', tl.oldest_movie_watched.year || '');
+                }
+                if (tl.newest_release_watched){
+                  setText('[data-stat="newest-title"]', tl.newest_release_watched.title || '-');
+                  setText('[data-stat="newest-year"]', tl.newest_release_watched.year || '');
+                }
+              } catch(_){}
+
+              // Movies by decade + favourite decade
+              try {
+                if (Array.isArray(movies.decades)){
+                  var decadeEls = document.querySelectorAll('.decade-bars .decade');
+                  var maxCount = 0;
+                  movies.decades.forEach(function(d){ if (d && d.count && d.count > maxCount) maxCount = d.count; });
+                  for (var j=0;j<decadeEls.length;j++){
+                    var de = decadeEls[j];
+                    var d = movies.decades[j];
+                    if (!d){
+                      de.style.display = 'none';
+                      continue;
+                    }
+                    de.style.display = '';
+                    var vEl = de.querySelector('.decade__value');
+                    var lEl = de.querySelector('.decade__label');
+                    var fill = de.querySelector('.decade__fill');
+                    if (vEl) vEl.textContent = d.count || 0;
+                    if (lEl) lEl.textContent = d.label || '';
+                    if (fill){
+                      var pctH = maxCount ? Math.round((d.count || 0) / maxCount * 100) : 0;
+                      fill.setAttribute('data-height', pctH);
+                      fill.style.height = Math.max(10, Math.min(100, pctH)) + '%';
+                    }
+                  }
+                }
+                if (movies.favorite_decade){
+                  setText('[data-stat="fav-decade"]', movies.favorite_decade.label || '');
+                  if (movies.favorite_decade.count){
+                    setText('[data-stat="fav-decade-count"]', movies.favorite_decade.count + ' movies watched');
+                  }
+                }
+              } catch(_){}
+
+              // Top directors / actors
+              try {
+                function populatePeople(list, selectorPrefix){
+                  var container = document.querySelector(selectorPrefix + ' .ranked-list');
+                  if (!container || !Array.isArray(list)) return;
+                  container.innerHTML = '';
+                  list.forEach(function(p, idx){
+                    var li = document.createElement('li');
+                    li.className = 'ranked-item';
+                    var rank = document.createElement('span');
+                    rank.className = 'ranked-item__rank';
+                    rank.textContent = (idx+1);
+                    var avatar = document.createElement('span');
+                    avatar.className = 'avatar avatar--initials';
+                    var initials = (p.name || '').split(' ').map(function(x){ return x.charAt(0).toUpperCase(); }).join('').slice(0,3);
+                    avatar.textContent = initials || '?';
+                    var name = document.createElement('span');
+                    name.className = 'ranked-item__name';
+                    name.textContent = p.name || '';
+                    var meta = document.createElement('span');
+                    meta.className = 'ranked-item__meta';
+                    meta.textContent = (p.count || 0) + ' movies';
+                    li.appendChild(rank);
+                    li.appendChild(avatar);
+                    li.appendChild(name);
+                    li.appendChild(meta);
+                    container.appendChild(li);
+                  });
+                }
+                populatePeople(movies.top_directors, '.surface.panel:has(h3:nth-child(1):contains("Top Directors"))'); // fallback below
+              } catch(_){}
+
+              try {
+                // Fallback: select by heading text with simple query
+                function findPanel(title){
+                  var panels = document.querySelectorAll('.surface.panel');
+                  for (var i=0;i<panels.length;i++){
+                    var h = panels[i].querySelector('.panel__header h3');
+                    if (h && h.textContent && h.textContent.indexOf(title) !== -1) return panels[i];
+                  }
+                  return null;
+                }
+                function populatePeople2(list, title){
+                  var panel = findPanel(title);
+                  if (!panel || !Array.isArray(list)) return;
+                  var container = panel.querySelector('.ranked-list');
+                  if (!container) return;
+                  container.innerHTML = '';
+                  list.forEach(function(p, idx){
+                    var li = document.createElement('li');
+                    li.className = 'ranked-item';
+                    var rank = document.createElement('span');
+                    rank.className = 'ranked-item__rank';
+                    rank.textContent = (idx+1);
+                    var avatar = document.createElement('span');
+                    avatar.className = 'avatar avatar--initials';
+                    var initials = (p.name || '').split(' ').map(function(x){ return x.charAt(0).toUpperCase(); }).join('').slice(0,3);
+                    avatar.textContent = initials || '?';
+                    var name = document.createElement('span');
+                    name.className = 'ranked-item__name';
+                    name.textContent = p.name || '';
+                    var meta = document.createElement('span');
+                    meta.className = 'ranked-item__meta';
+                    meta.textContent = (p.count || 0) + ' movies';
+                    li.appendChild(rank);
+                    li.appendChild(avatar);
+                    li.appendChild(name);
+                    li.appendChild(meta);
+                    container.appendChild(li);
+                  });
+                }
+                populatePeople2(movies.top_directors, 'Top Directors');
+                populatePeople2(movies.top_actors, 'Top Actors');
+
+              } catch(_){}
+
+              // Longest / shortest movie
+              try {
+                if (movies.longest_movie){
+                  setText('[data-stat="longest-runtime"]', (movies.longest_movie.runtime_minutes || 0) + ' min');
+                  setText('[data-stat="longest-title"]', movies.longest_movie.title || '');
+                }
+                if (movies.shortest_movie){
+                  setText('[data-stat="shortest-runtime"]', (movies.shortest_movie.runtime_minutes || 0) + ' min');
+                  setText('[data-stat="shortest-title"]', movies.shortest_movie.title || '');
+                }
+              } catch(_){}
+            })
+            .catch(function(){})
+            .finally(function(){
+              try {
+                if (loadingEl) loadingEl.style.display = 'none';
+              } catch(_){}
+            });
+        } catch(_){}
       });
     })();
   </script>

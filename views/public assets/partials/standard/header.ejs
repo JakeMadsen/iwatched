@@ -71,9 +71,11 @@
               <% } else { %>
                 <a class="dropdown-item" href="/<%= user._id %>">My Profile</a>
               <% } %>
-              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/recommendations">Recommendations</a>
-              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/reviews">My Reviews</a>
-              <a class="dropdown-item" href="<%= (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)) %>/badges">Badges</a>
+              <% var __profileBase = (user.profile.custom_url && user.profile.custom_url !== '' ? ('/' + user.profile.custom_url) : ('/' + user._id)); %>
+              <a class="dropdown-item" href="<%= __profileBase %>/recommendations">Recommendations</a>
+              <a class="dropdown-item" href="<%= __profileBase %>/reviews">My Reviews</a>
+              <a class="dropdown-item" href="<%= __profileBase %>/badges">Badges</a>
+              <a class="dropdown-item" href="/user/set-favourites">Profile Favourites</a>
               <a class="dropdown-item" href="/support">Support</a>
               <% if(user.profile.custom_url != "" && user.profile.custom_url != null) { %>
                 <a class="dropdown-item" href="/<%= user.profile.custom_url %>/settings">Settings</a>

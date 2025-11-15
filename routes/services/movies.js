@@ -7,7 +7,7 @@ const key = (envKey && !/^your-tmdb-api-key$/i.test(envKey)) ? envKey : "ab4e974
 module.exports = {
     getOneMovie: (id) => {
         return new Promise((resolve, reject) => {
-            axios.get(`${url}/movie/${id}?api_key=${key}&language=en-US&include_video=true`)
+            axios.get(`${url}/movie/${id}?api_key=${key}&language=en-US&include_video=true&append_to_response=credits`)
             .then(response => {
                 resolve(response.data)
             })

@@ -1,0 +1,57 @@
+<div class="container" style="margin-top:12px;">
+  <h3>System Settings</h3>
+  <p class="text-muted">
+    Tune global limits and behaviour for reviews and profile showcases. Changes apply to new actions immediately.
+  </p>
+  <div class="dropdown-divider"></div>
+
+  <% if (page_data && page_data.message) { %>
+    <div class="alert alert-info"><%= page_data.message %></div>
+  <% } %>
+
+  <form action="/admin/site-settings" method="POST">
+    <div class="row">
+      <div class="col-md-8">
+        <% (page_data.settings || []).forEach(function(s){ %>
+          <div class="card mb-3" style="background:#1b1b1b;border:1px solid #2a2a2a;border-radius:8px;">
+            <div class="card-body">
+              <div class="form-group mb-2">
+                <label for="setting_<%= s.key %>"><strong><%= s.label %></strong></label>
+                <% if (s.type === 'number') { %>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="setting_<%= s.key %>"
+                    name="<%= s.key %>"
+                    value="<%= s.current %>"
+                    <% if (typeof s.min !== 'undefined') { %>min="<%= s.min %>"<% } %>
+                    <% if (typeof s.max !== 'undefined') { %>max="<%= s.max %>"<% } %>
+                  >
+                <% } else { %>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="setting_<%= s.key %>"
+                    name="<%= s.key %>"
+                    value="<%= s.current %>"
+                  >
+                <% } %>
+              </div>
+              <div>
+                <small class="form-text text-muted">
+                  Key: <code><%= s.key %></code>
+                  <% if (s.help) { %><br><%= s.help %><% } %>
+                </small>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+
+        <button type="submit" class="btn btn-primary">
+          Save settings
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+

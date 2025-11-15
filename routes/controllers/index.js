@@ -20,6 +20,7 @@ module.exports = (server) => {
     try { require("./api/v1/userBadges")(server); } catch(_){}
     // Mixed user activity (movies + shows)
     try { require("./api/v1/userActivity")(server); } catch(_){}
+    try { require("./api/v1/userStats")(server); } catch(_){}
     try { require("./api/v1/userShowcases")(server); } catch(_){}
 
     console.log('======== Loading Private Routes ========')
@@ -35,6 +36,7 @@ module.exports = (server) => {
     require("./private/announcements")(server);
     require("./private/showcaseCatalog")(server);
     try { require("./private/admins")(server); } catch(_){}
+    try { require("./private/siteSettings")(server); } catch(_){}
     try { require("./private/uploads")(server); } catch(_){}
     try { require("./private/apiMetrics")(server); } catch(_){}
 

@@ -5,10 +5,6 @@
 %>
 
 <div class="profile-quicklinks container">
-  <a class="quick-card" href="<%= basePath %>">
-    <span class="quick-card__icon"><i class="fas fa-chart-line"></i></span>
-    <span class="quick-card__text">Activity</span>
-  </a>
   <a class="quick-card" href="<%= basePath %>/watched/movies">
     <span class="quick-card__icon"><i class="fas fa-film"></i></span>
     <span class="quick-card__text">Watched Movies</span>
@@ -23,7 +19,11 @@
   </a>
   <a class="quick-card" href="<%= basePath %>/bookmarked">
     <span class="quick-card__icon"><i class="fas fa-bookmark"></i></span>
-    <span class="quick-card__text">Saved Lists</span>
+    <span class="quick-card__text">Bookmarked</span>
+  </a>
+  <a class="quick-card" href="<%= basePath %>/reviews">
+    <span class="quick-card__icon"><i class="fas fa-comment-dots"></i></span>
+    <span class="quick-card__text">Reviews</span>
   </a>
   <% var isPremium = (page_data.user && (
         (page_data.user.profile && page_data.user.profile.flags && page_data.user.profile.flags.premium) ||

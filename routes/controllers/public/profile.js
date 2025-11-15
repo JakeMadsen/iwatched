@@ -1,4 +1,4 @@
-﻿const userService = require('../../services/users');
+const userService = require('../../services/users');
 const UserFriends = require('../../../db/models/userFriends');
 const getUser = require('../../middleware/getUser');
 const createError = require('http-errors');
@@ -16,6 +16,7 @@ const Report = require('../../../db/models/report');
 const UserSession = require('../../../db/models/userSession');
 const UserShow = require('../../../db/models/userShow');
 const archiver = require('archiver');
+const sharp = require('sharp');
 
 async function __buildHeaderStats(u){
     const userId = u && u._id ? u._id : u;
@@ -207,8 +208,25 @@ module.exports = (server) => {
             }
         } catch(_){}
 
+        // Build nicer metadata for link previews (Discord/Twitter etc.)
+        const u = res.locals.user;
+        const username = (u && u.local && u.local.username) ? String(u.local.username) : 'iWatched user';
+        const moviesCount = headerStats && typeof headerStats.numberOfMoviesWatched === 'number' ? headerStats.numberOfMoviesWatched : 0;
+        const showsCount = headerStats && typeof headerStats.numberOfShowsWatched === 'number' ? headerStats.numberOfShowsWatched : 0;
+        const totalWatch = headerStats && headerStats.total_watch_time_text ? String(headerStats.total_watch_time_text) : '';
+        const statsSentence = totalWatch
+            ? `Has watched ${moviesCount} movies and ${showsCount} shows (${totalWatch} total watch time).`
+            : `Has watched ${moviesCount} movies and ${showsCount} shows on iWatched.`;
+
+        const profileSlug = (u && u.profile && u.profile.custom_url) ? String(u.profile.custom_url) : String(u._id);
+        const absUrl = `https://iwatched.app/${profileSlug}`;
+        const ogImage = `https://iwatched.app/og/profile/${profileSlug}.png`;
+
         res.render('public assets/template.ejs', {
-            page_title: "iWatched - Home",
+            page_title: `iWatched - ${username}`,
+            page_description: `${username}'s iWatched profile. ${statsSentence}`,
+            abs_url: absUrl,
+            og_image: ogImage,
             page_file: "profile",
             page_subFile: "main",
             page_data: Object.assign({
@@ -219,6 +237,84 @@ module.exports = (server) => {
             }, headerStats),
             user: req.user
         });
+    });
+
+    // OpenGraph image for profile previews (1200x630 PNG)
+    server.get('/og/profile/:id.png', async (req, res) => {
+        try {
+            const id = String(req.params.id || '').trim();
+            if (!id) return res.status(404).end();
+            const userDoc = await userService.getOne(id);
+            if (!userDoc) return res.status(404).end();
+
+            const stats = await __buildHeaderStats(userDoc);
+            const username = (userDoc.local && userDoc.local.username) ? String(userDoc.local.username) : 'iWatched user';
+            const moviesCount = stats && typeof stats.numberOfMoviesWatched === 'number' ? stats.numberOfMoviesWatched : 0;
+            const showsCount = stats && typeof stats.numberOfShowsWatched === 'number' ? stats.numberOfShowsWatched : 0;
+            const totalWatch = stats && stats.total_watch_time_text ? String(stats.total_watch_time_text) : '';
+
+            function esc(str){
+                return String(str)
+                    .replace(/&/g,'&amp;')
+                    .replace(/</g,'&lt;')
+                    .replace(/>/g,'&gt;');
+            }
+
+            const width = 1200;
+            const height = 630;
+            const svg = `
+<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="45%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="${width}" height="${height}" fill="url(#bgGrad)"/>
+  <circle cx="140" cy="140" r="110" fill="#020617"/>
+  <circle cx="140" cy="140" r="108" fill="url(#accentGrad)" opacity="0.18"/>
+  <circle cx="140" cy="140" r="72" fill="#020617" stroke="#1f2937" stroke-width="4"/>
+  <text x="260" y="150" fill="#e5e7eb" font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="40" font-weight="700">
+    ${esc(username)}
+  </text>
+  <text x="260" y="192" fill="#9ca3af" font-family="Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22">
+    iWatched profile overview
+  </text>
+  <rect x="260" y="230" width="660" height="3" rx="1.5" fill="url(#accentGrad)" opacity="0.9"/>
+  <g transform="translate(260,280)">
+    <rect x="0" y="0" width="260" height="150" rx="18" fill="#020617" stroke="#1f2937" stroke-width="2"/>
+    <text x="24" y="46" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="18">Movies watched</text>
+    <text x="24" y="100" fill="#e5e7eb" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700">${moviesCount}</text>
+  </g>
+  <g transform="translate(550,280)">
+    <rect x="0" y="0" width="260" height="150" rx="18" fill="#020617" stroke="#1f2937" stroke-width="2"/>
+    <text x="24" y="46" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="18">Shows watched</text>
+    <text x="24" y="100" fill="#e5e7eb" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700">${showsCount}</text>
+  </g>
+  <g transform="translate(260,460)">
+    <rect x="0" y="0" width="550" height="120" rx="18" fill="#020617" stroke="#1f2937" stroke-width="2"/>
+    <text x="24" y="54" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="18">Total watch time</text>
+    <text x="24" y="92" fill="#e5e7eb" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="600">${esc(totalWatch || 'No watch time yet')}</text>
+  </g>
+  <text x="1040" y="80" text-anchor="end" fill="#6b7280" font-family="Inter, system-ui, sans-serif" font-size="20">iwatched.app</text>
+</svg>`;
+
+            const png = await sharp(Buffer.from(svg))
+                .png({ quality: 90 })
+                .toBuffer();
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            return res.send(png);
+        } catch (e) {
+            try { console.error('OG profile image failed:', e && e.message || e); } catch(_) {}
+            return res.status(500).end();
+        }
     });
 
     // Shortcut: /user -> /:slug (same page as /:id)
@@ -286,8 +382,138 @@ module.exports = (server) => {
         } catch(_) { return res.redirect('/login'); }
     });
 
-    // JSON endpoint to de-activate account from settings UI
-    server.post('/:id/settings/deactivate', getUser, isCorrectUser, async (req, res) => {
+      // Quick favourites page: /user/set-favourites
+      server.get('/user/set-favourites', async (req, res) => {
+            try {
+                if (!req.user || !req.user._id) return res.redirect('/login');
+                const userDoc = await User.findById(req.user._id).lean();
+                if (!userDoc) return res.redirect('/login');
+                  const showcases = await __getShowcasesForUser(userDoc);
+                  const findBySlug = (slug) => (showcases || []).find(sc => sc.slug === slug) || null;
+                  const favPerson = findBySlug('favorite_person');
+                  const favActor = (favPerson && favPerson.config && favPerson.config.mode === 'director') ? null : favPerson;
+                  const favDirector = (favPerson && favPerson.config && favPerson.config.mode === 'director') ? favPerson : null;
+                  const favMovies = findBySlug('favorite_movies');
+                  const favShows = findBySlug('favorite_shows');
+                const headerStats = await __buildHeaderStats(userDoc);
+                res.render('public assets/template.ejs', {
+                    page_title: 'iWatched - Set Favourites',
+                    page_file: 'user_set_favourites',
+                    page_data: Object.assign({}, headerStats, {
+                        user: userDoc,
+                        favorite_actor: favActor,
+                        favorite_director: favDirector,
+                        favorite_movie: favMovies,
+                        favorite_show: favShows,
+                        saved: req.query && req.query.saved ? true : false
+                    }),
+                    user: req.user
+                });
+            } catch (_) {
+                return res.redirect('/login');
+            }
+        });
+
+      server.post('/user/set-favourites', async (req, res) => {
+            try {
+                if (!req.user || !req.user._id) return res.redirect('/login');
+                const UserShowcase = require('../../../db/models/userShowcase');
+                const userId = req.user._id;
+
+                  // Favourite actor (single-slot favorite_person, mode=actor)
+                  try {
+                      const actorId = String(req.body.fav_actor_id || '').trim();
+                      let doc = await UserShowcase.findOne({ user_id: userId, slug: 'favorite_person' });
+                      if (!doc && actorId) {
+                        doc = new UserShowcase({ user_id: userId, slug: 'favorite_person', order: 0, enabled: true, config: {} });
+                      }
+                      if (doc) {
+                          doc.config = doc.config || {};
+                          if (actorId) {
+                              doc.config.mode = 'actor';
+                              doc.config.person_id = actorId;
+                              doc.enabled = true;
+                              await doc.save();
+                          } else {
+                            doc.enabled = false;
+                            await doc.save();
+                        }
+                    }
+                } catch (_) {}
+
+                // Favourite director (favorite_person with mode=director)
+                try {
+                    const directorId = String(req.body.fav_director_id || '').trim();
+                    let doc = await UserShowcase.findOne({ user_id: userId, slug: 'favorite_person' });
+                    if (!doc && directorId) {
+                        doc = new UserShowcase({ user_id: userId, slug: 'favorite_person', order: 0, enabled: true, config: {} });
+                    }
+                    if (doc) {
+                        doc.config = doc.config || {};
+                        if (directorId) {
+                            doc.config.mode = 'director';
+                            doc.config.person_id = directorId;
+                            doc.enabled = true;
+                            await doc.save();
+                        } else {
+                            doc.enabled = false;
+                            await doc.save();
+                        }
+                    }
+                } catch (_) {}
+
+                // Favourite movie (first slot of favorite_movies)
+                try {
+                    const movieId = String(req.body.fav_movie_id || '').trim();
+                    let doc = await UserShowcase.findOne({ user_id: userId, slug: 'favorite_movies' });
+                    if (!doc && movieId) {
+                        doc = new UserShowcase({ user_id: userId, slug: 'favorite_movies', order: 0, enabled: true, config: { items: [] } });
+                    }
+                    if (doc) {
+                        doc.config = doc.config || {};
+                        const items = Array.isArray(doc.config.items) ? doc.config.items.slice() : [];
+                        if (movieId) {
+                            items[0] = movieId;
+                            doc.config.items = items;
+                            doc.enabled = true;
+                            await doc.save();
+                        } else {
+                            doc.enabled = false;
+                            await doc.save();
+                        }
+                    }
+                } catch (_) {}
+
+                // Favourite show (first slot of favorite_shows)
+                try {
+                    const showId = String(req.body.fav_show_id || '').trim();
+                    let doc = await UserShowcase.findOne({ user_id: userId, slug: 'favorite_shows' });
+                    if (!doc && showId) {
+                        doc = new UserShowcase({ user_id: userId, slug: 'favorite_shows', order: 0, enabled: true, config: { items: [] } });
+                    }
+                    if (doc) {
+                        doc.config = doc.config || {};
+                        const items = Array.isArray(doc.config.items) ? doc.config.items.slice() : [];
+                        if (showId) {
+                            items[0] = showId;
+                            doc.config.items = items;
+                            doc.enabled = true;
+                            await doc.save();
+                        } else {
+                            doc.enabled = false;
+                            await doc.save();
+                        }
+                    }
+                } catch (_) {}
+
+              return res.redirect('/user/set-favourites?saved=1');
+            } catch (_) {
+              return res.redirect('/user/set-favourites');
+            }
+        });
+
+      // JSON endpoint to de-activate account from settings UI
+      server.post('/:id/settings/deactivate', getUser, isCorrectUser, async (req, res) => {
         try {
             if (!res.locals.user) return res.status(404).end();
             const userDoc = await User.findById(res.locals.user._id);
@@ -569,10 +795,11 @@ module.exports = (server) => {
 
         // Enforce per-plan upload size (5MB free, 8MB premium)
         try {
+            const isAdmin = !!(req.user && req.user.permissions && req.user.permissions.level && req.user.permissions.level.admin);
             const plan = (req.user && req.user.account && req.user.account.plan) || 'free';
             const maxFree = 5 * 1024 * 1024; // 5MB
             const maxPremium = 8 * 1024 * 1024; // 8MB
-            const max = (String(plan).toLowerCase() === 'premium') ? maxPremium : maxFree;
+            const max = isAdmin ? null : ((String(plan).toLowerCase() === 'premium') ? maxPremium : maxFree);
             const files = req.files || {};
             const toCheck = [
                 { f: files.profilePictureFile, name: 'Avatar' },
@@ -580,6 +807,7 @@ module.exports = (server) => {
             ];
             for (const item of toCheck) {
                 const f = item && item.f;
+                if (!max) continue; // admins bypass size checks
                 if (f && typeof f.size === 'number' && f.size > max) {
                     const mb = (max/1024/1024)|0;
                     const msg = `${item.name} is too large. Max ${mb}MB for your plan.`;
@@ -612,6 +840,15 @@ module.exports = (server) => {
                 }
             }
         } catch (e) { /* ignore size check errors and continue */ }
+
+        // Propagate admin image bypass flag down to the service layer so that
+        // admins can keep original formats/resolution when uploading images.
+        try {
+            const isAdminForImages = !!(req.user && req.user.permissions && req.user.permissions.level && req.user.permissions.level.admin);
+            if (isAdminForImages) {
+                req.body.__adminImageBypass = true;
+            }
+        } catch(_) {}
 
         await userService
         .saveUser(req.params.id, req.body, req.files)

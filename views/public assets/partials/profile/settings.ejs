@@ -104,10 +104,14 @@
             <div class="col-md-6">
                 <div class="profile-picture">
                     <label for="profile-picture-file">Profile Picture</label>
-                    <div class="profile-picture-file">
-                        <input name="profilePictureFile" type="file" id="profilePictureFile">
-                        <% var isPremium = (page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium'); %>
-                        <small class="form-text text-muted">Max file size: <%= isPremium ? '8' : '5' %> MB</small>
+                      <div class="profile-picture-file">
+                          <input name="profilePictureFile" type="file" id="profilePictureFile">
+                          <% var isAdmin = !!(user && user.permissions && user.permissions.level && user.permissions.level.admin);
+                             var isPremium = (page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium');
+                          %>
+                          <small class="form-text text-muted">
+                            Max file size: <%= isAdmin ? 'unlimited (admin)' : (isPremium ? '8' : '5') + ' MB' %>
+                          </small>
                         <div id="avatar_size_error" class="text-danger" style="display:none; margin-top:6px;"></div>
                     </div>
                 </div>
@@ -116,10 +120,12 @@
             <div class="col-md-6">
                 <div class="profile-banner">
                     <label for="profile-banner-file">Banner Image</label>
-                    <div class="profile-banner-file">
-                        <input type="hidden" value="<%= user._id %>">
-                        <input name="profileBannerFile" type="file" id="profileBannerFile">
-                        <small class="form-text text-muted">Max file size: <%= isPremium ? '8' : '5' %> MB</small>
+                      <div class="profile-banner-file">
+                          <input type="hidden" value="<%= user._id %>">
+                          <input name="profileBannerFile" type="file" id="profileBannerFile">
+                          <small class="form-text text-muted">
+                            Max file size: <%= isAdmin ? 'unlimited (admin)' : (isPremium ? '8' : '5') + ' MB' %>
+                          </small>
                         <div id="banner_size_error" class="text-danger" style="display:none; margin-top:6px;"></div>
                     </div>
                 </div>
@@ -201,7 +207,10 @@
         <!-- Description -->
         <div class="form-group">
             <label for="editor_description">Profile Description</label>
-            <textarea name="description" rows="6" class="form-control" id="editor_description" placeholder=""><%= user.profile.description %></textarea>
+            <textarea name="description" rows="6" class="form-control" id="editor_description" placeholder="" maxlength="100"><%= user.profile.description %></textarea>
+            <small class="form-text text-muted">
+              <span id="profile_desc_counter"><span id="profile_desc_count">0</span>/<span id="profile_desc_max">100</span> characters used.</span>
+            </small>
         </div>
 
         <% if (page_data && page_data.upload_error) { %>
@@ -319,13 +328,14 @@
           try {
             var form = document.getElementById('profile_settings_form');
             if(!form) return;
+            var isAdmin = <%= JSON.stringify(!!(user && user.permissions && user.permissions.level && user.permissions.level.admin)) %>;
             var isPremium = <%= JSON.stringify(!!(page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium')) %>;
-            var max = isPremium ? (8*1024*1024) : (5*1024*1024);
+            var max = isAdmin ? null : (isPremium ? (8*1024*1024) : (5*1024*1024));
             function check(input, errorEl){
               try {
                 if (!input || !input.files || input.files.length === 0) { errorEl.style.display='none'; errorEl.textContent=''; return true; }
                 var f = input.files[0];
-                if (f.size > max){
+                if (max && f.size > max){
                   var mb = Math.floor(max/1024/1024);
                   errorEl.textContent = 'File is too large. Max ' + mb + 'MB for your plan.';
                   errorEl.style.display = 'block';
@@ -346,6 +356,25 @@
               var okB = check(banner, bErr);
               if (!okA || !okB){ e.preventDefault(); try { window.showToast && showToast('One or more files exceed your limit','warning'); } catch(_){} }
             });
+
+            // Live profile description character counter
+            try {
+              var desc = document.getElementById('editor_description');
+              var countEl = document.getElementById('profile_desc_count');
+              var maxEl = document.getElementById('profile_desc_max');
+              if (desc && countEl && maxEl){
+                var maxLen = desc.maxLength && desc.maxLength > 0 ? desc.maxLength : parseInt(maxEl.textContent, 10) || 0;
+                if (maxLen > 0) { maxEl.textContent = String(maxLen); }
+                function updateDescCount(){
+                  try {
+                    var len = (desc.value || '').length;
+                    countEl.textContent = String(len);
+                  } catch(_){}
+                }
+                updateDescCount();
+                desc.addEventListener('input', updateDescCount);
+              }
+            } catch(_){}
           } catch(_){}
         });
       })();

@@ -34,13 +34,21 @@ async function sniffMime(buf){
 /**
  * Process an uploaded image buffer into a safe, compressed asset.
  * kind: 'picture' | 'banner'
+ * options: { allowOriginal?: boolean }
  * Returns { buffer, contentType, ext }
  */
-async function processProfileImage(inputBuffer, kind){
+async function processProfileImage(inputBuffer, kind, options){
   if (!Buffer.isBuffer(inputBuffer)) throw Object.assign(new Error('No image data provided'), { code: 'no_data' });
   const mime = await sniffMime(inputBuffer);
   if (!mime || !ALLOWED_MIME.has(mime)) {
     throw Object.assign(new Error('Unsupported image type. Allowed: JPG, PNG, WebP'), { code: 'invalid_type' });
+  }
+  const allowOriginal = !!(options && options.allowOriginal);
+
+  // Admin/original bypass: keep original buffer + format
+  if (allowOriginal) {
+    const ext = EXT_FOR_MIME[mime] || 'bin';
+    return { buffer: inputBuffer, contentType: mime, ext };
   }
 
   // Normalize and compress using WebP for good balance (browser support is wide)
@@ -61,4 +69,3 @@ async function processProfileImage(inputBuffer, kind){
 }
 
 module.exports = { processProfileImage, ALLOWED_MIME };
-

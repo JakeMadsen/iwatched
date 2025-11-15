@@ -1,9 +1,16 @@
 
 
-<% var __banner = (page_data.user && page_data.user.profile && page_data.user.profile.banner_image && page_data.user.profile.banner_image !== 'profile-banner-missing.png')
+<%
+  var __banner = (page_data.user && page_data.user.profile && page_data.user.profile.banner_image && page_data.user.profile.banner_image !== 'profile-banner-missing.png')
       ? ('/static/style/img/profile_images/users/' + page_data.user._id + '/' + page_data.user.profile.banner_image)
-      : '/static/style/img/standard/standard_banner.png'; %>
-<div id="profile_header" class="profile-hero" style="background-image: url('<%= __banner %>');">
+      : '/static/style/img/standard/standard_banner.png';
+  var __canEditImages = (typeof user !== 'undefined' && user && page_data && page_data.user && String(user._id) === String(page_data.user._id));
+  var __basePath = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
+    ? '/' + page_data.user.profile.custom_url
+    : '/' + page_data.user._id;
+  var __isPremiumPlan = !!(page_data && page_data.user && page_data.user.account && page_data.user.account.plan === 'premium');
+%>
+<div id="profile_header" class="profile-hero<%= __canEditImages ? ' profile-hero--editable' : '' %>" style="background-image: url('<%= __banner %>');">
     
     <div class="container">
         <div class="container profile-hero__inner">
@@ -11,7 +18,16 @@
             <% var __avatar = (page_data.user && page_data.user.profile && page_data.user.profile.profile_image && page_data.user.profile.profile_image !== 'profile-picture-missing.png')
                 ? ('/static/style/img/profile_images/users/' + page_data.user._id + '/' + page_data.user.profile.profile_image)
                 : '/static/style/img/standard/standard_avatar.png'; %>
-            <img class="profile-hero__avatar" src="<%= __avatar %>" alt="">
+            <div class="profile-hero__avatar-wrap<%= __canEditImages ? ' profile-hero__avatar-wrap--editable' : '' %>">
+              <img class="profile-hero__avatar" src="<%= __avatar %>" alt="">
+              <% if (__canEditImages) { %>
+                <label class="profile-hero__avatar-edit" for="profileAvatarFileInline" title="Change profile picture" id="profile_avatar_edit_btn">
+                  <i class="fas fa-camera"></i>
+                  <span>Change</span>
+                </label>
+                <input type="file" id="profileAvatarFileInline" name="profilePictureFile" accept="image/*" class="profile-hero__file-input">
+              <% } %>
+            </div>
             <div class="profile-hero__meta">
                 <h1 class="profile-hero__name"><%= page_data.user.local.username %></h1>
                 <% 
@@ -37,14 +53,11 @@
         </div>
         <div class="profile-hero__actions">
             <%
-              var basePath = (page_data.user.profile.custom_url && page_data.user.profile.custom_url !== '')
-                ? '/' + page_data.user.profile.custom_url
-                : '/' + page_data.user._id;
               var friendsCount = (typeof page_data.friends_count !== 'undefined' && page_data.friends_count !== null)
                 ? page_data.friends_count
                 : null;
             %>
-            <a class="profile-hero__friends" href="<%= basePath %>/friends" title="Friends">
+            <a class="profile-hero__friends" href="<%= __basePath %>/friends" title="Friends">
                 <% if (friendsCount !== null) { %>
                     <span><%= friendsCount %></span>
                 <% } %>
@@ -58,6 +71,16 @@
             <% } %>
         </div>
     </div>
+    <% if (__canEditImages) { %>
+      <button type="button"
+              class="profile-hero__banner-edit"
+              id="profile_banner_edit_btn"
+              title="Change banner image">
+        <i class="fas fa-camera"></i>
+        <span>Change banner</span>
+      </button>
+      <input type="file" id="profileBannerFileInline" name="profileBannerFile" accept="image/*" class="profile-hero__file-input">
+    <% } %>
     <div class="profile-hero__overlay"></div>
 
     </div>
@@ -74,3 +97,121 @@
         <%- include(`../partials/profile/${page_subFile}.ejs`) %>
     </div>
 </div>
+
+<% if (__canEditImages) { %>
+<script>
+  (function(){
+    try {
+      var __isAdmin = <%= JSON.stringify(!!(user && user.permissions && user.permissions.level && user.permissions.level.admin)) %>;
+      var maxBytes = __isAdmin ? null : (<%= __isPremiumPlan ? (8*1024*1024) : (5*1024*1024) %>);
+      // Always post to the canonical ObjectId-based settings route to avoid
+      // issues when the profile is viewed via a custom URL slug.
+      var settingsUrl = "/<%= page_data.user._id %>/settings?ajax=1";
+      var avatarInput = document.getElementById('profileAvatarFileInline');
+      var bannerInput = document.getElementById('profileBannerFileInline');
+      var avatarWrap = document.querySelector('.profile-hero__avatar-wrap--editable');
+      var avatarBtn = document.getElementById('profile_avatar_edit_btn');
+      var bannerBtn = document.getElementById('profile_banner_edit_btn');
+      var headerEl = document.getElementById('profile_header');
+
+      function showMessage(msg, kind){
+        try {
+          if (window.showToast) { showToast(msg, kind || 'info'); }
+          else { alert(msg); }
+        } catch(_) {}
+      }
+
+      function validateFile(file){
+        try {
+          if (!file) return null;
+          if (maxBytes && file.size > maxBytes){
+            var mb = Math.floor(maxBytes/1024/1024);
+            return 'File is too large. Max ' + mb + 'MB for your plan.';
+          }
+        } catch(_) {}
+        return null;
+      }
+
+      function uploadImage(kind, file){
+        var err = validateFile(file);
+        if (err){
+          showMessage(err, 'warning');
+          return;
+        }
+        var fd = new FormData();
+        if (kind === 'avatar') fd.append('profilePictureFile', file);
+        if (kind === 'banner') fd.append('profileBannerFile', file);
+        fd.append('quickImageUpload', '1');
+        fetch(settingsUrl, {
+          method: 'POST',
+          body: fd
+        })
+        .then(function(r){
+          if (!r.ok){
+            try { return r.json().then(function(j){ throw j; }); }
+            catch(_) { throw { message: 'Failed to update image' }; }
+          }
+          return r.json();
+        })
+        .then(function(){
+          // Reload to reflect new image + stats
+          try { showMessage('Profile image updated', 'success'); } catch(_) {}
+          window.location.reload();
+        })
+        .catch(function(err){
+          var msg = (err && err.message) || 'Failed to update image';
+          showMessage(msg, 'error');
+        });
+      }
+
+      if (avatarBtn && avatarInput){
+        avatarBtn.addEventListener('click', function(e){
+          try {
+            e.preventDefault();
+            avatarInput.click();
+          } catch(_) {}
+        });
+      }
+      // Manage banner button visibility so it doesn't show when hovering avatar
+      if (headerEl && bannerBtn){
+        headerEl.addEventListener('mouseenter', function(){
+          bannerBtn.classList.add('is-visible');
+        });
+        headerEl.addEventListener('mouseleave', function(){
+          bannerBtn.classList.remove('is-visible');
+        });
+      }
+      if (avatarWrap && bannerBtn){
+        avatarWrap.addEventListener('mouseenter', function(){
+          bannerBtn.classList.remove('is-visible');
+        });
+        avatarWrap.addEventListener('mouseleave', function(){
+          bannerBtn.classList.add('is-visible');
+        });
+      }
+      if (bannerBtn && bannerInput){
+        bannerBtn.addEventListener('click', function(e){
+          try {
+            e.preventDefault();
+            bannerInput.click();
+          } catch(_) {}
+        });
+      }
+      if (avatarInput){
+        avatarInput.addEventListener('change', function(){
+          var f = (avatarInput.files && avatarInput.files[0]) || null;
+          if (!f) return;
+          uploadImage('avatar', f);
+        });
+      }
+      if (bannerInput){
+        bannerInput.addEventListener('change', function(){
+          var f = (bannerInput.files && bannerInput.files[0]) || null;
+          if (!f) return;
+          uploadImage('banner', f);
+        });
+      }
+    } catch(_) {}
+  })();
+</script>
+<% } %>

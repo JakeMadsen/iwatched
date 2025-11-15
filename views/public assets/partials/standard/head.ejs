@@ -9,6 +9,7 @@
     ? String(page_description)
     : 'Track, remember, and share your movies and shows. Build your complete watch history and stats.';
   var __abs = (typeof abs_url !== 'undefined' && abs_url) ? String(abs_url) : 'https://iwatched.app';
+  var __ogImage = (typeof og_image !== 'undefined' && og_image) ? String(og_image) : 'https://iwatched.app/static/style/img/standard/standard_banner.png';
 %>
 <title><%= __titleOut %></title>
 
@@ -26,11 +27,11 @@
 <meta property="og:type" content="website">
 <link rel="canonical" href="<%= __abs %>">
 <meta property="og:url" content="<%= __abs %>">
-<meta property="og:image" content="https://iwatched.app/static/style/img/standard/standard_banner.png">
+<meta property="og:image" content="<%= __ogImage %>">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<%= __titleOut %>">
 <meta name="twitter:description" content="<%= __desc %>">
-<meta name="twitter:image" content="https://iwatched.app/static/style/img/standard/standard_banner.png">
+<meta name="twitter:image" content="<%= __ogImage %>">
 
 <!-- Structured data: preferred site name + logo + search action -->
 <script type="application/ld+json">
